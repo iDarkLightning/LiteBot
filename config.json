@@ -1,0 +1,27 @@
+{
+    "token": "TOKEN",
+    "prefix": "PREFIX",
+    "server_logo": "DIRECT LINK TO SERVER LOGO",
+
+    "members_role": "ID FOR MEMBERS ROLE",
+    "operator_role": "ID FOR OPERATORS ROLE",
+    "auto_role": "ID FOR AUTO ROLE",
+
+    "scalable_voice": {
+        "category_id": "(Remove Quotations) CATEGORY ID FOR SCALABLE VOICE",
+        "add_channel_id": "(Remove Quotations) ADD CHANNEL ID FOR SCALABLE VOICE"
+    },
+
+    "servers": {
+        "name": {
+            "server_ip": "SERVERIP:PORT",
+            "server_ip_numerical": "SERVER IP WITHOUT PORT",
+            "server_rcon_port": "(Remove Quotations) SERVER'S RCON PORT",
+            "server_rcon_password": "SERVER'S RCON PASSWORD",
+            "operator": "(True/False) IS OPERATOR ROLE REQUIRED TO EXECUTE COMMANDS TO THIS SERVER?",
+            "backup_directory": "PATH TO WHERE BACKUPS WILL BE STORED",
+            "world_directory": "PATH TO SERVER'S WORLD DIRECTORY"
+            }
+
+    }
+}
