@@ -34,7 +34,6 @@ class help_command(commands.Cog):
                     if str(command) not in ['unload', 'reload', 'load', 'clear']:
                         utils.help_embed(embed, command, ctx)
 
-        embed.set_footer(text='[Full Documentation Here](https://github.com/iDarkLightning/LiteBot/blob/master/commands/commands.md)')
         await ctx.send(embed=embed)
 
 def setup(bot):
