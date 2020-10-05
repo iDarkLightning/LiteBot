@@ -1,14 +1,8 @@
 import discord
 from discord.utils import get
 from discord.ext import commands
-import json
 
 bot = discord.Client()
-
-
-with open('config.json') as json_file:
-    config = json.load(json_file)
-
 
 class discord_management(commands.Cog):
 

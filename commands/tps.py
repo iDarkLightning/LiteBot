@@ -6,11 +6,10 @@ import mcrcon
 from mcrcon import MCRcon
 import re
 import time
+import bot as main
 
 bot = discord.Client()
-
-with open ('config.json') as json_file:
-    config = json.load(json_file) 
+config = main.config
 
 class tps(commands.Cog):
     

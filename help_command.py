@@ -11,8 +11,6 @@ import bot as main
 
 bot = discord.Client()
 
-# with open('config.json') as json_file:
-#     config = json.load(json_file)
 config = main.config
 
 class help_command(commands.Cog):
@@ -36,6 +34,7 @@ class help_command(commands.Cog):
                     if str(command) not in ['unload', 'reload', 'load', 'clear']:
                         utils.help_embed(embed, command, ctx)
 
+        embed.set_footer(text='[Full Documentation Here](https://github.com/iDarkLightning/LiteBot/blob/master/commands/commands.md)')
         await ctx.send(embed=embed)
 
 def setup(bot):

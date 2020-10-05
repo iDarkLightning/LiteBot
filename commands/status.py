@@ -5,12 +5,10 @@ import requests
 import re
 import datetime
 from datetime import datetime
+import bot as main
 
 bot = discord.Client()
-
-with open('config.json') as json_file:
-    config = json.load(json_file)
-
+config = main.config
 
 class Status(commands.Cog):
 

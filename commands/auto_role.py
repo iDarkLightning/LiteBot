@@ -1,13 +1,10 @@
 import discord
 from discord.utils import get
 from discord.ext import commands
-import json
+import bot as main
 
 bot = discord.Client()
-
-
-with open ('config.json') as json_file:
-    config = json.load(json_file) 
+config = main.config
 
 class auto_role(commands.Cog):
     

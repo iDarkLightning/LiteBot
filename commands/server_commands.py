@@ -4,12 +4,10 @@ from discord.utils import get
 import json
 import mcrcon
 from mcrcon import MCRcon
-
+import bot as main
 
 bot = discord.Client()
-
-with open ('config.json') as json_file:
-    config = json.load(json_file) 
+config = main.config
 
 class server_commands(commands.Cog):
     

@@ -8,12 +8,10 @@ from PIL import Image, ImageDraw, ImageFont
 import math
 import io
 import utils
-
+import bot as main
 
 bot = discord.Client()
-
-with open ('config.json') as json_file:
-    config = json.load(json_file)
+config = main.config
 
 with open ('scoreboards.json') as json_file:
     scoreboards = json.load(json_file) 

@@ -7,11 +7,10 @@ import re
 import datetime
 from datetime import datetime
 import utils
+import bot as main
 
 bot = discord.Client()
-
-with open('config.json') as json_file:
-    config = json.load(json_file)
+config = main.config
 
 with open('./commands/modules.json', 'r') as f:
     modules = json.loads(f.read())
@@ -31,7 +30,6 @@ class cog_loading(commands.Cog):
             f.write(json.dumps(modules))
         await ctx.send(embed=discord.Embed(title=f'{extension} loaded'))
 
-
     @commands.command(brief='`unload <cog_name>` unloads a cog')
     @commands.has_permissions(administrator=True)
     async def unload(self, ctx, extension):
@@ -40,7 +38,6 @@ class cog_loading(commands.Cog):
         with open ('./commands/modules.json', 'w') as f:
             f.write(json.dumps(modules))
         await ctx.send(embed=discord.Embed(title=f'{extension} unloaded'))
-    
     
     @commands.command(brief='`reload <cog_name>` reloads a cog')
     @commands.has_permissions(administrator=True)

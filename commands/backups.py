@@ -10,10 +10,10 @@ from stat import S_ISREG, ST_CTIME, ST_MODE
 import os
 import sys
 import time
+import json
+import bot as main
 
-with open('config.json') as json_file:
-    config = json.load(json_file)
-
+config = main.config
 
 class backups(commands.Cog):
 
@@ -40,7 +40,6 @@ class backups(commands.Cog):
                 return
             else:
                 embed = await ctx.send(embed=discord.Embed(title=f'Creating Backup `{backup_name}`', color=0xADD8E6))
-
                 shutil.make_archive(f'{config["servers"][server_name]["backup_directory"]}/{backup_name}', 'zip', config["servers"][server_name]["world_directory"])
                 embed.delete()
                 await ctx.send(embed=discord.Embed(title=f'Backup `{backup_name}` created'))
