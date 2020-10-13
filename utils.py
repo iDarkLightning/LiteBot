@@ -5,9 +5,8 @@ import discord
 import json
 from discord.ext import commands, flags
 from discord.utils import get
-
-with open('config.json') as json_file:
-    config = json.load(json_file)
+import mcrcon
+from mcrcon import MCRcon
 
 def scoreboard_image(sort_scores, objective_name):
     players = []
@@ -69,7 +68,7 @@ def scoreboard_image(sort_scores, objective_name):
     image =  discord.File(filename="scoreboard.png", fp=final_buffer)
     return image
 
-def help_embed(embed, command, ctx):
+def help_embed(config, embed, command, ctx):
     role = discord.utils.get(ctx.message.author.guild.roles, id=(int(config["members_role"])))
     operator_role = discord.utils.get(ctx.message.author.guild.roles, id=(int(config["operator_role"])))
     if role not in ctx.message.author.roles:
@@ -85,4 +84,7 @@ def help_embed(embed, command, ctx):
         else:
             embed.add_field(name=f'{str(command).capitalize()} Command', value=f'{command.brief}', inline=False)
     return embed
-    
+
+def rcon_connect(server_name, config):
+    rcon = MCRcon(config["servers"][server_name]["server_ip_numerical"], config["servers"][server_name]["server_rcon_password"], config["servers"][server_name]["server_rcon_port"])
+    return rcon

@@ -4,6 +4,7 @@ from discord.utils import get
 import json
 import bot as main
 
+bot = discord.Client()
 config = main.config
 
 class scalable_voice(commands.Cog):

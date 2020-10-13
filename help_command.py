@@ -27,14 +27,12 @@ class help_command(commands.Cog):
         else:
             if ctx.message.author.guild_permissions.manage_messages:
                 for command in self.client.commands:
-                    if str(command) not in ['unload', 'reload', 'load']:
-                        utils.help_embed(embed, command, ctx)                    
+                    if str(command) not in ['unload', 'reload', 'load', 'ticket']:
+                        utils.help_embed(config, embed, command, ctx)                    
             else:
                 for command in self.client.commands:
                     if str(command) not in ['unload', 'reload', 'load', 'clear']:
-                        utils.help_embed(embed, command, ctx)
-
-        embed.set_footer(text='[Full Documentation Here](https://github.com/iDarkLightning/LiteBot/blob/master/commands/commands.md)')
+                        utils.help_embed(config, embed, command, ctx)
         await ctx.send(embed=embed)
 
 def setup(bot):

@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import json
-import re
 import datetime
 from datetime import datetime
 import shutil
@@ -13,6 +12,7 @@ import time
 import json
 import bot as main
 
+bot = discord.Client()
 config = main.config
 
 class backups(commands.Cog):

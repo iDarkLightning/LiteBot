@@ -2,10 +2,8 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 import json
-import mcrcon
-from mcrcon import MCRcon
-import re
 import time
+import utils
 import bot as main
 
 bot = discord.Client()
@@ -19,7 +17,7 @@ class tps(commands.Cog):
     @commands.command(brief="`tps <server_name>` Returns the server's TPS", aliases=['mspt'])
     @commands.has_role(int(config["members_role"]))
     async def tps(self, ctx, server_name):
-        rcon = MCRcon(config["servers"][server_name.lower()]["server_ip_numerical"], config["servers"][server_name.lower()]["server_rcon_password"], config["servers"][server_name.lower()]["server_rcon_port"])
+        rcon = utils.rcon_connect(server_name, config)
         rcon.connect()
         resp = rcon.command('/script run reduce(last_tick_times(),_a+_,0)/100;')
         mspt = (resp.split()[1])

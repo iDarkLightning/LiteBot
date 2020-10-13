@@ -2,11 +2,6 @@ import discord
 from discord.ext import commands, flags
 from discord.utils import get
 import json
-import mcrcon
-from mcrcon import MCRcon
-from PIL import Image, ImageDraw, ImageFont
-import math
-import io
 import utils
 import bot as main
 
@@ -26,9 +21,8 @@ class scoreboard(commands.Cog):
     async def scoreboard(self, ctx, objective_name, **flags):
         servers = config["servers"]
         server_name = next(iter(servers))
-        rcon = MCRcon(
-            config["servers"][server_name]["server_ip_numerical"], config["servers"][server_name]["server_rcon_password"], config["servers"][server_name]["server_rcon_port"])
-        
+        rcon = utils.rcon_connect(server_name, config)
+
         def Convert(string):
                 li = list(string.split(" "))
                 return li
@@ -42,6 +36,7 @@ class scoreboard(commands.Cog):
         sami_datapack_check = rcon.command(f'/scoreboard players get {Convert(player_list)[1]} boman')
         if 'unknown' not in sami_datapack_check:
             using_sami_datapack = True
+            print(using_sami_datapack)
         else:
             using_sami_datapack = False
 
