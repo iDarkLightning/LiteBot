@@ -1,0 +1,8 @@
+{
+    "spreadsheet_name": "NAME OF SPREADSHEET",
+    "guild_id": "GUILD ID",
+    "applications_category": "ID FOR APP CHANNELS",
+    "discord_name_question": "QUESTION TO RETRIEVE DISCORD NAME",
+    "ingame_name_question": "QUESTION TO RETRIEVE IN GAME NAME",
+    "voting_channel": "ID FOR VOTING CHANNEL"
+}

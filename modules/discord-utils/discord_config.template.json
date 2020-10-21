@@ -1,0 +1,8 @@
+{
+    "auto_role-id": "ID FOR AUTO ROLE",
+
+    "scalable_voice": {
+        "category_id": "CATEGORY ID FOR SCALABLE VOICE",
+        "add_channel_id": "ADD CHANNEL ID"
+    }
+}

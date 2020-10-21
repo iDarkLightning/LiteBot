@@ -8,7 +8,7 @@ from discord.utils import get
 import mcrcon
 from mcrcon import MCRcon
 
-def scoreboard_image(sort_scores, objective_name):
+def scoreboard_image(sort_scores, objective_name, scores_value):
     players = []
     scores_value = []
 
@@ -29,7 +29,7 @@ def scoreboard_image(sort_scores, objective_name):
     red = "#FF5555"
     white = "#FFFFFF"
     spacing = 1
-    font = ImageFont.truetype(font="minecraft.ttf", size = 20)
+    font = ImageFont.truetype(font="./system/utils/minecraft.ttf", size = 20)
 
     draw = ImageDraw.Draw(Image.new("1", (1,1)))
 
@@ -67,23 +67,6 @@ def scoreboard_image(sort_scores, objective_name):
 
     image =  discord.File(filename="scoreboard.png", fp=final_buffer)
     return image
-
-def help_embed(config, embed, command, ctx):
-    role = discord.utils.get(ctx.message.author.guild.roles, id=(int(config["members_role"])))
-    operator_role = discord.utils.get(ctx.message.author.guild.roles, id=(int(config["operator_role"])))
-    if role not in ctx.message.author.roles:
-        if str(command) not in ['run', 'tps', 'status', 'scoreboard', 'backup']:
-                embed.add_field(name=f'{str(command).capitalize()} Command', value=f'{command.brief}', inline=False)
-        if operator_role in ctx.message.author.roles:
-            if str(command) == 'backup':
-                embed.add_field(name=f'{str(command).capitalize()} Command', value=f'{command.brief}', inline=False)
-    else:
-        if operator_role not in ctx.message.author.roles:
-            if str(command) != 'backup':
-                embed.add_field(name=f'{str(command).capitalize()} Command', value=f'{command.brief}', inline=False)  
-        else:
-            embed.add_field(name=f'{str(command).capitalize()} Command', value=f'{command.brief}', inline=False)
-    return embed
 
 def rcon_connect(server_name, config):
     rcon = MCRcon(config["servers"][server_name]["server_ip_numerical"], config["servers"][server_name]["server_rcon_password"], config["servers"][server_name]["server_rcon_port"])

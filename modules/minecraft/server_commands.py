@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 import json
-import utils
+import system.utils.utils as utils
 import bot as main
 
 bot = discord.Client()

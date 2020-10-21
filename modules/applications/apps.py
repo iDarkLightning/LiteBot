@@ -6,7 +6,7 @@ from discord.utils import get
 
 bot = discord.Client()
 
-with open('./applications/application_config.json') as json_file:
+with open('./modules/applications/application_config.json') as json_file:
     config = json.load(json_file)
 
 class applications(commands.Cog):
@@ -15,13 +15,14 @@ class applications(commands.Cog):
         self.client = bot
         self.new_application.start()
     
-    gc = gspread.service_account('./applications/creds.json')
+    gc = gspread.service_account('./modules/applications/creds.json')
     sh = gc.open(config['spreadsheet_name'])
     worksheet = sh.get_worksheet(0)
     current_applications = len(worksheet.get_all_values())
 
     @commands.Cog.listener()
     async def on_ready(self):
+        print("Applications are online!")
         self.guild = self.client.get_guild(config['guild_id'])
         self.voting_channel = voting_channel = discord.utils.get(self.guild.text_channels, id=config['voting_channel'])
 
@@ -41,7 +42,17 @@ class applications(commands.Cog):
         embed = discord.Embed(title=f"{data[config['ingame_name_question']]}'s application".upper(), color=0xADD8E6)
         for question in data:
             if question != 'Timestamp':
-                embed.add_field(name=question, value=data[question], inline=False)
+                if len(data[question]) > 1024:
+                    parts = [data[question][i:i+1024] for i in range(0, len(data[question]), 1024)]
+                    for i in range((len(parts))):
+                        if i == 0:
+                            embed.add_field(name=question, value=parts[i], inline=False)
+                        elif i > 0:
+                            embed.add_field(name='^ Extended', value=parts[i], inline=False)
+                else:
+                    if data[question]:
+                        embed.add_field(name=question, value=data[question], inline=False)
+        
         embed.set_footer(text=data['Timestamp'])
         message = await channel.send(embed=embed)
         await message.pin()

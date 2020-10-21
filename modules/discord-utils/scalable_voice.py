@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 import json
-import bot as main
 
 bot = discord.Client()
-config = main.config
+with open('./modules/discord-utils/discord_config.json') as json_file:
+    config = json.load(json_file)
 
 class scalable_voice(commands.Cog):
 

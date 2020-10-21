@@ -1,6 +1,10 @@
 /.idea
 /.vscode
-/__pycache__
-/command/__pycache__
-/applications/__pycache__
+*.pyc
+__pycache__/
+hangman.db
+hangman.db-journal
 config.json
+creds.json
+application_config.json
+discord_config.json

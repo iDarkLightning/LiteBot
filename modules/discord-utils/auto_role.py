@@ -1,10 +1,11 @@
 import discord
 from discord.utils import get
 from discord.ext import commands
-import bot as main
+import json
 
 bot = discord.Client()
-config = main.config
+with open('./modules/discord-utils/discord_config.json') as json_file:
+    config = json.load(json_file)
 
 class auto_role(commands.Cog):
     
@@ -13,7 +14,7 @@ class auto_role(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        role = get(member.guild.roles, id=(int(config["auto_role"])))
+        role = get(member.guild.roles, id=(config["auto_role"]))
         await member.add_roles(role)
 
 def setup(bot):

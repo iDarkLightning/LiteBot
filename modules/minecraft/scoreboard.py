@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, flags
 from discord.utils import get
 import json
-import utils
+import system.utils.utils as utils
 import bot as main
 
 bot = discord.Client()
@@ -36,7 +36,6 @@ class scoreboard(commands.Cog):
         sami_datapack_check = rcon.command(f'/scoreboard players get {Convert(player_list)[1]} boman')
         if 'unknown' not in sami_datapack_check:
             using_sami_datapack = True
-            print(using_sami_datapack)
         else:
             using_sami_datapack = False
 
@@ -58,7 +57,7 @@ class scoreboard(commands.Cog):
                     scores.update({player_name: objective_value})
                     sort_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
             
-            image = utils.scoreboard_image(sort_scores, objective_name)
+            image = utils.scoreboard_image(sort_scores, objective_name, scores_value=None)
             await ctx.send(file= image)
             rcon.disconnect()
 

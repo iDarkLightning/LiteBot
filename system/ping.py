@@ -21,7 +21,7 @@ class ping(commands.Cog):
             title='Checking Latency',
             colour=discord.Colour.blue(),
             timestamp=datetime.now())
-            .set_footer(text='{ctx.author}#{0.discriminator}'.format(ctx.author), icon_url=ctx.author.avatar_url))
+            .set_footer(text='{0.display_name}#{0.discriminator}'.format(ctx.author), icon_url=ctx.author.avatar_url))
 
         after = time.time()
         latency = after - before
@@ -30,7 +30,7 @@ class ping(commands.Cog):
             title='Latency',
             colour=(0xADD8E6),
             timestamp=datetime.now())
-            .add_field(name='WebSocket Latency', value='{0:.2f}ms'.format(bot.latency * 1000))
+            .add_field(name='WebSocket Latency', value='{0:.2f}ms'.format(self.client.latency * 1000))
             .add_field(name='HTTP Latency', value='{0:.2f}ms'.format(latency * 1000))
             .set_footer(text='{0.display_name}#{0.discriminator}'.format(ctx.author), icon_url=ctx.author.avatar_url))
 
