@@ -33,13 +33,13 @@ for filename in os.listdir('./modules'):
             if module.endswith('.py') and modules[filename][module[:-3]] == True:
                 bot.load_extension(f'modules.{filename}.{module[:-3]}')
 
-# @bot.event
-# async def on_command_error(ctx, error):
-#     if isinstance(error, commands.CheckFailure):
-#         await ctx.send(embed=discord.Embed(title='You do not have permission to execute this command', color=0xFF0000))    
-#     elif isinstance(error, commands.CommandInvokeError):
-#         await ctx.send(embed=discord.Embed(title='This command was used improperly', color=0xFF0000))
-#     else:
-#         raise error
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.send(embed=discord.Embed(title='You do not have permission to execute this command', color=0xFF0000))    
+    elif isinstance(error, commands.CommandInvokeError):
+        await ctx.send(embed=discord.Embed(title='This command was used improperly', color=0xFF0000))
+    else:
+        raise error
 
 bot.run(config["token"])
