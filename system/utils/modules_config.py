@@ -31,7 +31,10 @@ for filename in os.listdir('./modules'):
                             f.write(json.dumps(modules, sort_keys=True, indent=4, separators=(',', ':')))
                 else:
                     nest_create(modules, filename)
-                    modules[filename][module] = True
+                    if filename == 'minecraft':
+                        modules[filename][module] = True
+                    else:
+                        modules[filename][module] = False
                     with open ('./modules.json', 'w') as f:
                         f.write(json.dumps(modules, sort_keys=True, indent=4, separators=(',', ':')))
 

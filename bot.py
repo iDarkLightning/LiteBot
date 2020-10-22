@@ -36,7 +36,7 @@ for filename in os.listdir('./modules'):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckFailure):
-        await ctx.send(embed=discord.Embed(title='You do not have permission to execute this command', color=0xFF0000))    
+        await ctx.send(embed=discord.Embed(title='You do not have permission to execute this command', color=0xFF0000))
     elif isinstance(error, commands.CommandInvokeError):
         await ctx.send(embed=discord.Embed(title='This command was used improperly', color=0xFF0000))
     else:
