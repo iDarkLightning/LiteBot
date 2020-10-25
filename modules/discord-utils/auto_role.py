@@ -14,7 +14,7 @@ class auto_role(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        role = get(member.guild.roles, id=(config["auto_role"]))
+        role = get(member.guild.roles, id=(config["auto_role-id"]))
         await member.add_roles(role)
 
 def setup(bot):

@@ -32,7 +32,7 @@ for filename in os.listdir('./modules'):
         for module in os.listdir(f'./modules/{filename}'):
             if module.endswith('.py') and modules[filename][module[:-3]] == True:
                 bot.load_extension(f'modules.{filename}.{module[:-3]}')
-
+                
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckFailure):

@@ -2,9 +2,11 @@
 /.vscode
 *.pyc
 __pycache__/
-hangman.db
-hangman.db-journal
+*.db
+*.db-journal
 config.json
 creds.json
 application_config.json
 discord_config.json
+modules.json
+test.py
