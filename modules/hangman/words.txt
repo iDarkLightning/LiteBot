@@ -7521,7 +7521,6 @@ effort
 effusion
 effusive
 eft
-e.g
 egalitarian
 Egan
 egg
@@ -11594,7 +11593,6 @@ idol
 idolatry
 idyll
 idyllic
-i.e
 IEEE
 if
 iffy
@@ -17384,7 +17382,6 @@ pharmacology
 pharmacopoeia
 pharmacy
 phase
-Ph.D
 PhD
 pheasant
 Phelps
@@ -24109,10 +24106,8 @@ Ursula
 Ursuline
 Uruguay
 urushiol
-U.S
 u's
 us
-U.S.A
 USA
 usable
 USAF
