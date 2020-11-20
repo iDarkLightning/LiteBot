@@ -16,6 +16,7 @@ Then create a discord application [here](https://discordpy.readthedocs.io/en/lat
 Ensure that you have developer mode enabled on discord [here](https://discordia.me/en/developer-mode)
 
 ## Configuring the Bot
+RENAME ALL .TEMPLATE.JSON to .JSON
 
 Within the server `server.properties`of your server(s) configure these properties:
 * `broadcast-rcon-to-ops` should be set to `false` in order to ensure the log files are not cluttered from bot usage
