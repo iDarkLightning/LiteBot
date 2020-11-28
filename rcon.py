@@ -86,8 +86,6 @@ class MCRcon(object):
     def get_bridge(self):
         bridge_channel = self.command('/discord bridge')
         if 'Unknown' in bridge_channel:
-            using_lta = False
-            return [using_lta, None]
+            return None
         else:
-            using_lta = True
-            return [using_lta, int(bridge_channel.replace('[', '').replace(']', ''))]
+            return int(bridge_channel.replace('[', '').replace(']', ''))

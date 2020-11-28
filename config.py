@@ -1,5 +1,6 @@
 import json
 
+
 class BotConfig:
     def __init__(self, path='config.json'):
         self._config = {}
@@ -25,7 +26,7 @@ class BotConfig:
         with open(self.file_path, 'w') as config:
             config.write(json.dumps(self._config, indent=4, separators=(',', ':')))
 
-    #Enables an extension and writes config
+    # Enables an extension and writes config
     def add_module_config(self, name, module_config):
         if name == 'main':
             return
@@ -36,18 +37,16 @@ class BotConfig:
             return
 
         try:
-            print('mhm')
             self._config['modules'][name]['config'] = module_config
             self._config['modules'][name]['enabled'] = True
         except KeyError:
-            print('key error module loading')
             self._config['modules'] = {}
             self._config['modules'][name] = {}
             self._config['modules'][name]['config'] = module_config
             self._config['modules'][name]['enabled'] = True
         self.save()
 
-    #Disables an extension
+    # Disables an extension
     def disable_config(self, name):
         if name == 'main':
             return
@@ -60,25 +59,25 @@ class BotConfig:
             self._config['modules'][name]['enabled'] = False
         self.save()
 
-    #Set's a Cog's value to True
+    # Set's a Cog's value to True
     def enable_cog(self, module, cog):
         self._config['modules'][f'modules.{module}']['cogs'] = {}
         self._config['modules'][f'modules.{module}']['cogs'][cog] = True
         self.save()
 
-    #Sets a Cog's Value to False
+    # Sets a Cog's Value to False
     def disable_cog(self, module, cog):
         self._config['modules'][f'modules.{module}']['cogs'][cog] = False
         self.save()
 
-    #Loads the servers info
+    # Loads the servers info
     def set_servers(self):
         servers = {}
         for server in self._config['servers']:
-            servers[server] = self._config['servers']
+            servers[server] = self._config['servers'][server]
         return servers
 
-    #Checks if there is a config available for the module
+    # Checks if there is a config available for the module
     def config_exists(self, name):
         try:
             config_exists = self._config['modules'][name]
@@ -87,5 +86,4 @@ class BotConfig:
             else:
                 return False
         except KeyError:
-            exists = False
-        return exists
+            return False
