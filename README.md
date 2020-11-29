@@ -1,7 +1,7 @@
 # LiteBot
 LiteBot is a minecraft linking discord bot with other various utilities. It was created for the technical minecraft server [LiteTech](http://discord.litetech.cf). If you would like to use it you can set it up by following the instructions below.
 
-##Installation
+## Installation
 Firstly, ensure that you have [Python 3.9](https://www.python.org/downloads/), and [pip](https://pip.pypa.io/en/stable/installing/) installed.
 
 Then install all the requirements with
@@ -51,7 +51,7 @@ in order to prevent them loading. **You must restart the bot for these changes t
 In order to disable an entire module, you can use the `module` command directly from discord. In order to disable you will have to use the 
 `module_config.json` (for now)
 
-##Run
+## Run
 To start the bot, simply run the `bot.py`
 
 If you require any help, feel free to contact me through the LiteTech discord server.
