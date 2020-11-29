@@ -14,7 +14,7 @@ Then create a discord application [here](https://discordpy.readthedocs.io/en/lat
 Ensure that you have developer mode enabled on discord [here](https://discordia.me/en/developer-mode)
 
 ## Configuring the Bot
-#####RENAME ALL `.TEMPLATE.JSON` to `.JSON`
+**RENAME ALL `.TEMPLATE.JSON` to `.JSON`**
 
 Within the server `server.properties`of your server(s) configure these properties:
 * `broadcast-rcon-to-ops` should be set to `false` in order to ensure the log files are not cluttered from bot usage
@@ -41,7 +41,7 @@ Within `config.json` configure the following properties ()
     * `backup_directory` path to the directory where backups will be stored
     * `world_directory` path to the server's world directory
 
-###Module Configurations
+##Module Configurations
 After you first run the bot, the `modules_config.json` will be generated with all the configurations you need to fill in for these modules.
 In order to use any of these modules, simple change the `enabled` to `true` and fill in the config if applicable. After you run the bot with
 the extension enabled, a list of all the available `cogs` will be added to the module's config. You can then switch any of these cogs to false
