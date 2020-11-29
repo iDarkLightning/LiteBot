@@ -11,8 +11,9 @@ class Backups(commands.Cog):
     def __init__(self, client):
         self.client = client
         for server in self.client.servers:
-            Path(f'{self.client.servers[server]["backup_directory"]}\\manual').mkdir(exist_ok=True)
-            Path(f'{self.client.servers[server]["backup_directory"]}\\weekly').mkdir(exist_ok=True)
+            Path(os.path.join(self.client.servers[server]["backup_directory"], 'manual')).mkdir(exist_ok=True)
+            Path(os.path.join(self.client.servers[server]["backup_directory"], 'weekly')).mkdir(exist_ok=True)
+
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -32,6 +33,7 @@ class Backups(commands.Cog):
 
     @tasks.loop(hours=24.0)
     async def routine_backups(self):
+        print('Backups going brr')
         current_daily_backups = []
         for server in self.client.servers:
             info = f'Server: {server}\nMade By: {self.client.user} ({self.client.user.id})\nTime of Creation: {datetime.utcnow()}'
@@ -52,15 +54,15 @@ class Backups(commands.Cog):
         world_dir = self.client.servers[server]['world_directory']
 
         if backup_type != 'daily':
-            backup_dir = f'{self.client.servers[server]["backup_directory"]}\\{backup_type}'
+            backup_dir = os.path.join(self.client.servers[server]["backup_directory"], backup_type)
         else:
             backup_dir = f'{self.client.servers[server]["backup_directory"]}'
 
-        with zipfile.ZipFile(f'{backup_dir}\\{backup_name}.zip', 'w', compression=zipfile.ZIP_DEFLATED) as zip_file:
+        with zipfile.ZipFile(f'{os.path.join(backup_dir, backup_name)}.zip', 'w', compression=zipfile.ZIP_DEFLATED) as zip_file:
             for root, dirs, files in os.walk(world_dir):
                 for file in files:
                     path = os.path.join(root, file)
-                    zip_file.write(path, f'backup\\{os.path.relpath(path, start=world_dir)}')
+                    zip_file.write(path, os.path.join('backup', os.path.relpath(path, start=world_dir)))
             zip_file.writestr('info.txt', info)
 
         return backup_name

@@ -15,7 +15,8 @@ class ScoreBoard(commands.Cog):
         aliases=['sb'])
     async def scoreboard(self, ctx, objective_name, **flag):
         server_name = next(iter(self.client.servers))
-        rcon = self.client.rcons[server_name]['rcon']
+        rcon_details = self.client.rcons[server_name]['rcon']
+        rcon = MCRcon(rcon_details[0], rcon_details[1], rcon_details[2])
 
         if flag['all']:
             player_list = rcon.command('/scoreboard players list')

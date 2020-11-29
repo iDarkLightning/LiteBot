@@ -22,7 +22,8 @@ class ServerCommands(commands.Cog):
                 command = ' '.join(args)
 
         operator_server = self.client.servers[server_name.lower()]['operator']
-        rcon = self.client.rcons[server_name.lower()]['rcon']
+        rcon_details = self.client.rcons[server_name]['rcon']
+        rcon = MCRcon(rcon_details[0], rcon_details[1], rcon_details[2])
         if operator_server:
             operator_role = get(ctx.author.guild.roles, id=self.client.config['operator_role'][0])
             if operator_role in ctx.author.roles:
@@ -35,3 +36,4 @@ class ServerCommands(commands.Cog):
             response = rcon.command(f'/{command}')
             if response:
                 await ctx.send(f'''```{response}```''')
+

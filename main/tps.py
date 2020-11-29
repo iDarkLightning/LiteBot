@@ -11,7 +11,8 @@ class Tps(commands.Cog):
         if server_name is None:
             server_name = get_server(self.client, ctx)
 
-        rcon = self.client.rcons[server_name.lower()]['rcon']
+        rcon_details = self.client.rcons[server_name]['rcon']
+        rcon = MCRcon(rcon_details[0], rcon_details[1], rcon_details[2])
         response = rcon.command('/script run reduce(last_tick_times(),_a+_,0)/100;')
         mspt = round(float(response.split()[1]), 1)
 
