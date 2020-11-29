@@ -1,0 +1,5 @@
+discord.py
+discord-flags
+pillow
+requests
+gspread
