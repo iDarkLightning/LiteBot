@@ -33,5 +33,5 @@ required for your module. If your module does not require a config, you can simp
 
 *Please note that any errors you may face whilst writing your own module is completely on you. If you follow all the instructions
 properly, this should not be an issue*
-##Contribute
+## Contribute
 Feel free to make a pull request if you feel your module would be a good addition to the bot!
