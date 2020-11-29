@@ -1,4 +1,4 @@
-#Modules
+# Modules
 Modules are used to add custom exentions and commands that are not related to minecraft. The current available modules are:
 
 * `applications`: Creates an application system that links to a google form and creates a ticket automatically upon receiving
@@ -6,7 +6,7 @@ a new submission in the google form.
 * `discor_utils`: Adds various discord utils, such as a `clear` command, `auto_role`, and `scalable_voice`
 * `games`: Will contain all the games that the bot supports, currently only adds the hangman game
 
-##Add your own module
+## Add your own module
 Modules are a great way to implement features of our own within the bot. The steps to do so are found below:
 
 First create this hierarchy within the `modules` directory:
