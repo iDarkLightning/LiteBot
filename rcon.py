@@ -82,10 +82,3 @@ class MCRcon(object):
         result = self._send(2, command)
         time.sleep(0.003)  # MC-72390 workaround
         return result
-
-    def get_bridge(self):
-        bridge_channel = self.command('/discord bridge')
-        if 'Unknown' in bridge_channel:
-            return None
-        else:
-            return int(bridge_channel.replace('[', '').replace(']', ''))

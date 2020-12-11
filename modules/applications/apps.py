@@ -13,6 +13,7 @@ class Applications(commands.Cog):
             application_embed text) """)
         self.gc = gspread.service_account('./modules/applications/creds.json')
         self.config = self.client.module_config['applications']['config']
+        self.application_category = self.config['applications_category']
         spreadsheet = self.gc.open_by_url(self.config['spreadsheet_url'])
         self.worksheet = spreadsheet.get_worksheet(0)
         self.current_applications = len(self.worksheet.get_all_values())
@@ -21,7 +22,6 @@ class Applications(commands.Cog):
     async def on_ready(self):
         self.guild = self.client.get_guild(self.client.guild_id)
         self.voting_channel = get(self.guild.text_channels, id=self.config['voting_channel'])
-        self.application_category = self.config['applications_category']
         self.new_application.start()
 
     @tasks.loop(seconds=10)

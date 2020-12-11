@@ -8,10 +8,6 @@ class TicketCommands(commands.Cog):
         self.cursor = self.client.db.cursor()
         self.config = self.client.module_config['applications']['config']
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        ...
-
     @commands.command(brief='`ticket view|archive` View the application or archive the channel')
     @perms_check('members_role')
     async def ticket(self, ctx, action, status=None):
