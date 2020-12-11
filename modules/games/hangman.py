@@ -3,6 +3,8 @@ from utils.utils import *
 
 
 class Hangman():
+    COG_NAME = 'games.hangman'
+    
     instances = []
 
     def __init__(self, client, player, message, channel):

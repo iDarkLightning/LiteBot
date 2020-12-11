@@ -3,10 +3,16 @@ import json
 import ast
 
 class TicketCommands(commands.Cog):
+    COG_NAME = 'tickets'
+    
     def __init__(self, client):
         self.client = client
         self.cursor = self.client.db.cursor()
         self.config = self.client.module_config['applications']['config']
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        ...
 
     @commands.command(brief='`ticket view|archive` View the application or archive the channel')
     @perms_check('members_role')

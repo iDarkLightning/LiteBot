@@ -1,16 +1,13 @@
 from utils.utils import *
 
 class ScalableVoice(commands.Cog):
-
-    def __init__(self, bot):
-        self.client = bot
-        self.config = self.client.module_config['discord_utils']['config']
-
+    COG_NAME = 'utils.scalable_voice'
+    
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-
-        category_id = self.config["scalable_voice"]["category_id"]
-        add_channel_id = self.config["scalable_voice"]["add_channel_id"]
+        category_id = self.config["category_id"]
+        add_channel_id = self.config["add_channel_id"]
+        
         guild = member.guild
         category = discord.utils.get(guild.categories, id=category_id)
 

@@ -47,7 +47,7 @@ In order to use any of these modules, simple change the `enabled` to `true` and 
 the extension enabled, a list of all the available `cogs` will be added to the module's config. You can then switch any of these cogs to false
 in order to prevent them loading. **You must restart the bot for these changes to take effect**
 
-## Maintaining the bot
+##Maintaining the bot
 In order to disable an entire module, you can use the `module` command directly from discord. In order to disable you will have to use the 
 `module_config.json` (for now)
 

@@ -69,8 +69,8 @@ def scoreboard_image(sort_scores, objective_name, scores_value):
     draw.text(title_pos, text=title, font=font, fill=white)
     draw.text(total_pos, text='Total', font=font, fill=white)
     draw.text(total_value_pos, total, font=font, align="right", fill=red, spacing=1)
-    draw.multiline_text(players_pos, players_final, font=font, fill=grey, spacing=1)
-    draw.multiline_text(scores_pos, scores_final, font=font, align="right", fill=red, spacing=1)
+    draw.multiline_text((players_pos), players_final, font=font, fill=grey, spacing=1)
+    draw.multiline_text((scores_pos), scores_final, font=font, align="right", fill=red, spacing=1)
 
     final_buffer = io.BytesIO()
     final_buffer.seek(0)

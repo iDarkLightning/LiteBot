@@ -1,9 +1,0 @@
-{
-  "main": {
-    "Backups": false,
-    "ScoreBoard": true,
-    "ServerCommands": true,
-    "Status": true,
-    "Tps": true
-  }
-}

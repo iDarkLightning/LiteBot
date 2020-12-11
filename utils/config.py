@@ -1,158 +1,73 @@
-import json
-import os
-import importlib
+import json, discord
 
-class BotConfig:
-    def __init__(self, main_path='config.json', module_path='modules_config.json'):
-        self._config = {}
-        self._module_config = {}
-        self.file_path = main_path
-        self.module_path = module_path
-        self.load()
-        self.load_module_config()
-        self.init_module_config()
+class ConfigMap(dict):
+    def __init__(self, value=None):
+        super().__init__(self)
 
-    def __setitem__(self, key, value):
-        return self.set(key, value)
+        if value:
+            self.update(value)
 
-    def __getitem__(self, item):
-        return self.get(item)
+    def get(self, key, default=None):
+        # Allow . lookup when using `get`
+        if '.' in key:
+            key_items = key.split('.', 1)
 
-    def get(self, key):
-        return self._config[key]
+            if len(key_items) == 2:
+                sub_config = self.get(key_items[0], {})
+
+                # Recurse to perform next lookup
+                return sub_config.get(key_items[1], default)
+        
+        # Value lookup
+        value = dict.get(self, key,  default)
+
+        # Convert dictionaries back to ConfigMap's so you can use dotted access
+        if isinstance(value, dict):
+            return ConfigMap(value=value)
+
+        return value
 
     def set(self, key, value):
-        self._config[key] = value
+        if isinstance(value, dict):
+            value = ConfigMap(value=value)
 
-    def load(self):
-        with open(self.file_path, 'r') as config:
-            self._config = json.loads(config.read())
-    
-    def save(self):
-        with open(self.file_path, 'w') as config:
-            config.write(json.dumps(self._config, indent=4, separators=(',', ':')))
+        dict.__setattr__(self, key, value)
 
-    def load_module_config(self):
-        try:
-            with open(self.module_path, 'r') as module_config:
-                module_config = json.loads(module_config.read())
-                self._config['modules'] = module_config
-        except FileNotFoundError:
-            with open(self.module_path, 'w') as module_config:
-                json.dump({}, module_config)
+    def __getattr__(self, key):
+        return self.get(key)
+
+    def __setattr__(self, key, value):
+        self.set(key, value)
+
+    def get_colour(self, key, default=None):
+        if key in self.get('colours', {}):
+            return discord.Colour(self['colours'][key])
+
+        if default:
+            return default
+
+        raise AttributeError(key)
+
+    __getitem__ = __getattr__
+    __setitem__ = __setattr__
+    __delitem__ = dict.__delattr__
     
-    def save_module_config(self):
-        with open(self.module_path, 'w') as module_config:
-            module_config.write(json.dumps(self._config['modules'], indent=4, separators=(',', ':')))
+class BotConfig(ConfigMap):
+    def __init__(self, config_location='config.json'):
+        super().__init__(self)
+
+        self._config_location = config_location
+
+    def load_from_file(self):
+        with open(self._config_location, 'r') as f:
+            self.update(json.load(f))
+
+        print(self)
+
+    def save_to_file(self):
+        with open(self._config_location, 'w') as f:
+            json.dump(self, f)
             
-
-    # Enables an extension and writes config
-    def init_module_config(self):
-        modules = list(
-            filter(lambda path: os.path.isdir(f'./modules/{path}') and path != '__pycache__', os.listdir('./modules')))
-        module_config = self._config['modules']
-        for module in modules:
-            if self.module_exists(module):
-                if module_config[module]['enabled'] is not True:
-                    module_config[module]['enabled'] = False
-
-                config_func = self.get_config(module)
-                config = config_func()
-
-                if config:
-                    if self.module_config(module) is not False:
-                        if config.keys() != self.module_config(module).keys():
-                            module_config[module]['config'] = config
-                    else:
-                        module_config[module]['config'] = config
-                else:
-                    if self.module_config(module) is not False:
-                        del module_config[module]['config']
-            else:
-                config_func = self.get_config(module)
-                config = config_func()
-                module_config[module] = {}
-                module_config[module]['enabled'] = False
-                if config:
-                    module_config[module]['config'] = config
-        self.save_module_config()
-
-
-    def get_config(self, module):
-        spec = importlib.util.find_spec(f'modules.{module}')
-        lib = importlib.util.module_from_spec(spec)
-
-        try:
-            spec.loader.exec_module(lib)
-        except Exception as e:
-            raise Exception
-
-        try:
-            config = getattr(lib, 'config')
-            return config
-        except AttributeError as e:
-            raise AttributeError
-
-    #Enables an extension
-    def enable_config(self, name):
-        if name == 'main':
-            return
-
-        config = self._config['modules']
-
-        try:
-            config[name]['enabled'] = True
-        except KeyError as error:
-            print(error)
-        self.save_module_config()
-
-    # Disables an extension
-    def disable_config(self, name):
-        if name == 'main':
-            return
-
-        config = self._config['modules']
-
-        try:
-            config[name]['enabled'] = False
-        except KeyError as error:
-            print(error)
-        self.save_module_config()
-
-    # Set's a Cog's value to True
-    def enable_cog(self, module, cog):
-        config = self._config['modules']
-
-        try:
-            config[module]['cogs'][cog] = True
-        except KeyError:
-            config[module]['cogs'] = {}
-            config[module]['cogs'][cog] = True
-        self.save_module_config()
-
-    # Sets a Cog's Value to False
-    def disable_cog(self, module, cog):
-        self._config['modules'][module]['cogs'][cog] = False
-        self.save()
-
-    # Loads the servers info
-    def set_servers(self):
-        servers = {}
-        for server in self._config['servers']:
-            servers[server] = self._config['servers'][server]
-        return servers
-
-    # Checks if there is a module already
-    def module_exists(self, name):
-        try:
-            module_exists = self._config['modules'][name]
-            return True
-        except KeyError:
-            return False
-
-    def module_config(self, name):
-        try:
-            module_config = self._config['modules'][name]['config']
-            return module_config
-        except KeyError:
-            return False
+def setup(bot):
+    bot.config = BotConfig()
+    bot.config.load_from_file()

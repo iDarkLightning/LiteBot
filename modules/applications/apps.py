@@ -1,8 +1,7 @@
-import gspread
-from utils.utils import *
-
+import gspread, discord
 
 class Applications(commands.Cog):
+    COG_NAME = 'applications'
     def __init__(self, client):
         self.client = client
         self.cursor = self.client.db.cursor()
@@ -11,9 +10,21 @@ class Applications(commands.Cog):
             user_id integer,
             application text,
             application_embed text) """)
+
+    async def on_cog_load(self):
+        if not self.config.get('spreadsheet_url'):
+            raise ValueError('Missing a spreadsheet URL')
+
+        if not self.config.get('applications_category'):
+            raise ValueError('Missing an applications category')
+
+        if not self.config.get('voting_channel'):
+            raise ValueError('Missing a voting channel')
+
+        if not self.config.get('discord_name_question'):
+            raise ValueError('Missing a discord name question')
+        
         self.gc = gspread.service_account('./modules/applications/creds.json')
-        self.config = self.client.module_config['applications']['config']
-        self.application_category = self.config['applications_category']
         spreadsheet = self.gc.open_by_url(self.config['spreadsheet_url'])
         self.worksheet = spreadsheet.get_worksheet(0)
         self.current_applications = len(self.worksheet.get_all_values())
@@ -21,7 +32,8 @@ class Applications(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.guild = self.client.get_guild(self.client.guild_id)
-        self.voting_channel = get(self.guild.text_channels, id=self.config['voting_channel'])
+        self.voting_channel = discord.utils.get(self.guild.text_channels, id=self.config['voting_channel'])
+        self.application_category = self.config['applications_category']
         self.new_application.start()
 
     @tasks.loop(seconds=10)

@@ -1,12 +1,13 @@
 from utils.utils import *
 
-
 class AutoRole(commands.Cog):
-    def __init__(self, bot):
-        self.client = bot
-        self.config = self.client.module_config['discord_utils']['config']
+    COG_NAME = 'utils.auto_role'
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        role = get(member.guild.roles, id=(self.config["auto_role_id"]))
-        await member.add_roles(role)
+        if not hasattr(self.config, 'role_ids'):
+            return
+        
+        for role in member.guild.roles:
+            if role.id in self.config['role_ids']:
+                await member.add_roles(role, reason='Auto-Role')

@@ -1,24 +1,17 @@
-from LiteBot import LiteBot
-import json
-import platform
-from utils.utils import *
+import discord
+from discord.ext import commands
 
-bot = LiteBot()
-bot.init_modules()
-bot.system_commands()
+async def command_prefix(bot, message):
+    prefixes = bot.config.get('prefixes', ['.'])
+    prefixes.append(bot.user.mention)
 
-@bot.event
-async def on_ready():
-    print(bot.user)
+    return prefixes
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CheckFailure):
-        await ctx.send(embed=discord.Embed(title='You do not have permission to execute this command', color=0xFF0000))
-    elif isinstance(error, commands.CommandInvokeError):
-        await ctx.send(embed=discord.Embed(title='This command was used improperly', color=0xFF0000))
-    else:
-        raise error
+bot = commands.Bot(command_prefix=command_prefix)
 
-bot.run(bot.token)
+bot.load_extension('utils.config')
+bot.load_extension('utils.error_handling')
+bot.load_extension('utils.cog_loader')
 
+if __name__ == '__main__':
+    bot.run(bot.config.get('token'))

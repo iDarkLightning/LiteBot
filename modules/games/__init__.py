@@ -1,7 +1,4 @@
-from modules.games import hangman
+from . import hangman
 
 def setup(bot):
-    bot.load_cog('games', hangman.HangmanGame(bot))
-
-def config():
-    return None
+    bot.cog_loader.load(hangman.HangmanGame(bot))
