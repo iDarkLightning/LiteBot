@@ -37,3 +37,34 @@ class ServerCommands(commands.Cog):
             if response:
                 await ctx.send(f'''```{response}```''')
 
+    @commands.command(brief="`whitelist <player_name>` Whitelists a player on all servers and OPS them where possible")
+    @perms_check('operator_role')
+    async def whitelist(self, ctx, action, player_name):
+        whitelists = []
+        ops = []
+        for server in self.client.servers:
+            rcon_details = self.client.rcons[server]['rcon']
+            rcon = MCRcon(rcon_details[0], rcon_details[1], rcon_details[2])
+
+            if action.lower() == "add" or "remove":
+                whitelist_resp = rcon.command(f"/whitelist {action} {player_name}")
+                if player_name in whitelist_resp:
+                    whitelists.append(server)
+
+            if not self.client.servers[server]["operator"]:
+                if action.lower() == "add":
+                    op_resp = rcon.command(f"/op {player_name}")
+                    if "Nothing" not in op_resp:
+                        ops.append(server)
+                elif action.lower() == "remove":
+                    op_resp = rcon.command(f"/deop {player_name}")
+                    if "Nothing" not in op_resp:
+                        ops.append(server)
+
+        if action.lower() == "add":
+            await ctx.send(f"```Whitelisted {player_name} on {len(whitelists)} servers. Oped {player_name} on {len(ops)} servers```")
+        elif action.lower() == "remove":
+            await ctx.send(f"```Unwhitelisted {player_name} on {len(whitelists)} servers. Deoped {player_name} on {len(ops)} servers```")
+
+
+

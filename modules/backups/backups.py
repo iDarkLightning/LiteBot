@@ -33,7 +33,7 @@ class Backups(commands.Cog):
 
     @tasks.loop(hours=24.0)
     async def routine_backups(self):
-        print('Backups going brr')
+        print("Starting Routine Backups...")
         current_daily_backups = []
         for server in self.client.servers:
             info = f'Server: {server}\nMade By: {self.client.user} ({self.client.user.id})\nTime of Creation: {datetime.utcnow()}'

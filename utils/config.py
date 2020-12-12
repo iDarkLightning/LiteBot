@@ -10,7 +10,6 @@ class BotConfig:
         self.module_path = module_path
         self.load()
         self.load_module_config()
-        self.init_module_config()
 
     def __setitem__(self, key, value):
         return self.set(key, value)
@@ -44,54 +43,6 @@ class BotConfig:
     def save_module_config(self):
         with open(self.module_path, 'w') as module_config:
             module_config.write(json.dumps(self._config['modules'], indent=4, separators=(',', ':')))
-            
-
-    # Enables an extension and writes config
-    def init_module_config(self):
-        modules = list(
-            filter(lambda path: os.path.isdir(f'./modules/{path}') and path != '__pycache__', os.listdir('./modules')))
-        module_config = self._config['modules']
-        for module in modules:
-            if self.module_exists(module):
-                if module_config[module]['enabled'] is not True:
-                    module_config[module]['enabled'] = False
-
-                config_func = self.get_config(module)
-                config = config_func()
-
-                if config:
-                    if self.module_config(module) is not False:
-                        if config.keys() != self.module_config(module).keys():
-                            module_config[module]['config'] = config
-                    else:
-                        module_config[module]['config'] = config
-                else:
-                    if self.module_config(module) is not False:
-                        del module_config[module]['config']
-            else:
-                config_func = self.get_config(module)
-                config = config_func()
-                module_config[module] = {}
-                module_config[module]['enabled'] = False
-                if config:
-                    module_config[module]['config'] = config
-        self.save_module_config()
-
-
-    def get_config(self, module):
-        spec = importlib.util.find_spec(f'modules.{module}')
-        lib = importlib.util.module_from_spec(spec)
-
-        try:
-            spec.loader.exec_module(lib)
-        except Exception as e:
-            raise Exception
-
-        try:
-            config = getattr(lib, 'config')
-            return config
-        except AttributeError as e:
-            raise AttributeError
 
     #Enables an extension
     def enable_config(self, name):
@@ -141,18 +92,3 @@ class BotConfig:
         for server in self._config['servers']:
             servers[server] = self._config['servers'][server]
         return servers
-
-    # Checks if there is a module already
-    def module_exists(self, name):
-        try:
-            module_exists = self._config['modules'][name]
-            return True
-        except KeyError:
-            return False
-
-    def module_config(self, name):
-        try:
-            module_config = self._config['modules'][name]['config']
-            return module_config
-        except KeyError:
-            return False

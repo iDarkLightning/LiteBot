@@ -1,5 +1,4 @@
 from utils.utils import *
-import json
 import ast
 
 class TicketCommands(commands.Cog):

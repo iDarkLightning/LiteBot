@@ -1,11 +1,12 @@
+import importlib
+import inspect
 import discord
 from discord.ext import commands
 import datetime
 from datetime import datetime
-from rcon import MCRcon
 from utils.config import BotConfig
 import sqlite3
-import os
+import os, sys, traceback
 
 
 class LiteBot(commands.Bot):
@@ -17,21 +18,52 @@ class LiteBot(commands.Bot):
         self.module_config = self.config['modules']
         self.servers = self.config.set_servers()
         self.rcons = self.init_rcons()
+        self.flags = sys.argv
         self.db = sqlite3.connect('litebot.db')
         self.guild_id = self.config['main_guild_id']
-        self.__extensions = {}
 
     # Loads all available modules if they are enabled in config, else sets config to false
     def init_modules(self):
         self.load_extension('main')
         modules = list(
             filter(lambda path: os.path.isdir(f'./modules/{path}') and path != '__pycache__', os.listdir('./modules')))
+
         for module in modules:
+            spec = importlib.util.find_spec(f"modules.{module}")
+            lib = importlib.util.module_from_spec(spec)
+
             try:
-                if self.module_config[module]['enabled']:
-                    self.load_extension(f'modules.{module}')
-            except KeyError:
-                print(module)
+                spec.loader.exec_module(lib)
+            except Exception as e:
+                print(e)
+
+            if hasattr(lib, "config"):
+                config = getattr(lib, "config")
+                if "enabled" not in config or config["enabled"] is not True:
+                    config["enabled"] = False
+
+                for key in config:
+                    if module in self.module_config:
+                        if not key in self.module_config[module]:
+                            self.module_config[module][key] = config[key]
+                    else:
+                        self.module_config[module] = config
+            else:
+                if module not in self.module_config or self.module_config[module]["enabled"] is not True:
+                    self.module_config[module] = {"enabled": False}
+
+            enabled = self.module_config[module]["enabled"]
+            if hasattr(lib, "requirements"):
+                requirements = getattr(lib, "requirements")
+                if requirements(self) and enabled:
+                    super().load_extension(f"modules.{module}")
+                    print(f"Loaded {module}")
+            else:
+                if enabled:
+                    super().load_extension(f"modules.{module}")
+                    print(f"Loaded {module}")
+
+        self.config.save_module_config()
 
     # Initalizes rcon objects for all servers in config and gets bridge channel if using LTA
     def init_rcons(self):
@@ -80,15 +112,46 @@ class LiteBot(commands.Bot):
                 print(e)
                 await ctx.send(f'An error occuring {action.lower()}ing that module')
 
+    def error_handler(self):
+        @self.event
+        async def on_command_error(ctx, error):
+            if isinstance(error, commands.CommandNotFound):
+                return
+
+            await generic_error_handler(ctx, error)
+
+        async def generic_error_handler(ctx, error):
+            if "-dev" in self.flags:
+                stack_trace = "".join(traceback.format_exception(
+                    type(error),
+                    error,
+                    error.__traceback__
+                ))
+
+                await ctx.send(embed=discord.Embed(
+                    title= "Uh oh!",
+                    description= f"An unknown exception occured\n```\n{stack_trace}\n```",
+                    color= 15158332
+                ))
+
+            else:
+                await ctx.send(embed=discord.Embed(
+                    title="Uh oh!",
+                    description = "An unknown exception has occured, please report this to the developers",
+                    color = 15158332
+                ))
+
+
     # Loads a cog if is enabled in config
-    def load_cog(self, module, cog):
-        if module == 'main':
-            if self.module_config[module][cog.__cog_name__]:
-                super().add_cog(cog)
+    def add_cog(self, cog, main=False):
+        if main:
+            super().add_cog(cog)
             return
 
+        module = os.path.split(os.path.relpath(inspect.getmodule(cog).__file__, "./modules"))[0]
+
         try:
-            if self.module_config[module]['cogs'][cog.__cog_name__]:
+            if self.module_config[module]["cogs"][cog.__cog_name__]:
                 super().add_cog(cog)
         except KeyError:
             self.config.enable_cog(module, cog.__cog_name__)

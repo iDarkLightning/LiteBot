@@ -1,15 +1,16 @@
 from . import apps, ticket_commands
 
 def setup(bot):
-    bot.load_cog('applications', apps.Applications(bot))
-    bot.load_cog('applications', ticket_commands.TicketCommands(bot))
+    bot.add_cog(apps.Applications(bot))
+    bot.add_cog(ticket_commands.TicketCommands(bot))
 
-def config():
-    apps_config = {
+def requirements(bot):
+    return len(bot.module_config['applications']['spreadsheet_url']) > 1
+
+config = {
         "spreadsheet_url": "",
         "applications_category": 1,
         "archives_category": 1,
         "discord_name_question": "",
         "voting_channel": 1
     }
-    return apps_config

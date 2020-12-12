@@ -4,7 +4,7 @@ class ScalableVoice(commands.Cog):
 
     def __init__(self, bot):
         self.client = bot
-        self.config = self.client.module_config['discord_utils']['config']
+        self.config = self.client.module_config['discord_utils']
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):

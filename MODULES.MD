@@ -17,19 +17,19 @@ modules/<module_name>
 /Cog.py
 ``` 
 
-Your `__init__` must contain two functions `setup` and `config`, as shown below.
+Your `__init__` must contain a function `setup`, and can contain a `config` property as well as a `requirements` function,
+which must return a boolean value.
 
 ```python
 def setup(bot):
-    bot.load_cog('<module_name>', commands.Cog)
+    bot.add_cog('<module_name>',commands.Cog)
 
-def config():
-    return {'a': 'b'}
+def requirements():
+    return 1 > 0
+
+config = {"a": 1}
+
 ```
-
-We use a custom `load_cog` method instead of the standard `add_cog` in order to properly write the config. The first argument
-will be the module name, and the second will be an instance of `commands.Cog`. The config function is used to write the config
-required for your module. If your module does not require a config, you can simply return `None` instead of a `dict`
 
 *Please note that any errors you may face whilst writing your own module is completely on you. If you follow all the instructions
 properly, this should not be an issue*

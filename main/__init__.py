@@ -1,9 +1,9 @@
-from main import status, tps, server_commands, scoreboard, backups
+from main import status, tps, server_commands, scoreboard
+from modules.backups import backups
 
 
 def setup(bot):
-    bot.load_cog('main', status.Status(bot))
-    bot.load_cog('main', tps.Tps(bot))
-    bot.load_cog('main', server_commands.ServerCommands(bot))
-    bot.load_cog('main', scoreboard.ScoreBoard(bot))
-    bot.load_cog('main', backups.Backups(bot))
+    bot.add_cog(status.Status(bot), True)
+    bot.add_cog(tps.Tps(bot), True)
+    bot.add_cog(server_commands.ServerCommands(bot), True)
+    bot.add_cog(scoreboard.ScoreBoard(bot), True)
