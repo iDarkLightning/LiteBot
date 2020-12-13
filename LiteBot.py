@@ -13,7 +13,7 @@ import os, sys, traceback
 class LiteBot(commands.Bot):
     def __init__(self):
         self.config = BotConfig()
-        super(LiteBot, self).__init__(command_prefix=self.config['prefix'], intents=discord.Intents.all(),
+        super().__init__(command_prefix=self.config['prefix'], intents=discord.Intents.all(),
                                       help_command=None)
         self.token = self.config['token']
         self.module_config = self.config['modules']
@@ -25,7 +25,7 @@ class LiteBot(commands.Bot):
 
     # Loads all available modules if they are enabled in config, else sets config to false
     def init_modules(self):
-        self.load_extension('main')
+        super().load_extension('main')
         modules = list(
             filter(lambda path: os.path.isdir(f'./modules/{path}') and path != '__pycache__', os.listdir('./modules')))
 
@@ -77,7 +77,7 @@ class LiteBot(commands.Bot):
                 self.servers[server]['server_rcon_port']
             ]
             rcons[server]['rcon'] = rcon_details
-            bridge_channel_id  = self.servers[server]['bridge_channel_id']
+            bridge_channel_id = self.servers[server]['bridge_channel_id']
             if bridge_channel_id != 1:
                 rcons[server]['bridge_channel'] = bridge_channel_id
             else:
@@ -125,22 +125,23 @@ class LiteBot(commands.Bot):
                 stack_trace = "".join(traceback.format_exception(
                     type(error),
                     error,
-                    error.__traceback__
-                ))
+                    error.__traceback__))
 
-                await ctx.send(embed=discord.Embed(
-                    title= "Uh oh!",
-                    description= f"An unknown exception occured\n```\n{stack_trace}\n```",
-                    color= 15158332
-                ))
-
-            else:
                 await ctx.send(embed=discord.Embed(
                     title="Uh oh!",
-                    description = "An unknown exception has occured, please report this to the developers",
-                    color = 15158332
-                ))
+                    description=f"An unknown exception occured\n```\n{stack_trace}\n```",
+                    color=15158332))
 
+            else:
+                embed = discord.Embed(title="Uh oh!", color=15158332)
+
+                if isinstance(error, commands.CommandInvokeError):
+                    embed.description = "This command was used improperly, please refer to the help panel"
+
+                if isinstance(error, commands.CheckFailure):
+                    embed.description = "You do not have permission to use this command, contact an admin if you think this is a mistake"
+
+                await ctx.send(embed=embed)
 
     # Loads a cog if is enabled in config
     def add_cog(self, cog, main=False):
