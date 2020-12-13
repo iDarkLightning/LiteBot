@@ -5,6 +5,7 @@ from discord.ext import commands
 import datetime
 from datetime import datetime
 from utils.config import BotConfig
+from utils import console
 import sqlite3
 import os, sys, traceback
 
@@ -57,11 +58,11 @@ class LiteBot(commands.Bot):
                 requirements = getattr(lib, "requirements")
                 if requirements(self) and enabled:
                     super().load_extension(f"modules.{module}")
-                    print(f"Loaded {module}")
+                    console.log(f"Loaded {module}")
             else:
                 if enabled:
                     super().load_extension(f"modules.{module}")
-                    print(f"Loaded {module}")
+                    console.log(f"Loaded {module}")
 
         self.config.save_module_config()
 
@@ -109,7 +110,6 @@ class LiteBot(commands.Bot):
                     self.unload_extension(f'modules.{module_name}')
                     self.config.disable_config(module_name)
             except commands.errors.ExtensionError as e:
-                print(e)
                 await ctx.send(f'An error occuring {action.lower()}ing that module')
 
     def error_handler(self):

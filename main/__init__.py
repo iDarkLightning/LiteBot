@@ -1,5 +1,4 @@
 from main import status, tps, server_commands, scoreboard
-from modules.backups import backups
 
 
 def setup(bot):

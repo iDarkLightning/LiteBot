@@ -1,4 +1,5 @@
 import gspread
+from utils import console
 from utils.utils import *
 
 
@@ -27,7 +28,7 @@ class Applications(commands.Cog):
     @tasks.loop(seconds=10)
     async def new_application(self):
         if len(self.worksheet.get_all_values()) > self.current_applications:
-            print('New Application Has Been Recieved!')
+            console.log('New Application Has Been Recieved!')
             self.current_applications += 1
             answers = self.worksheet.row_values(self.current_applications)
             questions = self.worksheet.row_values(1)
@@ -44,7 +45,7 @@ class Applications(commands.Cog):
             applicant = list(filter(lambda u: u.name == name[0] and u.discriminator == name[1], self.guild.members))[0]
             await channel.set_permissions(applicant, read_messages=True, send_messages=True, attach_files=True)
         except IndexError:
-            print('Invalid Discord Name Was Entered')
+            console.warn('Applicant applied with an invalid discord name!')
             await channel.send('Applicant applied with an invalid discord name, or have left the server')
             return
 
