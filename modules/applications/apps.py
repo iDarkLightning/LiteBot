@@ -27,12 +27,14 @@ class Applications(commands.Cog):
 
     @tasks.loop(seconds=10)
     async def new_application(self):
-        if len(self.worksheet.get_all_values()) > self.current_applications:
-            console.log('New Application Has Been Recieved!')
-            self.current_applications += 1
-            answers = self.worksheet.row_values(self.current_applications)
-            questions = self.worksheet.row_values(1)
-            await self.create_application(answers, questions)
+        try:
+            if len(self.worksheet.get_all_values()) > self.current_applications:
+                console.log('New Application Has Been Recieved!')
+                answers = self.worksheet.row_values(self.current_applications)
+                questions = self.worksheet.row_values(1)
+                await self.create_application(answers, questions)
+        except gspread.exceptions.APIError:
+            console.error("The proccess encountered an API Error!")
 
     async def create_application(self, answers, questions):
         application_full = dict(zip(questions, answers))
@@ -65,6 +67,7 @@ class Applications(commands.Cog):
             embed=discord.Embed(title=f'Vote on {name[0].upper()}', color=0xADD8E6))
         await voting_message.add_reaction('\N{THUMBS UP SIGN}')
         await voting_message.add_reaction('\N{THUMBS DOWN SIGN}')
+        self.current_applications += 1
 
     def create_embed(self, application):
         embed_max = 25
