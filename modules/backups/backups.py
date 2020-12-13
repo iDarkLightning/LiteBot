@@ -49,6 +49,7 @@ class Backups(commands.Cog):
                 for file in os.listdir(backups_path):
                     if os.path.isfile(os.path.join(backups_path, file)) and file not in current_daily_backups:
                         os.remove(os.path.join(self.client.servers[server]['backup_directory'], file))
+        console.log("Finished Routine Backups")
 
     def create_backup(self, server, backup_type, info):
         backup_name = f'[{server.upper()}] {datetime.utcnow().strftime("%m-%d-%y %H-%M-%S")}'

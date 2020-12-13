@@ -37,7 +37,7 @@ class ServerCommands(commands.Cog):
             if response:
                 await ctx.send(f'''```{response}```''')
 
-    @commands.command(brief="`whitelist <player_name>` Whitelists a player on all servers and OPS them where possible")
+    @commands.command(brief="`whitelist add|remove <player_name>` Whitelists a player on all servers and OPS them where possible")
     @perms_check('operator_role')
     async def whitelist(self, ctx, action, player_name):
         whitelists = []
