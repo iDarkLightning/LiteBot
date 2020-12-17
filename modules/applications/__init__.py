@@ -6,7 +6,7 @@ def setup(bot):
     bot.add_cog(ticket_commands.TicketCommands(bot))
 
 def requirements(bot):
-    return len(bot.module_config['applications']['spreadsheet_url']) > 1 and os.path.exists("./creds.json")
+    return len(bot.module_config['applications']['spreadsheet_url']) > 1 and os.path.exists("./modules/applications/creds.json")
 
 config = {
         "spreadsheet_url": "",
