@@ -22,7 +22,7 @@ which must return a boolean value.
 
 ```python
 def setup(bot):
-    bot.add_cog('<module_name>',commands.Cog)
+    bot.add_cog(commands.Cog)
 
 def requirements():
     return 1 > 0
