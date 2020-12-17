@@ -30,7 +30,7 @@ class Applications(commands.Cog):
         try:
             if len(self.worksheet.get_all_values()) > self.current_applications:
                 console.log('New Application Has Been Recieved!')
-                answers = self.worksheet.row_values(self.current_applications)
+                answers = self.worksheet.row_values(self.current_applications + 1)
                 questions = self.worksheet.row_values(1)
                 await self.create_application(answers, questions)
         except gspread.exceptions.APIError:
@@ -43,25 +43,24 @@ class Applications(commands.Cog):
         channel = await self.guild.create_text_channel(name=f'{name[0]} application',
                                                        category=self.client.get_channel(self.application_category))
 
-        try:
-            applicant = list(filter(lambda u: u.name == name[0] and u.discriminator == name[1], self.guild.members))[0]
-            await channel.set_permissions(applicant, read_messages=True, send_messages=True, attach_files=True)
-        except IndexError:
-            console.warn('Applicant applied with an invalid discord name!')
-            await channel.send('Applicant applied with an invalid discord name, or have left the server')
-            return
-
         embeds = self.create_embed(application)
         embed_dicts = [str(embed.to_dict()) for embed in embeds]
-
-        with self.client.db:
-            self.cursor.execute('INSERT INTO apps VALUES (?, ?, ?, ?)',
-                                (channel.id, applicant.id, str(application), '|'.join(embed_dicts)))
 
         for embed in embeds:
             embed_message = await channel.send(embed=embed)
             await embed_message.pin()
-        await channel.send(f'Thank you for applying {applicant.mention}. We will be with you shortly!')
+
+        try:
+            applicant = list(filter(lambda u: u.name == name[0] and u.discriminator == name[1], self.guild.members))[0]
+            await channel.set_permissions(applicant, read_messages=True, send_messages=True, attach_files=True)
+
+            with self.client.db:
+                self.cursor.execute('INSERT INTO apps VALUES (?, ?, ?, ?)',
+                                    (channel.id, applicant.id, str(application), '|'.join(embed_dicts)))
+            await channel.send(f'Thank you for applying {applicant.mention}. We will be with you shortly!')
+        except IndexError:
+            console.warn('Applicant applied with an invalid discord name!')
+            await channel.send('Applicant applied with an invalid discord name, or have left the server')
 
         voting_message = await self.voting_channel.send(
             embed=discord.Embed(title=f'Vote on {name[0].upper()}', color=0xADD8E6))

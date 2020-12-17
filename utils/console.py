@@ -17,7 +17,7 @@ def log(message):
         message))
 
 def warn(message):
-    stdout.write("%s[%s]%s %s%s%s" % (
+    stdout.write("%s[%s]%s %s%s%s\n" % (
         GRAY,
         format_time(),
         END,
@@ -27,7 +27,7 @@ def warn(message):
     ))
 
 def error(message):
-    stdout.write("%s[%s]%s %s%s%s" % (
+    stdout.write("%s[%s]%s %s%s%s\n" % (
         GRAY,
         format_time(),
         END,
