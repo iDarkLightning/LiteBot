@@ -13,7 +13,7 @@ class Applications(commands.Cog):
             application text,
             application_embed text) """)
         self.gc = gspread.service_account('./modules/applications/creds.json')
-        self.config = self.client.module_config['applications']['config']
+        self.config = self.client.module_config['applications']
         self.application_category = self.config['applications_category']
         spreadsheet = self.gc.open_by_url(self.config['spreadsheet_url'])
         self.worksheet = spreadsheet.get_worksheet(0)
