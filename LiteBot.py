@@ -2,6 +2,7 @@ import importlib
 import inspect
 import discord
 from discord.ext import commands
+from discord.utils import get
 import datetime
 from datetime import datetime
 from utils.config import BotConfig
@@ -121,7 +122,8 @@ class LiteBot(commands.Bot):
             await generic_error_handler(ctx, error)
 
         async def generic_error_handler(ctx, error):
-            if "-dev" in self.flags:
+            operator_role = get(ctx.author.guild.roles, id=self.config['operator_role'][0])
+            if "-dev" in self.flags or operator_role in ctx.author.roles:
                 stack_trace = "".join(traceback.format_exception(
                     type(error),
                     error,
