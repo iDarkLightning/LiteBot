@@ -11,7 +11,7 @@ class Quotes(commands.Cog):
                             messageID INTEGER,
                             quote TEXT)""")
 
-    @commands.command(brief="`quote this|add|view <number> to add a quote or view quotes")
+    @commands.command(brief="`quote this|add|view <number>` to add a quote or view quotes")
     async def quote(self, ctx, *args):
         if len(args) == 0 or args[0].isdigit():
             with self.client.db:
