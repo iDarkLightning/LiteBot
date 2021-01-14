@@ -11,6 +11,8 @@ import sqlite3
 import os, sys, traceback
 
 class LiteBot(commands.Bot):
+    VERSION = "2.2"
+
     def __init__(self):
         self.config = BotConfig()
         super().__init__(command_prefix=self.config['prefix'], intents=discord.Intents.all(),
@@ -100,6 +102,7 @@ class LiteBot(commands.Bot):
                     embed.add_field(name=f'{str(command).capitalize()} Command', value=f'{command.brief}', inline=False)
                 except commands.CheckFailure:
                     pass
+            embed.set_footer(text=f"Version: {LiteBot.VERSION}")
             await ctx.send(embed=embed)
 
         @self.command(brief='`module load|unload <module_name>`')

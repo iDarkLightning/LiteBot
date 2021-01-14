@@ -45,7 +45,10 @@ class ServerCommands(commands.Cog):
         for server in self.client.servers:
             rcon_details = self.client.rcons[server]['rcon']
 
-            rcon = MCRcon(rcon_details[0], rcon_details[1], rcon_details[2])
+            try:
+                rcon = MCRcon(rcon_details[0], rcon_details[1], rcon_details[2])
+            except ConnectionRefusedError:
+                continue
 
             if action.lower() == "add" or "remove":
                 whitelist_resp = rcon.command(f"/whitelist {action} {player_name}")
