@@ -44,6 +44,7 @@ class ServerCommands(commands.Cog):
         ops = []
         for server in self.client.servers:
             rcon_details = self.client.rcons[server]['rcon']
+
             rcon = MCRcon(rcon_details[0], rcon_details[1], rcon_details[2])
 
             if action.lower() == "add" or "remove":

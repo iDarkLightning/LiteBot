@@ -1,5 +1,7 @@
 discord.py
 discord-flags
-pillow
-requests
-gspread
+pillow~=8.0.1
+requests~=2.25.0
+gspread~=3.6.0
+
+aiohttp~=3.6.3

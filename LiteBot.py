@@ -10,16 +10,16 @@ from utils import console
 import sqlite3
 import os, sys, traceback
 
-
 class LiteBot(commands.Bot):
     def __init__(self):
         self.config = BotConfig()
         super().__init__(command_prefix=self.config['prefix'], intents=discord.Intents.all(),
                                       help_command=None)
         self.token = self.config['token']
+        self.secret = self.config['api_server']['secret']
         self.module_config = self.config['modules']
         self.servers = self.config.set_servers()
-        self.rcons = self.init_rcons()
+        self.rcons = self._init_rcons()
         self.flags = sys.argv
         self.db = sqlite3.connect('litebot.db')
         self.guild_id = self.config['main_guild_id']
@@ -27,6 +27,8 @@ class LiteBot(commands.Bot):
     # Loads all available modules if they are enabled in config, else sets config to false
     def init_modules(self):
         super().load_extension('main')
+        super().load_extension('api')
+
         modules = list(
             filter(lambda path: os.path.isdir(f'./modules/{path}') and path != '__pycache__', os.listdir('./modules')))
 
@@ -37,7 +39,7 @@ class LiteBot(commands.Bot):
             try:
                 spec.loader.exec_module(lib)
             except Exception as e:
-                print(e)
+                console.error(e)
 
             if hasattr(lib, "config"):
                 config = getattr(lib, "config")
@@ -68,7 +70,7 @@ class LiteBot(commands.Bot):
         self.config.save_module_config()
 
     # Initalizes rcon objects for all servers in config and gets bridge channel if using LTA
-    def init_rcons(self):
+    def _init_rcons(self):
         rcons = {}
         for server in self.config['servers']:
             rcons[server] = {}

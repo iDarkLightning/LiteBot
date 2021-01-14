@@ -7,6 +7,11 @@
     "members_role": [],
     "operator_role": [],
 
+    "api_server": {
+      "secret": "SECRET KEY FOR SIGNING API TOKENS (RECCOMENDED TO USE BOT'S CLIENT SECRET)",
+      "port": 8000
+    },
+
     "servers": {
         "name": {
             "server_ip": "SERVERIP:PORT",
