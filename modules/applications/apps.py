@@ -59,6 +59,9 @@ class Applications(commands.Cog):
                                     (channel.id, applicant.id, str(application), '|'.join(embed_dicts)))
             await channel.send(f'Thank you for applying {applicant.mention}. We will be with you shortly!')
         except IndexError:
+            with self.client.db:
+                self.cursor.execute('INSERT INTO apps VALUES (?, ?, ?, ?)',
+                                    (channel.id, 1, str(application), '|'.join(embed_dicts)))
             console.warn('Applicant applied with an invalid discord name!')
             await channel.send('Applicant applied with an invalid discord name, or have left the server')
 
