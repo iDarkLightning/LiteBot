@@ -9,7 +9,7 @@ class TicketCommands(commands.Cog):
         self.cursor = self.client.db.cursor()
         self.config = self.client.module_config['applications']
 
-    @commands.command(brief='`ticket view|archive` View the application or archive the channel')
+    @commands.command(brief='`ticket create|view|archive <application_number>` Create a ticket from application number or view the application or archive the channel.')
     @perms_check('members_role')
     async def ticket(self, ctx, action, num=None):
         with self.client.db:
