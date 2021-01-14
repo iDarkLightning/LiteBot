@@ -23,7 +23,7 @@ class WebServer(commands.Cog):
         add_routes(self.app, self.client)
         runner = web.AppRunner(self.app, access_log_class=AccessLogger)
         await runner.setup()
-        site = web.TCPSite(runner, "localhost", port)
+        site = web.TCPSite(runner, "0.0.0.0", port)
         await self.client.wait_until_ready()
         await site.start()
         console.log(f"Web Server is online on Port: {port}")
