@@ -30,6 +30,10 @@ Within `config.json` configure the following properties ()
 * `operator_role` ID of the role that will be able to execute commands on operator servers and create backups
 * `main_guild_id` ID of the main guild that the bot will be used in
 
+* `api_server` Configuration for the API Webserver
+    * `secret` The secret with which the JWT tokens will be signed. Reccomended to use client secret
+    * `port` The port that the server will run on, 8000 by default
+
 * `servers` Array of the configuration of all servers. You can add as many as you would like. If you are not comfortable with the JSON Structure you can read about it [here](https://www.digitalocean.com/community/tutorials/an-introduction-to-json):
     * `name` the name of the server, will be used for commands
     * `server_ip` server IP in format `ip:port`
