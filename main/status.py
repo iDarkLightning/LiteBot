@@ -8,7 +8,7 @@ class Status(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(brief='`status <server_name>` Displays server status')
+    @commands.command(brief='`status <server_name>` Displays server status', aliases=["s"])
     @perms_check('members_role')
     async def status(self, ctx, server_name=None):
         if server_name is None:
