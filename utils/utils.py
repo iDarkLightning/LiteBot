@@ -4,7 +4,6 @@ from discord.utils import get
 from PIL import Image, ImageDraw, ImageFont
 import math
 import io
-from rcon import MCRcon
 
 def get_server(client, ctx):
     server_name = list(filter(lambda server: ctx.message.channel.id == client.rcons[server]['bridge_channel'], client.rcons))

@@ -11,7 +11,7 @@ import sqlite3
 import os, sys, traceback
 
 class LiteBot(commands.Bot):
-    VERSION = "2.2"
+    VERSION = "2.2.1"
 
     def __init__(self):
         self.config = BotConfig()
