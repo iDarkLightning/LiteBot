@@ -5,7 +5,7 @@ class ListCommand(commands.Cog):
         self.client = client
 
     @commands.command(brief="`list <role>` list all members with a role")
-    async def list(self, ctx, role):
+    async def list(self, ctx, *, role):
         if role == "@everyone":
             await ctx.send(embed=discord.Embed(title="Not currently supported", color=0xFF0000))
             return
