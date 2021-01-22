@@ -7,6 +7,7 @@ from aiohttp.abc import AbstractAccessLogger
 from utils import console
 import jwt
 from aiohttp_jwt import JWTMiddleware
+from aiohttp_middlewares import cors_middleware
 
 class AccessLogger(AbstractAccessLogger):
 
@@ -16,7 +17,7 @@ class AccessLogger(AbstractAccessLogger):
 class WebServer(commands.Cog):
     def __init__(self, client, port):
         self.client = client
-        self.app = web.Application(middlewares=[JWTMiddleware(self.client.secret, algorithms=["HS256"])])
+        self.app = web.Application(middlewares=[JWTMiddleware(self.client.secret, algorithms=["HS256"]), cors_middleware(allow_all=True)])
         self.client.loop.create_task(self.init_webserver(port))
 
     async def init_webserver(self, port):
