@@ -3,8 +3,10 @@ Modules are used to add custom exentions and commands that are not related to mi
 
 * `applications`: Creates an application system that links to a google form and creates a ticket automatically upon receiving
 a new submission in the google form.
-* `discor_utils`: Adds various discord utils, such as a `clear` command, `auto_role`, and `scalable_voice`
+* `discord_utils`: Adds various discord utils, such as a `clear` command, `auto_role`, `list` command and `scalable_voice`
 * `games`: Will contain all the games that the bot supports, currently only adds the hangman game
+*  `backups` Server backups for minecraft (requires to be running on same computer)
+* `quotes` Save notable quotes
 
 ## Add your own module
 Modules are a great way to implement features of our own within the bot. The steps to do so are found below:
