@@ -1,6 +1,4 @@
 import json
-import os
-import importlib
 
 class BotConfig:
     def __init__(self, main_path='config.json', module_path='modules_config.json'):

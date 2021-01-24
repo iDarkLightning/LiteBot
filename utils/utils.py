@@ -4,6 +4,7 @@ from discord.utils import get
 from PIL import Image, ImageDraw, ImageFont
 import math
 import io
+from rcon import MCRcon
 
 def get_server(client, ctx):
     server_name = list(filter(lambda server: ctx.message.channel.id == client.rcons[server]['bridge_channel'], client.rcons))
@@ -20,6 +21,10 @@ def perms_check(config_role):
             raise commands.CheckFailure
         return True
     return commands.check(predicate)
+
+def check_role(member, role_ids):
+    roles = [get(member.guild.roles, id=role) for role in role_ids]
+    return any(role in roles for role in member.roles)
 
 
 def scoreboard_image(sort_scores, objective_name, scores_value):
