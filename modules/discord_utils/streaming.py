@@ -7,15 +7,15 @@ class Streaming(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        activity_type = None
+        activity_types = None
         streaming_role = get(after.guild.roles, id=self.config['streaming_role'])
 
         try:
-            activity_type = after.activity.type
+            activity_types = after.activities
         except:
             ...
 
-        if activity_type is discord.ActivityType.streaming:
+        if discord.ActivityType.streaming in activity_types:
             if streaming_role not in after.roles and check_role(after, self.config['to_give_roles']):
                 await after.add_roles(streaming_role)
                 if self.config['announcements_channel'] != 1:

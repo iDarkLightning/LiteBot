@@ -164,3 +164,6 @@ class LiteBot(commands.Bot):
         except KeyError:
             self.config.enable_cog(module, cog.__cog_name__)
             super().add_cog(cog)
+
+    def __repr__(self):
+        return f"LiteBot Version: {LiteBot.VERSION}"
