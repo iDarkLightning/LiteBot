@@ -16,7 +16,7 @@ class Backups(commands.Cog):
             try:
                 Path(os.path.join(self.config[server]["backup_directory"], 'manual')).mkdir(exist_ok=True)
                 Path(os.path.join(self.config[server]["backup_directory"], 'weekly')).mkdir(exist_ok=True)
-            except TypeError:
+            except TypeError or KeyError:
                 ...
 
     @commands.Cog.listener()
