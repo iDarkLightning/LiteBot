@@ -44,7 +44,7 @@ class LiteBot(commands.Bot):
                 console.error(e)
 
             if hasattr(lib, "config"):
-                config = getattr(lib, "config")
+                config = getattr(lib, "config")(self)
                 if "enabled" not in config or config["enabled"] is not True:
                     config["enabled"] = False
 

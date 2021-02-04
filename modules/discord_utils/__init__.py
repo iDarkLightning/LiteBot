@@ -7,7 +7,8 @@ def setup(bot):
     bot.add_cog(list.ListCommand(bot))
     bot.add_cog(streaming.Streaming(bot))
 
-config = {
+def config(bot):
+    return {
         'auto_role_id': 1,
         'scalable_voice': {
             'category_id': 1,

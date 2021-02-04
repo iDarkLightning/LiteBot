@@ -26,10 +26,11 @@ which must return a boolean value.
 def setup(bot):
     bot.add_cog(commands.Cog)
 
-def requirements():
+def requirements(bot):
     return 1 > 0
 
-config = {"a": 1}
+def config(bot):
+    return {"a": "a"}
 
 ```
 

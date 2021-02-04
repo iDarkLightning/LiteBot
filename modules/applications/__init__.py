@@ -8,7 +8,8 @@ def setup(bot):
 def requirements(bot):
     return len(bot.module_config['applications']['spreadsheet_url']) > 1 and os.path.exists("./modules/applications/creds.json")
 
-config = {
+def config(bot):
+    return {
         "spreadsheet_url": "",
         "applications_category": 1,
         "archives_category": 1,

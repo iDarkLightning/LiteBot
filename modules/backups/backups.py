@@ -11,10 +11,10 @@ from utils.utils import *
 class Backups(commands.Cog):
     def __init__(self, client):
         self.client = client
-        for server in self.client.servers:
-            Path(os.path.join(self.client.servers[server]["backup_directory"], 'manual')).mkdir(exist_ok=True)
-            Path(os.path.join(self.client.servers[server]["backup_directory"], 'weekly')).mkdir(exist_ok=True)
-
+        self.config = self.client.module_config["backups"]
+        for server in self.config:
+            Path(os.path.join(self.config[server]["backup_directory"], 'manual')).mkdir(exist_ok=True)
+            Path(os.path.join(self.config[server]["backup_directory"], 'weekly')).mkdir(exist_ok=True)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -45,20 +45,20 @@ class Backups(commands.Cog):
                 info = info + '\nType: Daily'
                 backup_name = await asyncio.to_thread(lambda: self.create_backup(server, 'daily', info))
                 current_daily_backups.append(f'{backup_name}.zip')
-                backups_path = self.client.servers[server]['backup_directory']
+                backups_path = self.config[server]['backup_directory']
                 for file in os.listdir(backups_path):
                     if os.path.isfile(os.path.join(backups_path, file)) and file not in current_daily_backups:
-                        os.remove(os.path.join(self.client.servers[server]['backup_directory'], file))
+                        os.remove(os.path.join(self.config[server]['backup_directory'], file))
         console.log("Finished Routine Backups")
 
     def create_backup(self, server, backup_type, info):
         backup_name = f'[{server.upper()}] {datetime.utcnow().strftime("%m-%d-%y %H-%M-%S")}'
-        world_dir = self.client.servers[server]['world_directory']
+        world_dir = self.config[server]['world_directory']
 
         if backup_type != 'daily':
-            backup_dir = os.path.join(self.client.servers[server]["backup_directory"], backup_type)
+            backup_dir = os.path.join(self.config[server]["backup_directory"], backup_type)
         else:
-            backup_dir = f'{self.client.servers[server]["backup_directory"]}'
+            backup_dir = f'{self.config[server]["backup_directory"]}'
 
         with zipfile.ZipFile(f'{os.path.join(backup_dir, backup_name)}.zip', 'w', compression=zipfile.ZIP_DEFLATED) as zip_file:
             for root, dirs, files in os.walk(world_dir):

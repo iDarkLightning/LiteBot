@@ -52,7 +52,7 @@ class Hangman():
         if status == 'wrong':
             self.attempts -= 1
             if self.attempts == 0:
-                await self.message.edit(f"```diff\n-You lost the game, the word was {self.word}```")
+                await self.message.edit(content=f"```diff\n-You lost the game, the word was {self.word}```")
                 Hangman.instances.remove(self)
             else:
                 await self.message.edit(content=f"```diff\n-Nope that was not correct, you have {self.attempts} tries left\n-[{' '.join(self.word_obscured)}]```")
