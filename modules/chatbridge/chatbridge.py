@@ -21,7 +21,7 @@ class ChatBridge(commands.Cog):
         }
 
         if len(message.content) > 0:
-            data["messageContent"] = message.content
+            data["messageContent"] = message.clean_content
 
         if message.attachments:
             data["attachments"] = {attachment.filename: attachment.url for attachment in message.attachments}
@@ -29,6 +29,6 @@ class ChatBridge(commands.Cog):
         headers = {"Authorization": "Bearer " + self.config["litebot_token"]}
 
         try:
-            requests.post(self.config[server]["lta_server_address"], json=data, headers=headers)
+            res = requests.post(self.config[server]["lta_server_address"], json=data, headers=headers)
         except Exception as e:
             console.error(f"Error when trying to send message to game {e}")
