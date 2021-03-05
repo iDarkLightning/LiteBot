@@ -5,3 +5,4 @@ __pycache__/
 *.db
 *.db-journal
 config.json
+env
