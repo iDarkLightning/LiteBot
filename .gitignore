@@ -1,0 +1,7 @@
+/.idea
+/.vscode
+*.pyc
+__pycache__/
+*.db
+*.db-journal
+config.json
