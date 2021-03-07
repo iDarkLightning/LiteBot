@@ -6,3 +6,5 @@ __pycache__/
 *.db-journal
 config.json
 env
+/logs
+/config
