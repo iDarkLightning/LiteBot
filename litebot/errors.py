@@ -12,16 +12,28 @@ class ConfigError(LiteBotException):
     """
     pass
 
-class ConfigFirstGenerated(ConfigError):
+class MinecraftServerException(LiteBotException):
     """
-    Exception that is thrown when a new blank config has just been
-    generated
+    Base exception for all errors related to the Minecraft server
     """
     pass
 
-class NewConfigFields(ConfigError):
+class RconException(MinecraftServerException):
     """
-    Exception that is generated when new fields have been added to
-    the config
+    Exception for errors regarding the rcon module
+    """
+    pass
+
+class ServerConnectionFailed(MinecraftServerException):
+    """
+    Exception produced when a connection to  a minecraft server
+    failed
+    """
+    pass
+
+class ServerNotFound(MinecraftServerException):
+    """
+    Exception produced when there is no MinecraftServer
+    with given information
     """
     pass

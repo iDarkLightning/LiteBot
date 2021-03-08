@@ -1,9 +1,11 @@
 import json
 import os
+import sys
 from typing import Any, Optional
-from ..errors import ConfigFirstGenerated, NewConfigFields
+from ..utils.logging import get_logger
 
 CONFIG_DIR_NAME = "config"
+logger = get_logger("bot")
 
 class ConfigMap(dict):
     def __init__(self, value: Optional[dict] = None) -> None:
@@ -46,7 +48,7 @@ class ConfigMap(dict):
                 return sub_config.get(key_items[1], default)
 
         # Value lookup
-        value = dict.get(self, key, default)
+        value = super().get(key, default)
 
         # Convert dictionaries back to ConfigMap's so you can use dotted access
         if isinstance(value, dict):
@@ -64,7 +66,7 @@ class ConfigMap(dict):
         """
         if isinstance(value, dict):
             value = ConfigMap(value=value)
-        dict.__setattr__(self, key, value)
+        super().__setattr__(key, value)
 
     def __getattr__(self, key: str) -> Any:
         return self.get(key)
@@ -80,9 +82,10 @@ class ConfigMap(dict):
 class BaseConfig(ConfigMap):
     DEFAULT_CONFIG = {}
 
-    def __init__(self, file_name: str) -> None:
+    def __init__(self, file_name: str, required: bool) -> None:
         super().__init__(self)
         self._file_path = os.path.join(os.getcwd(), CONFIG_DIR_NAME, file_name)
+        self.required = required
         self._load_from_file()
 
     def _load_from_file(self) -> None:
@@ -95,9 +98,11 @@ class BaseConfig(ConfigMap):
                 self.update(json.load(f))
             self._match_default(self, self._file_path)
         except FileNotFoundError:
-            print(f"No file found at {self._file_path}! Writing Default!")
+            logger.warning(f"No file found at {self._file_path}! Writing Default!")
             self._write_default_config(self._file_path)
-            raise ConfigFirstGenerated(f"Generated file at {self._file_path}. Please fill it out and restart!")
+            if self.required:
+                logger.error("Required config file has been generated. Please fill it out and restart!")
+                sys.exit()
 
     @classmethod
     def _write_default_config(cls, file_path: str) -> None:
@@ -125,8 +130,9 @@ class BaseConfig(ConfigMap):
                 instance[key] = cls.DEFAULT_CONFIG[key]
 
         instance.save()
-        raise NewConfigFields(
-            f"New fields have been added to the config at {file_path}. Please fill it out and restart!")
+        if instance.required:
+            logger.error(f"There are new fields in required config at {file_path}. Please fill it out and restart")
+            sys.exit()
 
     def save(self) -> None:
         """
@@ -147,7 +153,7 @@ class MainConfig(BaseConfig):
         "operators_role": [],
         "servers": {
             "name": {
-                "server_ip": "",
+                "numerical_server_ip": "",
                 "server_port": 25565,
                 "rcon_port": 25575,
                 "rcon_password": "",
@@ -158,15 +164,9 @@ class MainConfig(BaseConfig):
     }
 
     def __init__(self, file_name: str = "config.json") -> None:
-        super().__init__(file_name)
+        super().__init__(file_name, True)
 
 
 class ModuleConfig(BaseConfig):
     def __init__(self, file_name: str = "modules_config.json") -> None:
-        super().__init__(file_name)
-
-    def _load_from_file(self) -> None:
-        try:
-            super()._load_from_file()
-        except ConfigFirstGenerated:
-            print("Blank modules_config has been generated!")
+        super().__init__(file_name, False)
