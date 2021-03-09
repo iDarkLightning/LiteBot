@@ -15,12 +15,13 @@ class LiteBot(commands.Bot):
             help_command=None,
             intents=discord.Intents.all())
         self.logger = get_logger("bot")
-        self.servers = self.init_servers()
+        self._init_servers()
 
-    def init_servers(self):
+    def _init_servers(self):
         servers = []
         for server in self.config.servers:
             servers.append(MinecraftServer(server, **self.config.servers[server]))
+        print(servers[0].server_dir)
         return servers
 
     def __repr__(self):

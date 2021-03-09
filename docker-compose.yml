@@ -5,5 +5,6 @@ services:
     volumes:
     - "./logs:/bot/logs"
     - "./config:/bot/config"
+    - "C:/Users/nirjh/Desktop/LiteTech/Logos:/bot/servers/smp"
     environment:
       PYTHONUNBUFFERED: 1

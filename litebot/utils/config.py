@@ -151,6 +151,7 @@ class MainConfig(BaseConfig):
         "main_guild_id": 1,
         "members_role": [],
         "operators_role": [],
+        "api_secret": "",
         "servers": {
             "name": {
                 "numerical_server_ip": "",
@@ -158,14 +159,38 @@ class MainConfig(BaseConfig):
                 "rcon_port": 25575,
                 "rcon_password": "",
                 "operator": True,
-                "bridge_channel_id": 1
+                "litetech_additions": {
+                    "address": "",
+                    "bridge_channel_id": 0
+                }
             }
         }
     }
 
     def __init__(self, file_name: str = "config.json") -> None:
         super().__init__(file_name, True)
+        self._validate()
 
+    def _validate(self):
+        if not isinstance(self.main_guild_id, int):
+            logger.warning("The main guild id must be an integer! Please check the config!")
+
+        if not all([isinstance(i, int) for i in self.members_role]) or \
+                not all([isinstance(i, int) for i in self.operators_role]):
+            logger.warning("The role ids must all be integers! Please check the config!")
+
+        if not all([self.servers[server].keys() == MainConfig.DEFAULT_CONFIG["servers"]["name"].keys() for server in self.servers]):
+            logger.warning("The server fields do not match! Please check the config!")
+
+        if not all([isinstance(self.servers[server].server_port, int)
+                    and isinstance(self.servers[server].rcon_port, int) for server in self.servers]):
+            logger.warning("The servers ports must be integers! Please check the config!")
+
+        if not all([isinstance(self.servers[server].operator, bool) for server in self.servers]):
+            logger.warning("The server operator must be a boolean field! Please check the config!")
+
+        if not all([isinstance(self.servers[server].litetech_additions.bridge_channel_id, int) for server in self.servers]):
+            logger.warning("The server bridge channel ID must be an integer! Please check the config!")
 
 class ModuleConfig(BaseConfig):
     def __init__(self, file_name: str = "modules_config.json") -> None:

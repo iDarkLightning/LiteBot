@@ -37,3 +37,10 @@ class ServerNotFound(MinecraftServerException):
     with given information
     """
     pass
+
+class ServerNotRunningLTA(MinecraftServerException):
+    """
+    Exception produced when methods requiring LTA are performed
+    with a server that does not have the mod installed
+    """
+    pass
