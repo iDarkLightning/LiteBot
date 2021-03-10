@@ -31,7 +31,7 @@ def get_logger(name: str) -> logging.Logger:
 
         stream_handler = logging.StreamHandler()
         file_handler = logging.FileHandler(
-            os.path.join(os.getcwd(), LOG_DIR_NAME, datetime.utcnow().strftime(TIME_FORMAT)))
+            f"{os.path.join(os.getcwd(), LOG_DIR_NAME, datetime.utcnow().strftime(TIME_FORMAT))}.log")
 
         stream_handler.setFormatter(log_fmt)
         file_handler.setFormatter(log_fmt)

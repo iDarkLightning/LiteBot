@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from .utils.config import MainConfig, ModuleConfig, ConfigMap
+from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer
 
@@ -20,10 +20,14 @@ class LiteBot(commands.Bot):
     def _init_servers(self):
         servers = []
         for server in self.config.servers:
-            servers.append(MinecraftServer(server, **self.config.servers[server]))
-        print(servers[0].server_dir)
+            servers.append(MinecraftServer(server, self, **self.config.servers[server]))
         return servers
+
+    async def on_ready(self):
+        self.logger.info(f"{self.user.name} is now online!")
 
     def __repr__(self):
         return f"LiteBot: Version: {LiteBot.VERSION}"
+
+
 

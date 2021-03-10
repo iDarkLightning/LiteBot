@@ -1,4 +1,4 @@
-from ..litebot import LiteBot
+from __future__ import annotations
 from ..utils.config import ConfigMap
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
@@ -6,7 +6,7 @@ from .protocol.rcon import ServerRcon
 from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA
 from ..utils import requests
 from socket import timeout
-from typing import Optional
+from typing import Optional, List
 from async_property import async_property
 from jwt import encode as jwt_encode
 from discord import TextChannel
@@ -25,10 +25,10 @@ class MinecraftServer:
     """
     instances = []
 
-    def __init__(self, name: str, bot: LiteBot, **info: ConfigMap) -> None:
+    def __init__(self, name: str, bot, **info: ConfigMap) -> None:
         info = ConfigMap(value=info)
         self.name = name
-        self._bot_instance = bot
+        self.bot_instance = bot
         self._addr = info.numerical_server_ip
         self._port = info.server_port
         self._rcon = ServerRcon(self._addr, info.rcon_password, info.rcon_port)
@@ -53,7 +53,7 @@ class MinecraftServer:
         :rtype: TextChannel
         """
         try:
-            channel = await self._bot_instance.fetch_channel(self._bridge_channel_id)
+            channel = await self.bot_instance.fetch_channel(self._bridge_channel_id)
             return channel
         except NotFound:
             return None
@@ -68,7 +68,7 @@ class MinecraftServer:
         cls.instances.append(instance)
 
     @classmethod
-    def get_from_name(cls, name: str):
+    def get_from_name(cls, name: str) -> MinecraftServer:
         """
         Gets a server from its name
         :param name: The name of the server to retrieve
@@ -82,6 +82,16 @@ class MinecraftServer:
             return server[0]
         else:
             raise ServerNotFound
+
+    @classmethod
+    def get_all_instances(cls) -> List[MinecraftServer]:
+        """
+        Gets all server instances
+        :return: A list with all current instances of servers
+        :rtype: List[MinecraftServer]
+        """
+        return cls.instances
+
 
     def status(self) -> QueryResponse:
         """
@@ -124,9 +134,9 @@ class MinecraftServer:
         Sends a given message to the server's bridge channel
         :param message: The message to send
         :type message: str
-        :raises: TypeError
+        :raises: AttributeError
         """
-        await self.bridge_channel.send(message)
+        await (await self.bridge_channel).send(message)
 
     async def _send_server_message(self, route: str, message: dict) -> dict:
         """
@@ -139,8 +149,8 @@ class MinecraftServer:
         """
 
         jwt_token = jwt_encode(
-            {"user": self._bot_instance.user.id, "exp": datetime.utcnow() + datetime.timedelta(seconds=30)},
-            self._bot_instance.config.api_secret)
+            {"user": self.bot_instance.user.id, "exp": datetime.utcnow() + datetime.timedelta(seconds=30)},
+            self.bot_instance.config.api_secret)
 
         try:
             return await requests.post(
@@ -185,6 +195,7 @@ class MinecraftServer:
             "message": "This is an example message",
             "color": 16777215
         }
+
         :param message: The message to send to the server
         :type message: dict
         :return: The server's response
