@@ -1,5 +1,7 @@
 import discord
 from discord.ext import commands
+from .minecraft.server_commands.core import ServerCommand
+from .minecraft.server_commands.server_context import ServerContext
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer
@@ -18,10 +20,13 @@ class LiteBot(commands.Bot):
         self._init_servers()
 
     def _init_servers(self):
-        servers = []
         for server in self.config.servers:
-            servers.append(MinecraftServer(server, self, **self.config.servers[server]))
-        return servers
+            MinecraftServer(server, self, **self.config.servers[server])
+
+    async def dispatch_server_command(self, server, command, *args):
+        command = ServerCommand.get_from_name(command)
+        command_ctx = ServerContext(server, self)
+        await command.invoke(command_ctx, args)
 
     async def on_ready(self):
         self.logger.info(f"{self.user.name} is now online!")

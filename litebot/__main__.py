@@ -1,6 +1,5 @@
 from .litebot import LiteBot
 from .api_server import get_server_coro
-import asyncio
 
 def main():
     bot_instance = LiteBot()

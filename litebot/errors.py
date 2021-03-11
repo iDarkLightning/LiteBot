@@ -44,3 +44,10 @@ class ServerNotRunningLTA(MinecraftServerException):
     with a server that does not have the mod installed
     """
     pass
+
+class ServerCommandNotFound(MinecraftServerException):
+    """
+    Exception produced when trying to run a command
+    from the server, that does not exist
+    """
+    pass

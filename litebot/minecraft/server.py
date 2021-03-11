@@ -59,7 +59,7 @@ class MinecraftServer:
             return None
 
     @classmethod
-    def _add_instance(cls, instance) -> None:
+    def _add_instance(cls, instance: MinecraftServer) -> None:
         """
         Appends an instance of the class to a list of instances
         :param instance: The instance to append
@@ -137,6 +137,16 @@ class MinecraftServer:
         :raises: AttributeError
         """
         await (await self.bridge_channel).send(message)
+
+    async def recieve_command(self, command, args) -> None:
+        """
+        Executes a command sent from the server
+        :param command: The name of the command
+        :type command: str
+        :param args: The arguments for the command
+        :type args: str
+        """
+        await self.bot_instance.dispatch_server_command(self, command, *args)
 
     async def _send_server_message(self, route: str, message: dict) -> dict:
         """
