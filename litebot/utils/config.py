@@ -7,79 +7,7 @@ from ..utils.logging import get_logger
 CONFIG_DIR_NAME = "config"
 logger = get_logger("bot")
 
-class ConfigMap(dict):
-    def __init__(self, value: Optional[dict] = None) -> None:
-        super().__init__(self)
-
-        if value:
-            self.update(value)
-
-    def get(self, key: str, default: Optional[Any] = None) -> Any:
-        """
-        Allows . lookup when using `get`
-
-        Example
-        --------
-        .. code-block :: python3
-            obj = ConfigMap({
-                "primary": {
-                    "secondary": {
-                        "key": "value"
-                    }
-                }
-            })
-
-            value = obj.primary.seconday.key
-
-        :param key: The path to the value to get
-        :type key: str
-        :param default: Default value to get
-        :type default: any
-        :return: The value at the specified key
-        :rtype: any
-        """
-        if '.' in key:
-            key_items = key.split('.', 1)
-
-            if len(key_items) == 2:
-                sub_config = self.get(key_items[0], {})
-
-                # Recurse to perform next lookup
-                return sub_config.get(key_items[1], default)
-
-        # Value lookup
-        value = super().get(key, default)
-
-        # Convert dictionaries back to ConfigMap's so you can use dotted access
-        if isinstance(value, dict):
-            return ConfigMap(value=value)
-
-        return value
-
-    def set(self, key: str, value: Any) -> None:
-        """
-        Sets the value of an attribute
-        :param key: The attribute to set
-        :type key: str
-        :param value: The value to set the attribute to
-        :type value: any
-        """
-        if isinstance(value, dict):
-            value = ConfigMap(value=value)
-        super().__setattr__(key, value)
-
-    def __getattr__(self, key: str) -> Any:
-        return self.get(key)
-
-    def __setattr__(self, key: str, value: Any):
-        self.set(key, value)
-
-    # Sets __getitem__ & __setitem__ to work in same fashion as __getattr & __setattr__
-    __getitem__ = __getattr__
-    __delitem__ = dict.__delattr__
-
-
-class BaseConfig(ConfigMap):
+class BaseConfig(dict):
     DEFAULT_CONFIG = {}
 
     def __init__(self, file_name: str, required: bool) -> None:
@@ -119,8 +47,8 @@ class BaseConfig(ConfigMap):
         """
         Compares current config with default config, and
         adds all missing keys to the config
-        :param instance:
-        :type instance:
+        :param instance: The instance config to match
+        :type instance: CongigBase
         """
         if cls.DEFAULT_CONFIG.keys() == instance.keys():
             return
@@ -169,29 +97,48 @@ class MainConfig(BaseConfig):
 
     def __init__(self, file_name: str = "config.json") -> None:
         super().__init__(file_name, True)
-        self._validate()
-
-    def _validate(self):
-        if not isinstance(self.main_guild_id, int):
-            logger.warning("The main guild id must be an integer! Please check the config!")
-
-        if not all([isinstance(i, int) for i in self.members_role]) or \
-                not all([isinstance(i, int) for i in self.operators_role]):
-            logger.warning("The role ids must all be integers! Please check the config!")
-
-        if not all([self.servers[server].keys() == MainConfig.DEFAULT_CONFIG["servers"]["name"].keys() for server in self.servers]):
-            logger.warning("The server fields do not match! Please check the config!")
-
-        if not all([isinstance(self.servers[server].server_port, int)
-                    and isinstance(self.servers[server].rcon_port, int) for server in self.servers]):
-            logger.warning("The servers ports must be integers! Please check the config!")
-
-        if not all([isinstance(self.servers[server].operator, bool) for server in self.servers]):
-            logger.warning("The server operator must be a boolean field! Please check the config!")
-
-        if not all([isinstance(self.servers[server].litetech_additions.bridge_channel_id, int) for server in self.servers]):
-            logger.warning("The server bridge channel ID must be an integer! Please check the config!")
 
 class ModuleConfig(BaseConfig):
     def __init__(self, file_name: str = "modules_config.json") -> None:
         super().__init__(file_name, False)
+
+    def _toggle_cog(self, module: str, cog_name: str, val: Optional[bool] = False) -> None:
+        """
+        Toggles whether or not a cog is enabled,
+        sets to false by default or if the cog has not been registered previously.
+        :param module: The module the cog belongs to
+        :type module: str
+        :param cog_name: The name of the cog
+        :type cog_name: str
+        :param val: The value to set the cog's status to
+        :type val: Optional[bool]
+        """
+        try:
+            self[module]["cogs"][cog_name] = val
+        except KeyError:
+            self[module]["cogs"] = {}
+            self[module]["cogs"][cog_name] = val
+
+        self.save()
+
+    def cog_enabled(self, module: str, cog_name: str) -> bool:
+        """
+        Checks whether a cog is enabled. Registers it as false
+        if the cog has not been previously registered
+        :param module: The module the cog belongs to
+        :type module: str
+        :param cog_name: The name of the cog
+        :type cog_name: str
+        :return: Whether or not the cog is enabled
+        :rtype: bool
+        :raises: ModuleNotFoundError
+        """
+        if self.get(module) is None:
+            raise ModuleNotFoundError
+
+        try:
+            return self[module]["cogs"][cog_name]
+        except KeyError:
+            self._toggle_cog(module, cog_name)
+            logger.warning(f"The cog: {cog_name} for module: {module} has been registered. It is disabled by default, you can enable it at {self._file_path}")
+            return False

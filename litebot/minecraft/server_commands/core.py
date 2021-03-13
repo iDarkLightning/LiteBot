@@ -51,7 +51,10 @@ class ServerCommand:
         :param args: The arguments for the command
         :type args: List[str]
         """
-        await self.callback(ctx, *args)
+        if self.cog:
+            await self.callback(self.cog, ctx, *args)
+        else:
+            await self.callback(ctx, *args)
 
 def server_command(**kwargs) -> Callable:
     """

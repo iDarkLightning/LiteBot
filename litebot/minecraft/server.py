@@ -1,5 +1,4 @@
 from __future__ import annotations
-from ..utils.config import ConfigMap
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
@@ -25,16 +24,15 @@ class MinecraftServer:
     """
     instances = []
 
-    def __init__(self, name: str, bot, **info: ConfigMap) -> None:
-        info = ConfigMap(value=info)
+    def __init__(self, name: str, bot, **info: dict) -> None:
         self.name = name
         self.bot_instance = bot
-        self._addr = info.numerical_server_ip
-        self._port = info.server_port
-        self._rcon = ServerRcon(self._addr, info.rcon_password, info.rcon_port)
-        self.operator = info.operator
-        self._lta_addr = info.litetech_additions.address
-        self._bridge_channel_id = info.litetech_additions.bridge_channel_id
+        self._addr = info["numerical_server_ip"]
+        self._port = info["server_port"]
+        self._rcon = ServerRcon(self._addr, info["rcon_password"], info["rcon_port"])
+        self.operator = info["operator"]
+        self._lta_addr = info["litetech_additions"]["address"]
+        self._bridge_channel_id = info["litetech_additions"]["bridge_channel_id"]
         self._add_instance(self)
 
     @property
