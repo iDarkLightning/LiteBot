@@ -21,6 +21,7 @@ class LiteBot(commands.Bot):
             intents=discord.Intents.all())
         self.logger = get_logger("bot")
         self._init_servers()
+        super().load_extension("litebot.system")
 
     def _init_servers(self):
         for server in self.config["servers"]:

@@ -2,3 +2,4 @@ discord.py~=1.6.0
 async-property
 pyjwt~=2.0.0
 sanic
+git+https://github.com/Rapptz/discord-ext-menus
