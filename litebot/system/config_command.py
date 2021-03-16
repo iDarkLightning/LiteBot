@@ -6,6 +6,7 @@ from ..utils import embeds
 from ..utils.fmt_strings import CODE_BLOCK
 from ..utils.menus import ConfirmMenu, CodeBlockMenu
 from ..utils.data_manip import flatten_dict, split_string, unflatten_dict
+from ..checks.confirmation_checks import manage_server_confirmation
 
 CHAR_LIMIT = 1500
 
@@ -25,6 +26,7 @@ class ConfigCommand(commands.Cog):
             pass
 
     @_config.command()
+    @commands.before_invoke(manage_server_confirmation)
     async def view(self, ctx: commands.Context, *subs: Tuple[str]) -> None:
         """
         Lets you view the config. You can specify up to a certain path
@@ -33,17 +35,6 @@ class ConfigCommand(commands.Cog):
         :param subs: The sub paths
         :type subs: Tuple[Any]
         """
-
-        #TODO: Figure out a way to make this work as a decorator
-        for member in ctx.channel.members:
-            if not member.permissions_in(ctx.channel).manage_guild and not member.bot:
-                confirm = await ConfirmMenu(
-                    "This command can show sensitive information. There are people who can access this channel that do not have the manage server permission, do you wish to still run the command?").prompt(
-                    ctx)
-                if not confirm:
-                    await ctx.send(embed=embeds.ErrorEmbed("Cancelled!"))
-                    return
-
         current_item: dict = self.bot.config
 
         try:

@@ -4,6 +4,8 @@ from .api_server import get_server_coro
 def main():
     bot_instance = LiteBot()
 
+    bot_instance.init_modules()
+
     sanic_coro = get_server_coro(bot_instance)
     bot_instance.loop.create_task(sanic_coro)
     bot_instance.run(bot_instance.config["token"])

@@ -1,3 +1,5 @@
+from discord.ext import commands
+
 class LiteBotException(Exception):
     """Base exception class for litebot
 
@@ -49,5 +51,18 @@ class ServerCommandNotFound(MinecraftServerException):
     """
     Exception produced when trying to run a command
     from the server, that does not exist
+    """
+    pass
+
+class BaseCommandError(LiteBotException, commands.errors.CommandError):
+    """
+    Base exception for custom command errors
+    raised by LiteBot
+    """
+    pass
+
+class ConfirmationDenied(BaseCommandError):
+    """
+    Exception produced when user denies confirmation
     """
     pass

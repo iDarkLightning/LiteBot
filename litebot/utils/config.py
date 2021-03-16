@@ -142,3 +142,43 @@ class ModuleConfig(BaseConfig):
             self._toggle_cog(module, cog_name)
             logger.warning(f"The cog: {cog_name} for module: {module} has been registered. It is disabled by default, you can enable it at {self._file_path}")
             return False
+
+    def register_cog(self, module: str, cog_name: str) -> None:
+        """
+        Registers a new cog
+        :param module: The module to register the cog for
+        :type module: str
+        :param cog_name: The name of the cog
+        :type cog_name: str
+        """
+        self._toggle_cog(module, cog_name)
+
+    def match_module(self, module: str, config: dict) -> None:
+        """
+        Matches the default config for a module with the current config
+        :param module: The module to match
+        :type module: str
+        :param config: The config to match it to
+        :type config: dict
+        """
+        if module not in self:
+            self[module] = {"enabled": False, "config": config}
+            logger.warning(f"Wrote default config for module: {module}. Please fill it out, and reload the module/restart the bot.")
+            return
+
+        for key in config:
+            if not key in self[module]["config"]:
+                self[module]["config"][key] = config[key]
+
+    def register_module(self, module: str, initial_val: Optional[bool] = False) -> None:
+        """
+        Registers a new module
+        :param module: The module to register
+        :type module: str
+        :param initial_val: The initial value to register the module as
+        :type initial_val: Optional[bool]
+        """
+        self[module] = {"enabled": initial_val}
+        logger.info(f"Registed a new module: {module}. It has been disabled by default, you can enable it at {self._file_path}")
+
+

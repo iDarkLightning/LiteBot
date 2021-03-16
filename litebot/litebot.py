@@ -1,3 +1,4 @@
+import importlib
 import discord
 from discord.ext import commands
 from .minecraft.server_commands.core import ServerCommand
@@ -5,9 +6,13 @@ from .minecraft.server_commands.server_context import ServerContext
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer
-import os, inspect
+import os
+from .utils.fmt_strings import MODULE_LOADING, MODULE_PATH
 
-MODULES_PATH = "./modules"
+MODULES_PATH = "litebot/modules"
+REQUIRED_MODULES = (
+    "litebot.system",
+)
 
 class LiteBot(commands.Bot):
     VERSION = 3.0
@@ -20,14 +25,18 @@ class LiteBot(commands.Bot):
             help_command=None,
             intents=discord.Intents.all())
         self.logger = get_logger("bot")
+        self._initialising = False
+        self._cur_module = None
         self._init_servers()
-        super().load_extension("litebot.system")
 
     def _init_servers(self):
         for server in self.config["servers"]:
             MinecraftServer(server, self, **self.config["servers"][server])
 
     def add_cog(self, cog: commands.Cog, required: bool = False) -> None:
+        if self._initialising and not required:
+            self.module_config.register_cog(self._cur_module, cog.__cog_name__)
+
         func_list = [getattr(cog, func) for func in dir(cog)]
         server_commands = [func for func in func_list if isinstance(func, ServerCommand)]
 
@@ -39,15 +48,61 @@ class LiteBot(commands.Bot):
             self.logger.info(f"Loaded cog: {cog.__cog_name__}")
             return
 
-        module = os.path.basename(
-            os.path.normpath(os.path.split(os.path.relpath(inspect.getmodule(cog).__file__, MODULES_PATH))[0]))
-
         try:
-            if self.module_config.cog_enabled(module, cog.__cog_name__):
+            if self.module_config.cog_enabled(self._cur_module, cog.__cog_name__):
                 self.logger.info(f"Loaded cog: {cog.__cog_name__}")
                 super().add_cog(cog)
         except ModuleNotFoundError:
-            self.logger.warning(f"Tried to load cog: {cog.__cog_name__} for invalid module: {module}")
+            self.logger.warning(f"Tried to load cog: {cog.__cog_name__} for invalid module: {self._cur_module}")
+
+    def init_modules(self):
+        for module in REQUIRED_MODULES:
+            self.logger.info(MODULE_LOADING.format("Loading", module))
+            super().load_extension(module)
+            self.logger.info(MODULE_LOADING.format("Loaded", module))
+
+        modules = filter(lambda path: os.path.isdir(os.path.join(MODULES_PATH, path))
+                                      and path != "__pycache__", os.listdir(os.path.join(os.getcwd(), MODULES_PATH)))
+        if len(list(modules)) == 0:
+            return
+
+        for module in modules:
+            spec = importlib.util.find_spec(MODULE_PATH.format(module))
+            lib = importlib.util.module_from_spec(spec)
+
+            try:
+                spec.loader.exec_module(lib)
+            except Exception as e:
+                self.logger.exception(e, exc_info=e)
+
+            self._cur_module = module
+            if hasattr(lib, "config"):
+                config = getattr(lib, "config")(self)
+                self.module_config.match_module(module, config)
+            else:
+                if module not in self.module_config:
+                    self.module_config.register_module(module)
+
+            enabled = self.module_config[module]["enabled"]
+            if not enabled:
+                self._initialising = True
+                super().load_extension(f"litebot.modules.{module}")
+                self._initialising = False
+                return
+
+            if hasattr(lib, "requirements"):
+                requirements = getattr(lib, "requirements")
+                if requirements(self) and enabled:
+                    self.logger.info(MODULE_LOADING.format("Loading", module))
+                    super().load_extension(MODULE_PATH.format(module))
+                    self.logger.info(MODULE_LOADING.format("Loaded", module))
+            else:
+                if enabled:
+                    self.logger.info(MODULE_LOADING.format("Loading", module))
+                    super().load_extension(MODULE_PATH.format(module))
+                    self.logger.info(MODULE_LOADING.format("Loaded", module))
+
+            self.module_config.save()
 
     async def dispatch_server_command(self, server, command, *args):
         command = ServerCommand.get_from_name(command)
@@ -56,6 +111,9 @@ class LiteBot(commands.Bot):
 
     async def on_ready(self):
         self.logger.info(f"{self.user.name} is now online!")
+
+    async def on_command_error(self, context, exception):
+        pass
 
     def __repr__(self):
         return f"LiteBot: Version: {LiteBot.VERSION}"
