@@ -102,7 +102,7 @@ class ModuleConfig(BaseConfig):
     def __init__(self, file_name: str = "modules_config.json") -> None:
         super().__init__(file_name, False)
 
-    def _toggle_cog(self, module: str, cog_name: str, val: Optional[bool] = False) -> None:
+    def register_cog(self, module: str, cog_name: str, val: Optional[bool] = False) -> None:
         """
         Toggles whether or not a cog is enabled,
         sets to false by default or if the cog has not been registered previously.
@@ -139,19 +139,9 @@ class ModuleConfig(BaseConfig):
         try:
             return self[module]["cogs"][cog_name]
         except KeyError:
-            self._toggle_cog(module, cog_name)
+            self.register_cog(module, cog_name)
             logger.warning(f"The cog: {cog_name} for module: {module} has been registered. It is disabled by default, you can enable it at {self._file_path}")
             return False
-
-    def register_cog(self, module: str, cog_name: str) -> None:
-        """
-        Registers a new cog
-        :param module: The module to register the cog for
-        :type module: str
-        :param cog_name: The name of the cog
-        :type cog_name: str
-        """
-        self._toggle_cog(module, cog_name)
 
     def match_module(self, module: str, config: dict) -> None:
         """
@@ -181,4 +171,16 @@ class ModuleConfig(BaseConfig):
         self[module] = {"enabled": initial_val}
         logger.info(f"Registed a new module: {module}. It has been disabled by default, you can enable it at {self._file_path}")
 
+    def toggle_module(self, module: str, val: bool) -> None:
+        if self.get(module) is None:
+            raise ModuleNotFoundError
 
+        self[module]["enabled"] = val
+        self.save()
+
+    def toggle_cog(self, module: str, cog_name: str, val: bool) -> None:
+        if self.get(module) is None:
+            raise ModuleNotFoundError
+
+        self[module]["cogs"][cog_name] = val
+        self.save()

@@ -1,3 +1,5 @@
 CODE_BLOCK = "```{}\n{}```"
 MODULE_LOADING = "{} module: {}"
 MODULE_PATH = "litebot.modules.{}"
+MODULE_CONFIG_PATH = "{}.config.{}"
+COG_LOADING = "{} cog: {} for module: {}"

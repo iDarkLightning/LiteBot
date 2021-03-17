@@ -63,8 +63,6 @@ class LiteBot(commands.Bot):
 
         modules = filter(lambda path: os.path.isdir(os.path.join(MODULES_PATH, path))
                                       and path != "__pycache__", os.listdir(os.path.join(os.getcwd(), MODULES_PATH)))
-        if len(list(modules)) == 0:
-            return
 
         for module in modules:
             spec = importlib.util.find_spec(MODULE_PATH.format(module))
@@ -84,9 +82,9 @@ class LiteBot(commands.Bot):
                     self.module_config.register_module(module)
 
             enabled = self.module_config[module]["enabled"]
-            if not enabled:
+            if not enabled and not self.module_config[module].get("cogs"):
                 self._initialising = True
-                super().load_extension(f"litebot.modules.{module}")
+                super().load_extension(MODULE_PATH.format(module))
                 self._initialising = False
                 return
 
@@ -112,11 +110,5 @@ class LiteBot(commands.Bot):
     async def on_ready(self):
         self.logger.info(f"{self.user.name} is now online!")
 
-    async def on_command_error(self, context, exception):
-        pass
-
     def __repr__(self):
         return f"LiteBot: Version: {LiteBot.VERSION}"
-
-
-
