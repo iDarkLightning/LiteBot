@@ -28,7 +28,7 @@ async def _validate_jwt(request: Request) -> None:
     :param request:
     :type request:
     """
-    token_payload = await validate_jwt(request, request.app.config.BOT_INSTANCE.config.api_secret)
+    token_payload = await validate_jwt(request, request.app.config.BOT_INSTANCE.config["api_secret"])
     try:
         server = MinecraftServer.get_from_name(token_payload["server_name"])
     except KeyError:

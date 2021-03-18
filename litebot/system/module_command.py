@@ -1,5 +1,6 @@
 from typing import Tuple
 from discord.ext import commands
+from litebot.checks.confirmation_checks import manage_server_confirmation
 from litebot.system.common import config_view, config_save
 from litebot.system.converters import JSONConverter
 from litebot.utils import embeds
@@ -89,6 +90,7 @@ class ModuleCommand(commands.Cog):
             await ctx.send_help("module config")
 
     @_config.command(name="view")
+    @commands.before_invoke(manage_server_confirmation)
     async def _config_view(self, ctx: commands.Context, module: str, *subs: Tuple[str]) -> None:
         """
         This command lets you view the config for a specified module.

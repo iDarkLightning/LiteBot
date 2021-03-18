@@ -1,5 +1,6 @@
 from typing import Union
 from discord.ext import commands
+from ast import literal_eval
 
 class JSONConverter(commands.Converter):
     """
@@ -8,6 +9,8 @@ class JSONConverter(commands.Converter):
     '32' -> 32
     'true' -> True
     'false' -> False
+    '{"key": "value"}' -> {key: value}
+    '[1, 2, 3]' -> [1, 2]
     """
     async def convert(self, ctx: commands.Cog, argument: str) -> Union[int, bool, str]:
         if argument.isnumeric():
@@ -17,4 +20,7 @@ class JSONConverter(commands.Converter):
         elif argument.lower() == "false":
             return False
 
-        return argument
+        try:
+            return literal_eval(argument)
+        except SyntaxError:
+            return argument
