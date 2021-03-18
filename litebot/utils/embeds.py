@@ -3,6 +3,7 @@ from discord import Embed
 RED = 0xFF0000
 GREEN = 0x32CD32
 YELLOW = 0xFFA500
+INFO_COLOR = 0x9696FA
 
 class ErrorEmbed(Embed):
     """
@@ -24,3 +25,10 @@ class SuccessEmbed(Embed):
     """
     def __init__(self, msg: str, **kwargs) -> None:
         super().__init__(title=msg, color=GREEN, **kwargs)
+
+class InfoEmbed(Embed):
+    """
+    An embed preset for information
+    """
+    def __init__(self, msg: str, **kwargs) -> None:
+        super().__init__(title=msg, color=INFO_COLOR, **kwargs)

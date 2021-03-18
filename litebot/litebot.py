@@ -8,6 +8,7 @@ from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer
 import os
 from .utils.fmt_strings import MODULE_LOADING, MODULE_PATH
+from .system.help_command import HelpCommand
 
 MODULES_PATH = "litebot/modules"
 REQUIRED_MODULES = (
@@ -22,7 +23,7 @@ class LiteBot(commands.Bot):
         self.module_config = ModuleConfig()
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.config["prefixes"]),
-            help_command=None,
+            help_command=HelpCommand(),
             intents=discord.Intents.all())
         self.logger = get_logger("bot")
         self._initialising = False

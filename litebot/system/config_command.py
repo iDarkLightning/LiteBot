@@ -13,34 +13,28 @@ class ConfigCommand(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def _config(self, ctx: commands.Context) -> None:
         """
-        The root command for the config group
-        :param ctx: The context the command is being executed in
-        :type ctx: commands.Context
+        This is the root command for the module group.
+        This command serves no function without
+        a subcommand, but will send the help message for this group.
+        Essentially invokes `help config`
         """
         if ctx.invoked_subcommand is None:
-            pass
+            await ctx.send_help("config")
 
     @_config.command()
     @commands.before_invoke(manage_server_confirmation)
     async def view(self, ctx: commands.Context, *subs: Tuple[str]) -> None:
         """
-        Lets you view the config. You can specify up to a certain path
-        :param ctx: The context the command is being executed in
-        :type ctx: commands.Context
-        :param subs: The sub paths
-        :type subs: Tuple[Any]
+        This command lets you view the main config for the bot.
+        `subs` The subkeys to view in the config
         """
         await config_view(self.bot.config, ctx, subs)
 
     @_config.command()
     async def set(self, ctx: commands.Context, key: str, *, value: JSONConverter) -> None:
         """
-        Allows to set the value of a config field
-        :param ctx: The context with which the command is being invoked
-        :type ctx: commands.Context
-        :param key: The key to set
-        :type key: str
-        :param value: The value to set it to
-        :type value: str
+        This command allows you to set a specific key to a value in the bot's config.
+        `key` The key to set in the config
+        `value` The value to set the key to
         """
         await config_save(self.bot.config, ctx, key, value)
