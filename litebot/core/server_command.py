@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from litebot.checks import role_checks
 from litebot.core.converters import get_server
@@ -33,13 +34,35 @@ class ServerCommands(commands.Cog):
                 server = get_server(ctx, "")
                 command = " ".join(args)
 
+        await self._handle_server_command(ctx.channel, ctx.author, server, command)
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message) -> None:
+        """
+        A listener that treats commands that start with `/` in bridge channels as a command.
+        Equivelant to the `run` command
+        :param message: The message sent by the user
+        :type message: discord.Message
+        """
+        if not message.content.startswith("/") or not message.channel.id in [s.bridge_channel_id for s in MinecraftServer.get_all_instances()]:
+            return
+
+        server = MinecraftServer.get_from_channel(message.channel.id)
+        command = message.content.split("/")[1]
+        await self._handle_server_command(message.channel, message.author, server, command)
+
+    async def _handle_server_command(self, channel: discord.TextChannel, author: discord.Member, server: MinecraftServer, command: str) -> None:
         if server.operator:
-            if check_role(ctx.author, self.bot.config["operators_role"]):
-                await ctx.send(CODE_BLOCK.format("", server.send_command(command)))
+            if check_role(author, self.bot.config["operators_role"]):
+                res = server.send_command(command)
+                if res:
+                    await channel.send(CODE_BLOCK.format("", res))
             else:
                 raise commands.CheckFailure
         else:
-            await ctx.send(CODE_BLOCK.format("", server.send_command(command)))
+            res = server.send_command(command)
+            if res:
+                await channel.send(CODE_BLOCK.format("", res))
 
     @commands.group(name="whitelist")
     @role_checks.config_role_check("operators_role")

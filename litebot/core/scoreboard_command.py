@@ -4,6 +4,8 @@ from discord.ext import commands
 from litebot.minecraft.server import MinecraftServer
 from litebot.utils.utils import scoreboard_image
 from ..checks import role_checks
+from ..utils import embeds
+
 
 class ScoreboardCommand(commands.Cog):
     def __init__(self, bot):
@@ -47,3 +49,10 @@ class ScoreboardCommand(commands.Cog):
 
         image = scoreboard_image(sorted_scores, objective_name)
         await ctx.send(file=image)
+
+    @_scoreboard.error
+    async def on_scoreboard_error(self, ctx: commands.Context, err: commands.CommandInvokeError) -> None:
+        if isinstance(err.original, ValueError):
+            await ctx.send(embed=embeds.ErrorEmbed("That scoreboard does not exist"))
+        elif isinstance(err.original, UnboundLocalError):
+            await ctx.send(embed=embeds.ErrorEmbed("That scoreboard has no values"))

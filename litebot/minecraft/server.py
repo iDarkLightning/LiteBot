@@ -83,6 +83,23 @@ class MinecraftServer:
             raise ServerNotFound
 
     @classmethod
+    def get_from_channel(cls, id_: int) -> MinecraftServer:
+        """
+        Gets a server from it's bridge channel id
+        :param id_: The ID of the pridge channel
+        :type id_: int
+        :return: An instance of a Minecraft Server
+        :rtype: MinecraftServer
+        :raises: ServerNotFound
+        """
+        server = list(filter(lambda s: s.bridge_channel_id == id_, cls.instances))
+        if len(server) > 0:
+            return server[0]
+        else:
+            raise ServerNotFound
+
+
+    @classmethod
     def get_all_instances(cls) -> List[MinecraftServer]:
         """
         Gets all server instances

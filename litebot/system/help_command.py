@@ -2,7 +2,7 @@ from collections import Mapping
 from typing import Optional, List
 from discord.ext import commands
 from litebot.utils import embeds
-from litebot.utils.fmt_strings import INLINE_CODE_BLOCK, COMMAND_PATH
+from litebot.utils.fmt_strings import COMMAND_PATH, INLINE_CODE_BLOCK
 
 
 class HelpCommand(commands.HelpCommand):
@@ -14,7 +14,7 @@ class HelpCommand(commands.HelpCommand):
         :return: The command's signature
         :rtype: str
         """
-        return INLINE_CODE_BLOCK.format(f"{self.clean_prefix}{command.qualified_name} {command.signature}")
+        return INLINE_CODE_BLOCK.format(f"{command.qualified_name} {command.signature}")
 
     def get_command_path(self, command: commands.Command) -> str:
         """
@@ -50,9 +50,9 @@ class HelpCommand(commands.HelpCommand):
                 continue
             if isinstance(command, commands.Group):
                 sigs = [self.get_help_brief(c) for c in command.walk_commands()]
-                embed.add_field(name=command.name, value="\n".join(sigs), inline=False)
+                embed.add_field(name=f"{command.name.capitalize()} Command:", value="\n".join(sigs), inline=False)
             else:
-                embed.add_field(name=command.name, value=self.get_help_brief(command), inline=False)
+                embed.add_field(name=f"{command.name.capitalize()} Command:", value=self.get_help_brief(command), inline=False)
 
         await self.get_destination().send(embed=embed)
 
