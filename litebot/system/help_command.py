@@ -43,7 +43,7 @@ class HelpCommand(commands.HelpCommand):
         :type mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
         """
         embed = embeds.InfoEmbed("LiteBot Help Panel")
-        for command in [c[0] for c in mapping.values()]:
+        for command in [y for x in mapping.values() for y in x]:
             try:
                 await command.can_run(self.context)
             except commands.CheckFailure:
