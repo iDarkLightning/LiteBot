@@ -91,6 +91,14 @@ class MinecraftServer:
         """
         return cls.instances
 
+    @classmethod
+    def get_first_instance(cls) -> MinecraftServer:
+        """
+        Get's the first server instantiated.
+        :return: The first server instantiated
+        :rtype: MinecraftServer
+        """
+        return next(iter(cls.instances))
 
     def status(self) -> QueryResponse:
         """

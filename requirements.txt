@@ -3,3 +3,4 @@ async-property
 pyjwt~=2.0.0
 sanic
 git+https://github.com/Rapptz/discord-ext-menus
+pillow~=8.0.1
