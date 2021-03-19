@@ -1,5 +1,4 @@
 from typing import List
-
 from discord.ext import menus, commands
 from discord.utils import get
 from litebot.utils import embeds
@@ -48,6 +47,7 @@ class ConfirmMenu(menus.Menu):
         await self.start(ctx, wait=True)
         return self.result
 
+
 class CodeBlockMenu(menus.Menu):
     """
     A reaction based menu to ask for switch between the given strings.
@@ -83,3 +83,33 @@ class CodeBlockMenu(menus.Menu):
         if self.cur != (len(self.msgs) - 1):
             self.cur += 1
             await self.message.edit(content=CODE_BLOCK.format(self.syntax, self.msgs[self.cur]))
+
+class DescriptionMenu(menus.Menu):
+    def __init__(self, msgs: List[str], title: str) -> None:
+        super().__init__(timeout=MENU_TIMEOUT, clear_reactions_after=True)
+        self.msgs = msgs
+        self.title = title
+        self.cur = 0
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(embed=embeds.InfoEmbed(self.title, description=self.msgs[self.cur]))
+
+    @menus.button(PREVIOUS_EMOJI)
+    async def on_previous(self, payload):
+        if payload.event_type == REMOVE_EVENT:
+            return
+        member = get(self.message.channel.guild.members, id=payload.user_id)
+        await self.message.remove_reaction(payload.emoji, member)
+        if self.cur != 0:
+            self.cur -= 1
+            await self.message.edit(embed=embeds.InfoEmbed(self.title, description=self.msgs[self.cur]))
+
+    @menus.button(NEXT_EMOJI)
+    async def on_next(self, payload):
+        if payload.event_type == REMOVE_EVENT:
+            return
+        member = get(self.message.channel.guild.members, id=payload.user_id)
+        await self.message.remove_reaction(payload.emoji, member)
+        if self.cur != (len(self.msgs) - 1):
+            self.cur += 1
+            await self.message.edit(embed=embeds.InfoEmbed(self.title, description=self.msgs[self.cur]))
