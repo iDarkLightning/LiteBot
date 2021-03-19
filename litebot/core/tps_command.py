@@ -1,4 +1,6 @@
 from discord.ext import commands
+
+from litebot.checks import role_checks
 from litebot.core.converters import get_server
 from litebot.utils import embeds
 
@@ -8,6 +10,7 @@ class TPSCommand(commands.Cog):
         self.bot = bot
 
     @commands.command(name="tps", aliases=["mspt"])
+    @role_checks.config_role_check("members_role")
     async def _tps(self, ctx: commands.Context, server: str = None) -> None:
         """
         Allows you to view the TPS and MSPT of a server.

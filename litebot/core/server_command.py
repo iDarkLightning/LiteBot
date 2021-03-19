@@ -1,4 +1,5 @@
 from discord.ext import commands
+from litebot.checks import role_checks
 from litebot.core.converters import get_server
 from litebot.minecraft.server import MinecraftServer
 from litebot.utils.fmt_strings import CODE_BLOCK, WHITELIST_ADD, WHITELIST_REMOVE
@@ -10,6 +11,7 @@ class ServerCommands(commands.Cog):
         self.bot = bot
 
     @commands.command(name="run", aliases=["execute"])
+    @role_checks.config_role_check("members_role")
     async def _run(self, ctx: commands.Context, *args) -> None:
         """
         Allows you to execute a command on the server.
@@ -40,6 +42,7 @@ class ServerCommands(commands.Cog):
             await ctx.send(CODE_BLOCK.format("", server.send_command(command)))
 
     @commands.group(name="whitelist")
+    @role_checks.config_role_check("operators_role")
     async def _whitelist(self, ctx: commands.Context) -> None:
         """
         This is the root command for the whitelist group.

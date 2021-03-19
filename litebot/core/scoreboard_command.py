@@ -3,7 +3,7 @@ import os
 from discord.ext import commands
 from litebot.minecraft.server import MinecraftServer
 from litebot.utils.utils import scoreboard_image
-
+from ..checks import role_checks
 
 class ScoreboardCommand(commands.Cog):
     def __init__(self, bot):
@@ -12,6 +12,7 @@ class ScoreboardCommand(commands.Cog):
             self.scoreboards = json.load(f)
 
     @commands.command(name="scoreboard", aliases=["sb"])
+    @role_checks.config_role_check("members_role")
     async def _scoreboard(self, ctx: commands.Context, objective_name: str, option: str = None) -> None:
         """
         This command lets you view the scoreboard for an ingame objective.

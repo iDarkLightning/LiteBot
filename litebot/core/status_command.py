@@ -1,4 +1,6 @@
 from discord.ext import commands
+
+from litebot.checks import role_checks
 from litebot.core.converters import get_server
 from litebot.errors import ServerNotFound
 from litebot.utils import embeds
@@ -10,6 +12,7 @@ class StatusCommand(commands.Cog):
         self.bot = bot
 
     @commands.command(name="status", aliases=["s", "online", "o"])
+    @role_checks.config_role_check("members_role")
     async def _status(self, ctx: commands.Context, server: str = None) -> None:
         """
         Allows you to view the status of a server.
