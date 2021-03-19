@@ -2,10 +2,10 @@ from __future__ import annotations
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
-from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA
+from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA, ServerNotRunningCarpet
 from ..utils import requests
 from socket import timeout
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from async_property import async_property
 from jwt import encode as jwt_encode
 from discord import TextChannel
@@ -17,6 +17,7 @@ import os
 SERVER_DIR_NAME = "servers"
 CHAT_MESSAGE_ROUTE = "/game_message"
 SYSTEM_MESSAGE_ROUTE = "/system_message"
+TPS_COMMAND = "/script run reduce(last_tick_times(),_a+_,0)/100;"
 
 class MinecraftServer:
     """
@@ -32,7 +33,7 @@ class MinecraftServer:
         self._rcon = ServerRcon(self._addr, info["rcon_password"], info["rcon_port"])
         self.operator = info["operator"]
         self._lta_addr = info["litetech_additions"]["address"]
-        self._bridge_channel_id = info["litetech_additions"]["bridge_channel_id"]
+        self.bridge_channel_id = info["litetech_additions"]["bridge_channel_id"]
         self._add_instance(self)
 
     @property
@@ -51,7 +52,7 @@ class MinecraftServer:
         :rtype: TextChannel
         """
         try:
-            channel = await self.bot_instance.fetch_channel(self._bridge_channel_id)
+            channel = await self.bot_instance.fetch_channel(self.bridge_channel_id)
             return channel
         except NotFound:
             return None
@@ -107,6 +108,21 @@ class MinecraftServer:
             return QueryResponse(status=False)
         except Exception:
             raise ServerConnectionFailed
+
+    def tps(self) -> Tuple[float, float]:
+        """
+        Get's the server's TPS and MSPT.
+        The result is the average of the past 100 ticks
+        :return: The server's TPS and MSPT
+        :rtype: Tuple[float, float]
+        """
+        res = self.send_command(TPS_COMMAND)
+        if not res.isnumeric():
+            raise ServerNotRunningCarpet
+
+        mspt = round(float(res.split()[1]), 1)
+        tps = 20.0 if mspt <= 50.0 else 1000 / mspt
+        return mspt, tps
 
     def send_command(self, command: str) -> Optional[str]:
         """

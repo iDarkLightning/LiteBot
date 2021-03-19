@@ -47,6 +47,13 @@ class ServerNotRunningLTA(MinecraftServerException):
     """
     pass
 
+class ServerNotRunningCarpet(MinecraftServerException):
+    """
+    Exception produced when methods requiring carpet mod are performed
+    with a server that does not have the mod installed
+    """
+    pass
+
 class ServerCommandNotFound(MinecraftServerException):
     """
     Exception produced when trying to run a command

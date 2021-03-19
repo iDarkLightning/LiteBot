@@ -13,6 +13,7 @@ from .system.help_command import HelpCommand
 MODULES_PATH = "litebot/modules"
 REQUIRED_MODULES = (
     "litebot.system",
+    "litebot.core"
 )
 
 class LiteBot(commands.Bot):
