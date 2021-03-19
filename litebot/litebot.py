@@ -1,8 +1,11 @@
 import importlib
 import discord
 from discord.ext import commands
+
+from .errors import ServerNotFound
 from .minecraft.server_commands.core import ServerCommand
 from .minecraft.server_commands.server_context import ServerContext
+from .utils import embeds
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer

@@ -9,8 +9,13 @@ class StatusCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="status", aliases=["s"])
-    async def _status(self, ctx: commands.Context, server: str = None):
+    @commands.command(name="status", aliases=["s", "online", "o"])
+    async def _status(self, ctx: commands.Context, server: str = None) -> None:
+        """
+        Allows you to view the status of a server.
+        You must include the server name unless the command is run in a bridge channel.
+        `server` The name of the server you wish to see the status for
+        """
         server = get_server(ctx, server)
         status = server.status()
         embed = embeds.SuccessEmbed(f"{server.name.upper()} Status") if \
@@ -27,8 +32,3 @@ class StatusCommand(commands.Cog):
         embed.set_footer(text=ctx.message.guild)
 
         await ctx.send(embed=embed)
-
-    @_status.error
-    async def on_status_err(self, ctx, err):
-        if isinstance(err.original, ServerNotFound):
-            await ctx.send(embed=embeds.ErrorEmbed("That is not a valid server name!"))

@@ -17,7 +17,7 @@ import os
 SERVER_DIR_NAME = "servers"
 CHAT_MESSAGE_ROUTE = "/game_message"
 SYSTEM_MESSAGE_ROUTE = "/system_message"
-TPS_COMMAND = "/script run reduce(last_tick_times(),_a+_,0)/100;"
+TPS_COMMAND = "script run reduce(last_tick_times(),_a+_,0)/100;"
 
 class MinecraftServer:
     """
@@ -117,12 +117,14 @@ class MinecraftServer:
         :rtype: Tuple[float, float]
         """
         res = self.send_command(TPS_COMMAND)
-        if not res.isnumeric():
+        try:
+            float(res.split()[1])
+        except ValueError:
             raise ServerNotRunningCarpet
 
         mspt = round(float(res.split()[1]), 1)
         tps = 20.0 if mspt <= 50.0 else 1000 / mspt
-        return mspt, tps
+        return mspt, round(float(tps), 1)
 
     def send_command(self, command: str) -> Optional[str]:
         """
