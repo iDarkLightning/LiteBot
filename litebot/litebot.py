@@ -1,5 +1,6 @@
 import importlib
 import discord
+from async_property import async_property
 from discord.ext import commands
 
 from .errors import ServerNotFound
@@ -37,6 +38,16 @@ class LiteBot(commands.Bot):
     def _init_servers(self):
         for server in self.config["servers"]:
             MinecraftServer(server, self, **self.config["servers"][server])
+
+    @async_property
+    async def log_channel(self):
+        return await self.fetch_channel(self.config["log_channel_id"])
+
+    @async_property
+    async def guild(self):
+        await self.wait_until_ready()
+        return self.get_guild(self.config["main_guild_id"])
+
 
     def add_cog(self, cog: commands.Cog, required: bool = False) -> None:
         if self._initialising and not required:

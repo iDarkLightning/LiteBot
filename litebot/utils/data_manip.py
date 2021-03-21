@@ -1,5 +1,17 @@
+import re
+import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
 
+import discord
+
+TIME_KEY = {
+    "w": "weeks",
+    "d": "days",
+    "h": "hours",
+    "m": "minutes",
+    "s": "seconds"
+}
 
 def flatten_dict(dict_: dict, parent_key: Optional[str] = "", separator: Optional[str] = ".") -> dict:
     """
@@ -88,3 +100,76 @@ def split_string(str_: str, length: int, sep: Optional[str] = "\n") -> List[str]
     res.append(cur)
     return res
 
+def split_nums_chars(str_: str) -> tuple[str, str]:
+    """
+    Splits the numbers and characters from a string
+    :param str_: The string to split
+    :type str_: str
+    :return: The characters and the nu
+    :rtype: tuple[str, str]
+    """
+    nums = "".join([i for i in str_ if i.isnumeric()])
+    chars = "".join([i for i in str_ if i.isalpha()])
+
+    return chars, nums
+
+def datetime_string_parser(str_: str) -> Optional[datetime]:
+    """
+    Parse a datetime object from a string
+    :param str_:
+    :type str_:
+    :return:
+    :rtype:
+    """
+    time_regex = re.compile(r"\d+[wdhms]")
+    matches = time_regex.findall(str_)
+    if matches:
+        full = [re.sub(m[-1], TIME_KEY[m[-1]], m) for m in matches]
+        time_args = {k: int(v) for k, v in [split_nums_chars(s) for s in full]}
+        return datetime.utcnow() + timedelta(**time_args)
+
+def parse_reason(executor: discord.Member, args: tuple[str]) -> str:
+    """
+    Takes the user's action reason and parses it into a reason with their expire time
+    as well as the executor's ID plus the original reason.
+    :param executor: The user who used the command
+    :type executor: discord.Member
+    :param args: The args from the command
+    :type args: tuple[str]
+    :return: The reason string
+    :rtype: str
+    """
+    if len(args) == 0:
+        return f"[{executor.id}]"
+    elif len(args) == 1:
+        return f"[{datetime_string_parser(args[0])}] [{executor.id}]"
+    elif len(args) >= 2:
+        ban_time = datetime_string_parser(args[-1])
+        if ban_time:
+            reason = " ".join(args)
+            return f"{reason} [{ban_time}] [{executor.id}]"
+        else:
+            return f"{' '.join(args)} [{executor.id}]"
+
+def reason_datetime_parser(reason: str) -> Optional[datetime]:
+    """
+    Gets a datetime object from a reason string.
+    The datetime object must be in the right format.
+    :param reason: The reason string
+    :type reason: str
+    :return: The datetime object in the reason string if found
+    :rtype: Optional[datetime]
+    """
+    if not reason:
+        return
+
+    if reason.count("[") < 2:
+        return
+
+    time_reg = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d+")
+    time_str, *_ = time_reg.findall(reason)
+
+    try:
+        return datetime.fromisoformat(time_str)
+    except ValueError:
+        return

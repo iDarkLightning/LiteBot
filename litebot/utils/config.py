@@ -79,6 +79,7 @@ class MainConfig(BaseConfig):
         "main_guild_id": 1,
         "members_role": [],
         "operators_role": [],
+        "log_channel_id": 1,
         "api_secret": "",
         "servers": {
             "name": {

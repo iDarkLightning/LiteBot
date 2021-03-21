@@ -6,7 +6,7 @@ from discord.utils import get
 class AutoRole(commands.Cog):
     def __init__(self, bot, module):
         self.bot = bot
-        self.config = self.bot.module_config[module]
+        self.config = self.bot.module_config[module]["config"]
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
