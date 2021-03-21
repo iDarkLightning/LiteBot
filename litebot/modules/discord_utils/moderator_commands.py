@@ -81,6 +81,12 @@ class ModeratorCommands(commands.Cog):
     @commands.group(name="mute")
     @commands.has_permissions(manage_roles=True)
     async def _mute(self, ctx: commands.Context) -> None:
+        """
+        This is the root command for the mute group.
+        This command serves no function without
+        a subcommand, but will send the help message for this group.
+        Essentially invokes `help mute`
+        """
         if not ctx.invoked_subcommand:
             await ctx.send_help("mute")
 
