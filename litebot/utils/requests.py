@@ -1,3 +1,4 @@
+import requests
 from aiohttp import ClientSession
 from typing import Optional
 
@@ -29,6 +30,12 @@ async def post(url: str, data: dict, headers: Optional[dict] = None) -> dict:
     :return: The server's response in JSON format
     :rtype: dict
     """
-    async with ClientSession() as session:
-        async with session.post(url, data=data, headers=headers) as response:
-            return await response.json()
+    # async with ClientSession() as session:
+    #     print(session)
+    #     async with session.post(url, data=data, headers=headers) as response:
+    #         print(response)
+    #         return await response.json()
+    try:
+        res = requests.post(url, json=data, headers=headers)
+    except Exception as e:
+        print(e)

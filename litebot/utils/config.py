@@ -81,6 +81,7 @@ class MainConfig(BaseConfig):
         "operators_role": [],
         "log_channel_id": 1,
         "api_secret": "",
+        "api_server_addr": "127.0.0.1",
         "servers": {
             "name": {
                 "numerical_server_ip": "",

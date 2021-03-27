@@ -5,10 +5,11 @@ from typing import NoReturn, Union, Optional
 from ...utils.logging import get_logger
 
 logger = get_logger("bot")
+ALGORITHM = "HS256"
 
-async def validate_jwt(request: Request, secret: str, auth_scheme: Optional[str] ="Bearer") -> Union[NoReturn, dict]:
+async def validate_jwt_headers(request: Request, secret: str, auth_scheme: Optional[str] = "Bearer") -> Union[NoReturn, dict]:
     """
-    This validates a JWT in a HTTP Request and returns the decoded token
+    This validates a JWT in a HTTP Request Headers and returns the decoded token
     :param request: The HTTP Reuqest that contains the token
     :type request: sanic.request.Request
     :param secret: The secret to decode the token with
@@ -31,10 +32,25 @@ async def validate_jwt(request: Request, secret: str, auth_scheme: Optional[str]
 
     if token:
         try:
-            decoded = jwt.decode(token, secret, algorithms="HS256")
+            decoded = jwt.decode(token, secret, algorithms=ALGORITHM)
         except jwt.InvalidTokenError as jet:
             logger.exception(jet, exc_info=jet)
             raise exceptions.Unauthorized(message=f"Invalid Authorization token, {jet}")
 
         if decoded:
             return decoded
+
+async def validate_jwt_query(request: Request, secret: str) -> Union[NoReturn, dict]:
+    try:
+        token = request.args["token"][0]
+    except KeyError:
+        raise exceptions.Forbidden("Missing token in request arguments!")
+
+    try:
+        decoded = jwt.decode(token, secret, algorithms=ALGORITHM)
+    except jwt.InvalidTokenError as jet:
+        logger.exception(jet, exc_info=jet)
+        raise exceptions.Unauthorized(message=f"Invalid Authorization token, {jet}")
+
+    if decoded:
+        return decoded

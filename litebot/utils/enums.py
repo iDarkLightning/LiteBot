@@ -9,3 +9,8 @@ class ModeratorActions(Enum):
     BAN = "Ban"
     MUTE = "Mute"
     PARDON = "Pardon"
+
+class BackupTypes(Enum):
+    MANUAL = "Manual"
+    WEEKLY = "Weekly"
+    DAILY = "Daily"

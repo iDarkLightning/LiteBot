@@ -1,4 +1,8 @@
 from __future__ import annotations
+
+import asyncio
+from pathlib import Path
+
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
@@ -11,10 +15,14 @@ from jwt import encode as jwt_encode
 from discord import TextChannel
 from discord.errors import NotFound
 import datetime
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
+from ..utils.enums import BackupTypes
+
 SERVER_DIR_NAME = "servers"
+BACKUP_DIR_NAME = "backups"
+DEFAULT_WORLD_DIR_NAME = "world"
 CHAT_MESSAGE_ROUTE = "/game_message"
 SYSTEM_MESSAGE_ROUTE = "/system_message"
 TPS_COMMAND = "script run reduce(last_tick_times(),_a+_,0)/100;"
@@ -44,6 +52,32 @@ class MinecraftServer:
         """
         dir_ = os.path.join(os.getcwd(), SERVER_DIR_NAME, self.name)
         return dir_ if os.path.exists(dir_) else None
+
+    @property
+    def world_dir(self) -> Optional[str]:
+        if not self.server_dir:
+            return
+
+        world_dir = os.path.join(self.server_dir, DEFAULT_WORLD_DIR_NAME)
+        if os.path.exists(world_dir):
+            return world_dir
+        else:
+            level_name = None
+            with open(os.path.join(self.server_dir, "server.properties")) as f:
+                props = {k:v.removesuffix("\n") for k,v in [line.split("=", 2) for line in f.readlines() if "=" in line]}
+                level_name = props["level-name"]
+            return os.path.join(self.server_dir, level_name)
+
+    @property
+    def backup_dir(self) -> Optional[str]:
+        if not self.world_dir:
+            return
+
+        Path(os.path.join(self.server_dir, BACKUP_DIR_NAME)).mkdir(exist_ok=True)
+        Path(os.path.join(self.server_dir, BACKUP_DIR_NAME, BackupTypes.MANUAL.value)).mkdir(exist_ok=True)
+        Path(os.path.join(self.server_dir, BACKUP_DIR_NAME, BackupTypes.WEEKLY.value)).mkdir(exist_ok=True)
+
+        return os.path.join(self.server_dir, BACKUP_DIR_NAME)
 
     @async_property
     async def bridge_channel(self) -> Optional[TextChannel]:
@@ -151,6 +185,19 @@ class MinecraftServer:
         tps = 20.0 if mspt <= 50.0 else 1000 / mspt
         return mspt, round(float(tps), 1)
 
+    async def stop(self):
+        server_offline = True
+
+        while server_offline:
+            try:
+                self.send_command("stop")
+                server_offline= self.status().online
+                await asyncio.sleep(2)
+            except ServerConnectionFailed:
+                server_offline = False
+
+        return server_offline
+
     def send_command(self, command: str) -> Optional[str]:
         """
         Executes a command on the server
@@ -200,14 +247,16 @@ class MinecraftServer:
         """
 
         jwt_token = jwt_encode(
-            {"user": self.bot_instance.user.id, "exp": datetime.utcnow() + datetime.timedelta(seconds=30)},
-            self.bot_instance.config.api_secret)
+            {"user": self.bot_instance.user.id, "exp": datetime.utcnow() + timedelta(seconds=30)},
+            self.bot_instance.config["api_secret"])
 
-        try:
-            return await requests.post(
-            (self._lta_addr + route), data=message, headers={"Authorization": "Bearer " + jwt_token})
-        except Exception as e:
-            raise ServerConnectionFailed(e)
+        print(jwt_token)
+
+        # try:
+        await requests.post(
+        (self._lta_addr + route), data=message, headers={"Authorization": "Bearer " + jwt_token})
+        # except Exception as e:
+        #     raise ServerConnectionFailed(e)
 
     async def send_chat_message(self, message: dict) -> dict:
         """
