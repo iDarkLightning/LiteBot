@@ -1,7 +1,4 @@
 from typing import Optional
-
-from litebot.minecraft.server import MinecraftServer
-
 WHITE = 16777215
 
 class ServerContext:
@@ -15,9 +12,10 @@ class ServerContext:
     :param bot: The bot that the command is registered to
     :type bot: LiteBot
     """
-    def __init__(self, server: MinecraftServer, bot) -> None:
+    def __init__(self, server, bot, author: str) -> None:
         self.server = server
         self.bot = bot
+        self.author = author
 
     async def send(self, message: str, color: Optional[int] = None) -> None:
         """
@@ -28,4 +26,5 @@ class ServerContext:
         :param color: The color of our message in game
         :type color: Optional[int]
         """
-        await self.server.send_system_message({"message": message, "color": color if color else WHITE})
+        await self.server.send_system_message(
+            {"player": self.author}, {"message": message, "color": color if color else WHITE})

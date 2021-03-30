@@ -1,4 +1,5 @@
 import os
+import platform
 from typing import List
 from PIL import ImageDraw, ImageFont, Image
 import math
@@ -85,3 +86,14 @@ def scoreboard_image(sort_scores: List[str], objective_name: str) -> discord.Fil
 
     image = discord.File(filename="scoreboard.png", fp=final_buffer)
     return image
+
+
+def creation_time(path):
+    if platform.system() == "Windows":
+        return os.path.getctime(path)
+    else:
+        stat = os.stat(path)
+        try:
+            return stat.st_birthtime
+        except AttributeError:
+            return stat.st_mtime

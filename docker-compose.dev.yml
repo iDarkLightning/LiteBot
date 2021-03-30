@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  bot:
+    build: .
+    volumes:
+    - "./logs:/bot/logs"
+    - "./config:/bot/config"
+    - "./minecraft_server:/bot/servers/smp"
+    environment:
+      PYTHONUNBUFFERED: 1
+      SERVER_PORT: ${SERVER_PORT}
+      SERVER_NAME: ${SERVER_NAME}
+    ports:
+      - ${SERVER_PORT}:8080
+  mc:
+    image: itzg/minecraft-server
+    ports:
+    - 25565:25565
+    environment:
+      EULA: "TRUE"
+      TYPE: "FABRIC"
+      VERSION: 1.16.3
+      ENABLE_QUERY: "yes"
+    volumes:
+    - "./minecraft_server:/data"

@@ -1,3 +1,4 @@
+import os
 from typing import Coroutine, Any, Optional
 from sanic import Sanic
 from sanic.server import AsyncioServer
@@ -10,7 +11,6 @@ APP_NAME = "LiteBot-API"
 SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 8080
 
-
 def add_routes(app: Sanic) -> None:
     """
     Add all the routes to the app instance
@@ -18,8 +18,6 @@ def add_routes(app: Sanic) -> None:
     :type app: Sanic
     """
     app.blueprint(ROUTES)
-    pass
-
 
 def get_server_coro(bot_instance: LiteBot) -> Coroutine[Any, Any, Optional[AsyncioServer]]:
     """
@@ -37,6 +35,8 @@ def get_server_coro(bot_instance: LiteBot) -> Coroutine[Any, Any, Optional[Async
 
     app.config.FALLBACK_ERROR_FORMAT = "json"
     app.config.BOT_INSTANCE = bot_instance
+    # This is set so that we can properly generate URLs to our server
+    app.config.SERVER_NAME = os.environ.get("SERVER_NAME")
     add_routes(app)
 
     return app.create_server(host=SERVER_HOST, port=SERVER_PORT, return_asyncio_server=True)

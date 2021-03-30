@@ -131,7 +131,7 @@ class UDPSocketConnection(Connection):
     def __init__(self, addr: tuple[str, int], timeout: int = 3) -> None:
         Connection.__init__(self)
         self.addr = addr
-        self.socket = socket.socket(socket.AF_INET if ip_type(addr[0]) == 4 else socket.AF_INET6, socket.SOCK_DGRAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.settimeout(timeout)
 
     def read(self, length: int) -> Any:

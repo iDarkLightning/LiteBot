@@ -5,8 +5,9 @@ services:
     volumes:
     - "./logs:/bot/logs"
     - "./config:/bot/config"
-    - "C:/Users/nirjh/Desktop/test server:/bot/servers/smp"
     environment:
       PYTHONUNBUFFERED: 1
+      SERVER_PORT: ${SERVER_PORT}
+      SERVER_NAME: ${SERVER_NAME}
     ports:
       - ${SERVER_PORT}:8080

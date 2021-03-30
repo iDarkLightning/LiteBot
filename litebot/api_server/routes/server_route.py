@@ -30,13 +30,12 @@ async def _validate_jwt(request: Request) -> None:
     """
     token_payload = await validate_jwt_headers(request, request.app.config.BOT_INSTANCE.config["api_secret"])
     try:
-        server = MinecraftServer.get_from_name(token_payload["server_name"])
+        request.ctx.server = MinecraftServer.get_from_name(token_payload["server_name"])
+        request.ctx.author = token_payload["player"]
     except KeyError:
         raise exceptions.NotFound("Invalid token payload!")
     except ServerNotFound:
         raise exceptions.NotFound(f"There is no server matching {token_payload['server_name']}")
-    request.ctx.server = server
-
 
 @blueprint.route(RECV_MESSAGE_ROUTE, methods=["POST"])
 async def recv_message(request: Request) -> BaseHTTPResponse:
@@ -59,7 +58,7 @@ async def recv_message(request: Request) -> BaseHTTPResponse:
 
     try:
         server: MinecraftServer = request.ctx.server
-        await server.recieve_message(data["message"])
+        await server.receive_message(data["message"])
         return json_resp({
             "message": f"Message: {data['message']} has been sent successfully to {(await server.bridge_channel).name}"})
     except AttributeError:
@@ -91,7 +90,7 @@ async def recv_command(request: Request) -> BaseHTTPResponse:
 
     try:
         server: MinecraftServer = request.ctx.server
-        await server.recieve_command(data["name"], args)
+        await server.receive_command(request.ctx.author, data["name"], args)
         return json_resp({"message": f"Message: {data['name']} has been executed successfully!"})
     except ServerCommandNotFound:
         return json_resp({"message": "This is not a valid command!"}, status=401)

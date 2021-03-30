@@ -75,13 +75,11 @@ class MainConfig(BaseConfig):
     DEFAULT_CONFIG = {
         "token": "",
         "prefixes": [],
-        "server_logo": "",
         "main_guild_id": 1,
         "members_role": [],
         "operators_role": [],
         "log_channel_id": 1,
         "api_secret": "",
-        "api_server_addr": "127.0.0.1",
         "servers": {
             "name": {
                 "numerical_server_ip": "",

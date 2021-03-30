@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
@@ -17,13 +16,12 @@ from discord.errors import NotFound
 import datetime
 from datetime import datetime, timedelta
 import os
-
 from ..utils.enums import BackupTypes
 
 SERVER_DIR_NAME = "servers"
 BACKUP_DIR_NAME = "backups"
 DEFAULT_WORLD_DIR_NAME = "world"
-CHAT_MESSAGE_ROUTE = "/game_message"
+CHAT_MESSAGE_ROUTE = "/chat_message"
 SYSTEM_MESSAGE_ROUTE = "/system_message"
 TPS_COMMAND = "script run reduce(last_tick_times(),_a+_,0)/100;"
 
@@ -64,7 +62,7 @@ class MinecraftServer:
         else:
             level_name = None
             with open(os.path.join(self.server_dir, "server.properties")) as f:
-                props = {k:v.removesuffix("\n") for k,v in [line.split("=", 2) for line in f.readlines() if "=" in line]}
+                props = {k: v.removesuffix("\n") for k,v in [line.split("=", 2) for line in f.readlines() if "=" in line]}
                 level_name = props["level-name"]
             return os.path.join(self.server_dir, level_name)
 
@@ -217,7 +215,7 @@ class MinecraftServer:
         if resp:
             return resp
 
-    async def recieve_message(self, message: str) -> None:
+    async def receive_message(self, message: str) -> None:
         """
         Sends a given message to the server's bridge channel
         :param message: The message to send
@@ -226,19 +224,25 @@ class MinecraftServer:
         """
         await (await self.bridge_channel).send(message)
 
-    async def recieve_command(self, command, args) -> None:
+    async def receive_command(self, author: str, command: str, args) -> None:
         """
         Executes a command sent from the server
+        :param author: The UUID of the player who executed the command
+        :type author: str
         :param command: The name of the command
         :type command: str
         :param args: The arguments for the command
         :type args: str
         """
-        await self.bot_instance.dispatch_server_command(self, command, *args)
+        await self.bot_instance.dispatch_server_command(self, command, author, *args)
 
-    async def _send_server_message(self, route: str, message: dict) -> dict:
+    async def _send_server_message(self, route: str, payload: dict, message: dict) -> dict:
         """
         Signs a JWT token and sends a message to the server
+        :param route: The route to send the message to
+        :type route: str
+        :param payload: The payload for the JWT Token
+        :type payload: dict
         :param message: The message to send
         :type message: dict
         :return: The server's response
@@ -246,17 +250,15 @@ class MinecraftServer:
         :raises: ServerConnectionFailed
         """
 
-        jwt_token = jwt_encode(
-            {"user": self.bot_instance.user.id, "exp": datetime.utcnow() + timedelta(seconds=30)},
-            self.bot_instance.config["api_secret"])
+        payload["exp"] = datetime.utcnow() + timedelta(seconds=30)
 
-        print(jwt_token)
+        jwt_token = jwt_encode(payload, self.bot_instance.config["api_secret"])
 
-        # try:
-        await requests.post(
-        (self._lta_addr + route), data=message, headers={"Authorization": "Bearer " + jwt_token})
-        # except Exception as e:
-        #     raise ServerConnectionFailed(e)
+        try:
+            return requests.post((self._lta_addr + route),
+                          data=message, headers={"Authorization": "Bearer " + jwt_token})
+        except Exception as e:
+            raise ServerConnectionFailed(e)
 
     async def send_chat_message(self, message: dict) -> dict:
         """
@@ -283,9 +285,9 @@ class MinecraftServer:
         if not self._lta_addr:
             raise ServerNotRunningLTA
 
-        return await self._send_server_message(CHAT_MESSAGE_ROUTE, message)
+        return await self._send_server_message(CHAT_MESSAGE_ROUTE, {}, message)
 
-    async def send_system_message(self, message: dict) -> dict:
+    async def send_system_message(self, payload: dict, message: dict) -> dict:
         """
         Sends a system message to the server, only works if server is running LTA
 
@@ -296,6 +298,8 @@ class MinecraftServer:
             "color": 16777215
         }
 
+        :param payload: The payload for the JWT Token
+        :type payload: dict
         :param message: The message to send to the server
         :type message: dict
         :return: The server's response
@@ -306,5 +310,4 @@ class MinecraftServer:
         if not self._lta_addr:
             raise ServerNotRunningLTA
 
-        return await self._send_server_message(SYSTEM_MESSAGE_ROUTE, message)
-
+        return await self._send_server_message(SYSTEM_MESSAGE_ROUTE, payload, message)

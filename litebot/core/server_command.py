@@ -4,7 +4,7 @@ from litebot.checks import role_checks
 from litebot.core.converters import get_server
 from litebot.minecraft.server import MinecraftServer
 from litebot.utils.fmt_strings import CODE_BLOCK, WHITELIST_ADD, WHITELIST_REMOVE
-from litebot.utils.utils import check_role
+from litebot.utils.misc import check_role
 
 
 class ServerCommands(commands.Cog):
@@ -44,14 +44,16 @@ class ServerCommands(commands.Cog):
         :param message: The message sent by the user
         :type message: discord.Message
         """
-        if not message.content.startswith("/") or not message.channel.id in [s.bridge_channel_id for s in MinecraftServer.get_all_instances()]:
+        if not message.content.startswith("/") or not message.channel.id in [s.bridge_channel_id for s in
+                                                                             MinecraftServer.get_all_instances()]:
             return
 
         server = MinecraftServer.get_from_channel(message.channel.id)
         command = message.content.split("/")[1]
         await self._handle_server_command(message.channel, message.author, server, command)
 
-    async def _handle_server_command(self, channel: discord.TextChannel, author: discord.Member, server: MinecraftServer, command: str) -> None:
+    async def _handle_server_command(self, channel: discord.TextChannel, author: discord.Member,
+                                     server: MinecraftServer, command: str) -> None:
         if server.operator:
             if check_role(author, self.bot.config["operators_role"]):
                 res = server.send_command(command)
@@ -113,4 +115,3 @@ class ServerCommands(commands.Cog):
                     ops.append(op_res)
 
         await ctx.send(WHITELIST_REMOVE.format(player_name, len(whitelists), player_name, len(ops)))
-

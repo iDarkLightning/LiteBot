@@ -13,7 +13,7 @@ class ConfigCommand(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def _config(self, ctx: commands.Context) -> None:
         """
-        This is the root command for the module group.
+        This is the root command for the config group.
         This command serves no function without
         a subcommand, but will send the help message for this group.
         Essentially invokes `help config`

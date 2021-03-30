@@ -8,3 +8,4 @@ config.json
 env
 /logs
 /config
+/minecraft_server

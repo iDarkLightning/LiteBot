@@ -3,10 +3,8 @@ import discord
 from async_property import async_property
 from discord.ext import commands
 
-from .errors import ServerNotFound
 from .minecraft.server_commands.core import ServerCommand
 from .minecraft.server_commands.server_context import ServerContext
-from .utils import embeds
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer
@@ -47,7 +45,6 @@ class LiteBot(commands.Bot):
     async def guild(self):
         await self.wait_until_ready()
         return self.get_guild(self.config["main_guild_id"])
-
 
     def add_cog(self, cog: commands.Cog, required: bool = False) -> None:
         if self._initialising and not required:
@@ -118,9 +115,9 @@ class LiteBot(commands.Bot):
 
             self.module_config.save()
 
-    async def dispatch_server_command(self, server, command, *args):
+    async def dispatch_server_command(self, server, command, author, *args):
         command = ServerCommand.get_from_name(command)
-        command_ctx = ServerContext(server, self)
+        command_ctx = ServerContext(server, self, author)
         await command.invoke(command_ctx, args)
 
     async def on_ready(self):

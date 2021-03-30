@@ -15,6 +15,9 @@ class QueryResponse:
             for name in self.names:
                 yield name
 
+        def __len__(self):
+            return len(self.names)
+
         def __repr__(self):
             return str(self.names)
 

@@ -2,7 +2,6 @@ from discord.ext import commands
 
 from litebot.checks import role_checks
 from litebot.core.converters import get_server
-from litebot.errors import ServerNotFound
 from litebot.utils import embeds
 import datetime
 from datetime import datetime
@@ -28,9 +27,11 @@ class StatusCommand(commands.Cog):
         if status.online:
             embed.add_field(name="Status", value="Online")
             embed.add_field(name="Players Online", value=f"{status.players.online}/{status.players.max}")
-            embed.add_field(name="Online Players", value=", ".join(status.players), inline=False)
+            if len(status.players):
+                embed.add_field(name="Online Players", value=", ".join(status.players), inline=False)
         else:
             embed.add_field(name="Status", value="Offline")
+
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.set_footer(text=ctx.message.guild)
 
