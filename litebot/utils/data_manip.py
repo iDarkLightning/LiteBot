@@ -2,8 +2,8 @@ import re
 import datetime
 from datetime import datetime, timedelta
 from typing import Optional, List
-
 import discord
+from discord.utils import get
 
 TIME_KEY = {
     "w": "weeks",
@@ -173,3 +173,28 @@ def reason_datetime_parser(reason: str) -> Optional[datetime]:
         return datetime.fromisoformat(time_str)
     except ValueError:
         return
+
+async def parse_emoji(bot_instance, message: str) -> str:
+    """
+    Parses an emoji from your message.
+    :param bot_instance: The bot instance
+    :type bot_instance: LiteBot
+    :param message: The message you are parsing the emoji from
+    :type message: str
+    :return: The parsed message
+    :rtype: str
+    """
+    emoji_reg = re.compile(r":\w{2,}:")
+
+    if not len(emoji_reg.findall(message)):
+        return message
+
+    emoji_name, *_ = emoji_reg.findall(message)
+
+    guild: discord.Guild = await bot_instance.guild
+    emoji = get(guild.emojis, name=emoji_name)
+
+    if not emoji:
+        return message
+
+    return re.sub(emoji_reg, "{}", message).format(emoji)

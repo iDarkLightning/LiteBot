@@ -16,6 +16,8 @@ from discord.errors import NotFound
 import datetime
 from datetime import datetime, timedelta
 import os
+
+from ..utils.data_manip import parse_emoji
 from ..utils.enums import BackupTypes
 
 SERVER_DIR_NAME = "servers"
@@ -222,6 +224,8 @@ class MinecraftServer:
         :type message: str
         :raises: AttributeError
         """
+
+        message = await parse_emoji(self.bot_instance, message)
         await (await self.bridge_channel).send(message)
 
     async def receive_command(self, author: str, command: str, args) -> None:

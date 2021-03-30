@@ -3,6 +3,7 @@ import discord
 from async_property import async_property
 from discord.ext import commands
 
+from .errors import ServerNotFound, ServerConnectionFailed, ServerNotRunningLTA
 from .minecraft.server_commands.core import ServerCommand
 from .minecraft.server_commands.server_context import ServerContext
 from .utils.config import MainConfig, ModuleConfig
@@ -120,8 +121,36 @@ class LiteBot(commands.Bot):
         command_ctx = ServerContext(server, self, author)
         await command.invoke(command_ctx, args)
 
+    async def _bridge_message(self, message):
+        try:
+            server = MinecraftServer.get_from_channel(message.channel.id)
+        except ServerNotFound:
+            return
+
+        data = {
+            "userName": message.author.display_name,
+            "userRoleColor": message.author.color.value
+        }
+
+        if len(message.content) > 0:
+            data["messageContent"] = message.clean_content
+
+        if message.attachments:
+            data["attachments"] = {attachment.filename: attachment.url for attachment in message.attachments}
+
+        try:
+            await server.send_chat_message(data)
+        except ServerNotRunningLTA:
+            pass
+
     async def on_ready(self):
         self.logger.info(f"{self.user.name} is now online!")
+
+    async def on_message(self, message):
+        await super().on_message(message)
+
+        if not message.author.bot:
+            await self._bridge_message(message)
 
     def __repr__(self):
         return f"LiteBot: Version: {LiteBot.VERSION}"
