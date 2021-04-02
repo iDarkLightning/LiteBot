@@ -11,3 +11,11 @@ services:
       SERVER_NAME: ${SERVER_NAME}
     ports:
       - ${SERVER_PORT}:8080
+  mongo:
+    image: mongo
+    volumes:
+    - "./database:/data/db"
+    ports:
+    - 27017:27017
+    logging:
+      driver: "none"

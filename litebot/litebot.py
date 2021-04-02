@@ -1,15 +1,15 @@
 import importlib
 import discord
+import os
+import mongoengine
 from async_property import async_property
 from discord.ext import commands
-
-from .errors import ServerNotFound, ServerConnectionFailed, ServerNotRunningLTA
+from .errors import ServerNotFound, ServerNotRunningLTA
 from .minecraft.server_commands.core import ServerCommand
 from .minecraft.server_commands.server_context import ServerContext
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer
-import os
 from .utils.fmt_strings import MODULE_LOADING, MODULE_PATH
 from .system.help_command import HelpCommand
 
@@ -30,6 +30,10 @@ class LiteBot(commands.Bot):
             help_command=HelpCommand(),
             intents=discord.Intents.all())
         self.logger = get_logger("bot")
+
+        self.db = mongoengine.connect(host="mongodb://mongo:27017")
+        self.logger.info("Connected to Mongo Database")
+
         self._initialising = False
         self._cur_module = None
         self._init_servers()

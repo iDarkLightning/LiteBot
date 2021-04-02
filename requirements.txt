@@ -6,3 +6,4 @@ git+https://github.com/Rapptz/discord-ext-menus
 pillow~=8.0.1
 pytz~=2020.4
 requests
+mongoengine

@@ -9,3 +9,4 @@ env
 /logs
 /config
 /minecraft_server
+/database

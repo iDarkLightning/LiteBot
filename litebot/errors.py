@@ -73,3 +73,9 @@ class ConfirmationDenied(BaseCommandError):
     Exception produced when user denies confirmation
     """
     pass
+
+class PollCommandError(BaseCommandError):
+    """
+    Exception produced when an error occurs with the poll command
+    """
+    pass

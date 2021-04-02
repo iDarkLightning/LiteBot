@@ -1,5 +1,4 @@
-from . import auto_role, list_command, moderator_commands, timezone_command
-from .polls import poll_command
+from . import auto_role, list_command, moderator_commands, timezone_command, poll_command
 
 MODULE_NAME = "discord_utils"
 
