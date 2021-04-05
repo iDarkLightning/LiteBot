@@ -31,7 +31,7 @@ class LiteBot(commands.Bot):
             intents=discord.Intents.all())
         self.logger = get_logger("bot")
 
-        self.db = mongoengine.connect(host="mongodb://mongo:27017")
+        self.db = mongoengine.connect("bot", host="mongo", port=27017)
         self.logger.info("Connected to Mongo Database")
 
         self._initialising = False

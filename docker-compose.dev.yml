@@ -23,11 +23,24 @@ services:
       ENABLE_QUERY: "yes"
     volumes:
     - "./minecraft_server:/data"
+    depends_on:
+      - mongo
   mongo:
     image: mongo
     volumes:
-      - "./database:/data/db"
+      - mongo_data:/data/db
     ports:
       - 27017:27017
     logging:
       driver: "none"
+  mongo-express:
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+    ports:
+    - 8081:8081
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:

@@ -11,11 +11,31 @@ services:
       SERVER_NAME: ${SERVER_NAME}
     ports:
       - ${SERVER_PORT}:8080
+    depends_on:
+      - mongo
   mongo:
     image: mongo
     volumes:
-    - "./database:/data/db"
+    - mongo_data:/data/db
     ports:
     - 27017:27017
     logging:
       driver: "none"
+
+  mongo-express:
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'false'
+      ME_CONFIG_MONGODB_AUTH_DATABASE: bot
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_USERNAME}
+      ME_CONFIG_BASICAUTH_USERNAME: ${DB_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_PASSWORD}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 8081:8081
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:
