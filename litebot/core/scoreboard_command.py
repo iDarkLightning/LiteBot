@@ -52,6 +52,14 @@ class ScoreboardCommand(commands.Cog):
 
     @_scoreboard.error
     async def on_scoreboard_error(self, ctx: commands.Context, err: commands.CommandInvokeError) -> None:
+        """
+        Handles any errors that might occur within the scoreboard command
+        :param ctx: The context that the command was invoked in
+        :type ctx: commands.Context
+        :param err: The error that was raised
+        :type err: commands.CommandInvokeError
+        """
+
         if isinstance(err.original, ValueError):
             await ctx.send(embed=embeds.ErrorEmbed("That scoreboard does not exist"))
         elif isinstance(err.original, UnboundLocalError):

@@ -1,11 +1,14 @@
 import os
 import platform
-from typing import List
+from typing import List, Union
 from PIL import ImageDraw, ImageFont, Image
 import math
 import io
 import discord
 from discord.utils import get
+
+from litebot.utils import requests
+
 
 def check_role(member: discord.Member, role_ids: List[int]) -> bool:
     """
@@ -88,7 +91,14 @@ def scoreboard_image(sort_scores: List[str], objective_name: str) -> discord.Fil
     return image
 
 
-def creation_time(path):
+def creation_time(path: str) -> Union[float, int]:
+    """
+    Get's the creation time of a file from its path
+    :param path: The path to the file
+    :type path: str
+    :return: The creation time
+    :rtype: Union[float, int]
+    """
     if platform.system() == "Windows":
         return os.path.getctime(path)
     else:
@@ -97,3 +107,14 @@ def creation_time(path):
             return stat.st_birthtime
         except AttributeError:
             return stat.st_mtime
+
+async def is_image(url: str) -> bool:
+    """
+    Check's if a url is to an image
+    :param url: The url to check
+    :type url: str
+    :return: Whether or not the URL is an image
+    :rtype: bool
+    """
+    res = await requests.fetch(url)
+    return "image" in res.headers.get("Content-Type")

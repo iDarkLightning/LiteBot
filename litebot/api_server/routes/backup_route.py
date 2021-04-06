@@ -14,6 +14,21 @@ DOWNLOAD_ROUTE = "/download/<backup_name:path>"
 
 @blueprint.middleware("request")
 async def _validate_jwt(request: Request) -> None:
+    """
+    Middleware to validate JWT in user's query params
+    Tries to get the server provided in the token payload,
+    and sets it in request.ctx.server.
+
+    Example Token Payload
+    ----------------------
+    {
+        "server_name": "smp"
+    }
+
+    :param request:
+    :type request:
+    """
+
     token_payload = await validate_jwt_query(request, request.app.config.BOT_INSTANCE.config["api_secret"])
     try:
         server = MinecraftServer.get_from_name(token_payload["server_name"])
@@ -26,6 +41,21 @@ async def _validate_jwt(request: Request) -> None:
 
 @blueprint.route(DOWNLOAD_ROUTE, methods=["GET"], name="download_backup")
 async def download_backup(request: Request, backup_name: str) -> BaseHTTPResponse:
+    """
+    Sends the user the backup file for download.
+
+    Example URL
+    ------------
+        http://localhost:8080/backups/download_backup/backup.zip
+
+    :param request: The HTTPRequest object, provided by Sanic
+    :type request: sanic.request.Request
+    :param backup_name: The name of the backup, provided in the URL
+    :type backup_name: str
+    :return: The backup file
+    :rtype: BaseHTTPResponse
+    """
+
     server: MinecraftServer = request.ctx.server
 
     backup_path = None

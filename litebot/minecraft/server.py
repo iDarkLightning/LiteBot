@@ -185,18 +185,23 @@ class MinecraftServer:
         tps = 20.0 if mspt <= 50.0 else 1000 / mspt
         return mspt, round(float(tps), 1)
 
-    async def stop(self):
-        server_offline = True
+    async def stop(self) -> bool:
+        """
+        Stops the server
+        :return: The online status of the server
+        :rtype: bool
+        """
+        server_online = True
 
-        while server_offline:
+        while server_online:
             try:
                 self.send_command("stop")
-                server_offline= self.status().online
+                server_online= self.status().online
                 await asyncio.sleep(2)
             except ServerConnectionFailed:
-                server_offline = False
+                server_online = False
 
-        return server_offline
+        return server_online
 
     def send_command(self, command: str) -> Optional[str]:
         """

@@ -154,7 +154,11 @@ class ModuleConfig(BaseConfig):
         if module not in self:
             self[module] = {"enabled": False, "config": config}
             logger.warning(f"Wrote default config for module: {module}. Please fill it out, and reload the module/restart the bot.")
+            self.save()
             return
+
+        if "config" not in self[module]:
+            self[module]["config"] = {}
 
         for key in config:
             if not key in self[module]["config"]:

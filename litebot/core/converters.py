@@ -1,5 +1,4 @@
 from discord.ext import commands
-from litebot.errors import ServerNotFound
 from litebot.minecraft.server import MinecraftServer
 
 def get_server(ctx: commands.Context, name: str) -> MinecraftServer:

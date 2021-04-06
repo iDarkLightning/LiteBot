@@ -5,6 +5,11 @@ from ...minecraft.server import MinecraftServer
 def setup(bot):
     bot.add_cog(BackupsCommand(bot))
 
+def config(bot):
+    return {
+        "backup_role": []
+    }
+
 def requirements(bot):
     servers = MinecraftServer.get_all_instances()
     for server in servers:

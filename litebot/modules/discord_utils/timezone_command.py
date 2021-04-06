@@ -48,7 +48,7 @@ class TimezoneCommand(commands.Cog):
         await ctx.send(embed=embeds.InfoEmbed(f"The time for {member.name} is: {datetime.now(timezone).strftime('%H:%M:%S')}"))
 
     @_timezone.command("set")
-    async def _timezone_set(self, ctx: commands.Context, zone: str):
+    async def _timezone_set(self, ctx: commands.Context, zone: str) -> None:
         """
         Let's you set your timezone.
         `zone` The timezone to set it to

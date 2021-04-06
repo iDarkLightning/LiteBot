@@ -7,6 +7,8 @@ from typing import Optional
 import jwt
 from discord.ext import commands, tasks
 from sanic import Sanic
+
+from litebot.checks import role_checks
 from litebot.core.converters import get_server
 from litebot.minecraft import server_commands
 from litebot.minecraft.server import MinecraftServer
@@ -78,6 +80,7 @@ class BackupsCommand(commands.Cog):
         self._routine_backups.start()
 
     @commands.group(name="backup")
+    @role_checks.module_config_role_check("backup_role", module_name="backups")
     async def _backup(self, ctx: commands.Context) -> None:
         """
         This is the root command for the backup group.
@@ -89,7 +92,7 @@ class BackupsCommand(commands.Cog):
             await ctx.send_help("backup")
 
     @_backup.command(name="create")
-    async def _backup_create(self, ctx: commands.Context, server_name: Optional[str] = None) -> None:
+    async def _backup_create(self, ctx: commands.Context, server_name: Optional[str]) -> None:
         """
         This commands lets you create a backup for a server.
         `server_name` The name of the server that you are creating a backup for
@@ -106,7 +109,7 @@ class BackupsCommand(commands.Cog):
         await ctx.send(embed=embeds.SuccessEmbed(f"Backup {backup_name} Created!"))
 
     @_backup.command(name="view", aliases=["list"])
-    async def _backup_view(self, ctx: commands.Context, server_name: Optional[str] = None) -> None:
+    async def _backup_view(self, ctx: commands.Context, server_name: Optional[str]) -> None:
         """
         This command lets you view all the backups for a server
         `server_name` The name of the server that you are creating a backup for
@@ -128,7 +131,7 @@ class BackupsCommand(commands.Cog):
         await ctx.send(CODE_BLOCK.format("", res_str))
 
     @_backup.command(name="load", aliases=["restore"])
-    async def _backup_load(self, ctx: commands.Context, backup_name: str, server_name: Optional[str] = None):
+    async def _backup_load(self, ctx: commands.Context, backup_name: str, server_name: Optional[str]):
         """
         This command lets you load a backup for a server.
         The server will be stopped automatically, but you will have to start it after.
@@ -153,7 +156,7 @@ class BackupsCommand(commands.Cog):
         await ctx.send(embed=embeds.SuccessEmbed(f"Restored Backup {backup_name}. "))
 
     @_backup.command(name="download")
-    async def _backup_download(self, ctx: commands.Context, backup_name: str, server_name: Optional[str] = None) -> None:
+    async def _backup_download(self, ctx: commands.Context, backup_name: str, server_name: Optional[str]) -> None:
         """
         This command lets you download a backup for a server.
         `backup_name` The name of the backup you are restoring

@@ -85,6 +85,11 @@ class CodeBlockMenu(menus.Menu):
             await self.message.edit(content=CODE_BLOCK.format(self.syntax, self.msgs[self.cur]))
 
 class DescriptionMenu(menus.Menu):
+    """
+    A reaction based menu to ask for switch between the given strings in the embed description.
+    Do not manually call any of the methods.
+    All the given strings will be inserted into the embed description text.
+    """
     def __init__(self, msgs: List[str], title: str) -> None:
         super().__init__(timeout=MENU_TIMEOUT, clear_reactions_after=True)
         self.msgs = msgs

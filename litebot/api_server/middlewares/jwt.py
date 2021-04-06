@@ -41,6 +41,15 @@ async def validate_jwt_headers(request: Request, secret: str, auth_scheme: Optio
             return decoded
 
 async def validate_jwt_query(request: Request, secret: str) -> Union[NoReturn, dict]:
+    """
+    This validates a JWT the request's query parameters
+    :param request: The HTTP Reuqest that contains the token
+    :type request: sanic.request.Request
+    :param secret: The secret to decode the token with
+    :type secret: str
+    :return: The decoded JWT
+    :rtype: Union[NoReturn, dict]
+    """
     try:
         token = request.args["token"][0]
     except KeyError:
