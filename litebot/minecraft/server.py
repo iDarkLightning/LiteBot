@@ -5,6 +5,8 @@ from pathlib import Path
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
+from .server_commands.server_action import ServerCommand, ServerEvent
+from .server_commands.server_context import ServerCommandContext, ServerEventContext
 from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA, ServerNotRunningCarpet
 from ..utils import requests
 from socket import timeout
@@ -16,6 +18,7 @@ from discord.errors import NotFound
 import datetime
 from datetime import datetime, timedelta
 import os
+from discord import Message
 
 from ..utils.data_manip import parse_emoji
 from ..utils.enums import BackupTypes
@@ -79,6 +82,10 @@ class MinecraftServer:
 
         return os.path.join(self.server_dir, BACKUP_DIR_NAME)
 
+    @property
+    def running_lta(self):
+        return self._lta_addr and self.bridge_channel_id
+
     @async_property
     async def bridge_channel(self) -> Optional[TextChannel]:
         """
@@ -131,7 +138,6 @@ class MinecraftServer:
             return server[0]
         else:
             raise ServerNotFound
-
 
     @classmethod
     def get_all_instances(cls) -> List[MinecraftServer]:
@@ -222,7 +228,7 @@ class MinecraftServer:
         if resp:
             return resp
 
-    async def receive_message(self, message: str) -> None:
+    async def dispatch_message(self, message: str) -> None:
         """
         Sends a given message to the server's bridge channel
         :param message: The message to send
@@ -233,19 +239,34 @@ class MinecraftServer:
         message = await parse_emoji(self.bot_instance, message)
         await (await self.bridge_channel).send(message)
 
-    async def receive_command(self, author: str, command: str, args) -> None:
+    async def dispatch_command(self, author: str, command: str, sub: str, args: Tuple[str]) -> None:
         """
         Executes a command sent from the server
         :param author: The UUID of the player who executed the command
         :type author: str
         :param command: The name of the command
         :type command: str
+        :param sub: The sub command
+        :type sub: str
         :param args: The arguments for the command
-        :type args: str
+        :type args: Tuple[str]
         """
-        await self.bot_instance.dispatch_server_command(self, command, author, *args)
+        command = ServerCommand.get_from_name(command)
+        ctx = ServerCommandContext(self, self.bot_instance, author)
 
-    async def _send_server_message(self, route: str, payload: dict, message: dict) -> dict:
+        if sub:
+            await command.invoke_sub(ctx, sub, args)
+        else:
+            await command.invoke(ctx, args)
+
+    async def dispatch_event(self, event: str, author: Optional[str], args: Tuple[str]) -> None:
+        events = ServerEvent.get_from_name(event)
+        ctx = ServerEventContext(self, self.bot_instance, author)
+
+        for event in events:
+            await event.invoke(ctx, args)
+
+    async def _send_server_message(self, route: str, message: dict, payload: Optional[dict] = None) -> dict:
         """
         Signs a JWT token and sends a message to the server
         :param route: The route to send the message to
@@ -259,6 +280,8 @@ class MinecraftServer:
         :raises: ServerConnectionFailed
         """
 
+        if payload is None:
+            payload = {}
         payload["exp"] = datetime.utcnow() + timedelta(seconds=30)
 
         jwt_token = jwt_encode(payload, self.bot_instance.config["api_secret"])
@@ -269,23 +292,12 @@ class MinecraftServer:
         except Exception as e:
             raise ServerConnectionFailed(e)
 
-    async def send_chat_message(self, message: dict) -> dict:
+    async def send_discord_message(self, message: Message) -> dict:
         """
         Sends a discord chat message to the server, only works if server is running LTA
 
-        Example Message
-        ----------------
-        {
-            "userName": iDarkLightning,
-            "userRoleColor": 16777215,
-            "messageContent": "This is an example message",
-            "attachments": {
-                "filename.jpg": "file_url"
-            }
-        }
-
-        :param message: The message to send to the server
-        :type message: dict
+        :param message: The message to send
+        :type message: discord.Message
         :return: The server's response
         :rtype: dict
         :raises: ServerNotRunningLTA
@@ -294,9 +306,20 @@ class MinecraftServer:
         if not self._lta_addr:
             raise ServerNotRunningLTA
 
-        return await self._send_server_message(CHAT_MESSAGE_ROUTE, {}, message)
+        data = {
+            "userName": message.author.display_name,
+            "userRoleColor": message.author.color.value
+        }
 
-    async def send_system_message(self, payload: dict, message: dict) -> dict:
+        if len(message.content) > 0:
+            data["messageContent"] = message.clean_content
+
+        if message.attachments:
+            data["attachments"] = {attachment.filename: attachment.url for attachment in message.attachments}
+
+        return await self._send_server_message(CHAT_MESSAGE_ROUTE, data)
+
+    async def send_message(self, message, color=16777215, op_only=False, player=None) -> dict:
         """
         Sends a system message to the server, only works if server is running LTA
 
@@ -307,10 +330,11 @@ class MinecraftServer:
             "color": 16777215
         }
 
-        :param payload: The payload for the JWT Token
-        :type payload: dict
         :param message: The message to send to the server
-        :type message: dict
+        :type message: str
+        :param player: The player to send the message to
+        :param op_only: Whether the message is only for OP players
+        :param color: The color of the message
         :return: The server's response
         :rtype: dict
         :raises: ServerNotRunningLTA
@@ -319,4 +343,10 @@ class MinecraftServer:
         if not self._lta_addr:
             raise ServerNotRunningLTA
 
-        return await self._send_server_message(SYSTEM_MESSAGE_ROUTE, payload, message)
+        payload = {}
+        if op_only:
+            payload["opOnly"] = op_only
+        if player:
+            payload["player"] = player
+
+        return await self._send_server_message(SYSTEM_MESSAGE_ROUTE, {"message": message, "color": color}, payload)

@@ -4,9 +4,8 @@ import os
 import mongoengine
 from async_property import async_property
 from discord.ext import commands
-from .errors import ServerNotFound, ServerNotRunningLTA
-from .minecraft.server_commands.core import ServerCommand
-from .minecraft.server_commands.server_context import ServerContext
+from .minecraft.server_commands.server_action import ServerCommand, ServerEvent, ServerAction
+from .minecraft.server_commands.server_context import ServerCommandContext, ServerEventContext
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer
@@ -56,10 +55,14 @@ class LiteBot(commands.Bot):
             self.module_config.register_cog(self._cur_module, cog.__cog_name__)
 
         func_list = [getattr(cog, func) for func in dir(cog)]
-        server_commands = [func for func in func_list if isinstance(func, ServerCommand)]
+        server_actions = [func for func in func_list if isinstance(func, ServerAction)]
 
-        for server_command in server_commands:
-            server_command.cog = cog
+        for server_action in server_actions:
+            server_action.cog = cog
+
+            if isinstance(server_action, ServerCommand) and server_action.subs:
+                for val in server_action.subs.values():
+                    val.cog = cog
 
         if required:
             super().add_cog(cog)
@@ -120,41 +123,8 @@ class LiteBot(commands.Bot):
 
             self.module_config.save()
 
-    async def dispatch_server_command(self, server, command, author, *args):
-        command = ServerCommand.get_from_name(command)
-        command_ctx = ServerContext(server, self, author)
-        await command.invoke(command_ctx, args)
-
-    async def _bridge_message(self, message):
-        try:
-            server = MinecraftServer.get_from_channel(message.channel.id)
-        except ServerNotFound:
-            return
-
-        data = {
-            "userName": message.author.display_name,
-            "userRoleColor": message.author.color.value
-        }
-
-        if len(message.content) > 0:
-            data["messageContent"] = message.clean_content
-
-        if message.attachments:
-            data["attachments"] = {attachment.filename: attachment.url for attachment in message.attachments}
-
-        try:
-            await server.send_chat_message(data)
-        except ServerNotRunningLTA:
-            pass
-
     async def on_ready(self):
         self.logger.info(f"{self.user.name} is now online!")
-
-    async def on_message(self, message):
-        await super().on_message(message)
-
-        if not message.author.bot:
-            await self._bridge_message(message)
 
     def __repr__(self):
         return f"LiteBot: Version: {LiteBot.VERSION}"

@@ -12,7 +12,7 @@ from litebot.checks import role_checks
 from litebot.core.converters import get_server
 from litebot.minecraft import server_commands
 from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.server_commands.server_context import ServerContext
+from litebot.minecraft.server_commands.server_context import ServerCommandContext
 from litebot.modules.backups.converters import convert_backup_path
 from litebot.utils import embeds
 from litebot.utils.enums import BackupTypes
@@ -215,12 +215,12 @@ class BackupsCommand(commands.Cog):
         """
         await self.bot.wait_until_ready()
 
-    @server_commands.server_command(name="backup")
-    async def _server_backup(self, ctx: ServerContext):
+    @server_commands.command(name="backup")
+    async def _server_backup(self, ctx: ServerCommandContext):
         """
         This is a server command. It lets you create a command directly from the Minecraft server using /backup.
         :param ctx: The context in which the command is being invoked
-        :type ctx: ServerContext
+        :type ctx: ServerCommandContext
         """
         info = BACKUP_INFO.format(ctx.server.name, datetime.utcnow(), BackupTypes.MANUAL.value, author=self.bot.user)
 

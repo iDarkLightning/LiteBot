@@ -5,8 +5,8 @@ from mongoengine.errors import NotUniqueError
 from discord.ext import commands
 from discord.ext.commands import MemberConverter, MemberNotFound, RoleConverter, RoleNotFound
 from litebot.checks import role_checks
-from litebot.db.models.poll_preset_model import PollPreset
-from litebot.db.models.tracking_model import TrackedEvent
+from litebot.models import PollPreset
+from litebot.models import TrackedEvent
 from litebot.errors import PollCommandError
 from litebot.utils import embeds
 from litebot.utils.menus import CodeBlockMenu

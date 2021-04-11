@@ -2,7 +2,7 @@ from sanic.request import Request
 from sanic import exceptions
 import re, jwt
 from typing import NoReturn, Union, Optional
-from ...utils.logging import get_logger
+from litebot.utils.logging import get_logger
 
 logger = get_logger("bot")
 ALGORITHM = "HS256"

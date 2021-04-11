@@ -54,7 +54,7 @@ class ServerNotRunningCarpet(MinecraftServerException):
     """
     pass
 
-class ServerCommandNotFound(MinecraftServerException):
+class ServerActionNotFound(MinecraftServerException):
     """
     Exception produced when trying to run a command
     from the server, that does not exist

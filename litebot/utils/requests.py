@@ -38,4 +38,5 @@ def post(url: str, data: dict, headers: Optional[dict] = None) -> dict:
         res = requests.post(url, json=data, headers=headers)
         return res.json()
     except Exception as e:
+        print(e)
         raise ServerConnectionFailed(e)
