@@ -13,6 +13,7 @@ from litebot.core.converters import get_server
 from litebot.minecraft import server_commands
 from litebot.minecraft.server import MinecraftServer
 from litebot.minecraft.server_commands.server_context import ServerCommandContext
+from litebot.minecraft.text import Text, Colors
 from litebot.modules.backups.converters import convert_backup_path
 from litebot.utils import embeds
 from litebot.utils.enums import BackupTypes
@@ -225,9 +226,10 @@ class BackupsCommand(commands.Cog):
         info = BACKUP_INFO.format(ctx.server.name, datetime.utcnow(), BackupTypes.MANUAL.value, author=self.bot.user)
 
         if not ctx.server.world_dir:
-            await ctx.send("Cannot locate the world directory for this server!", 16711680)
+            await ctx.send(text=Text().add_component(
+                text="Could not find the backup directory for this server", color=Colors.DARK_RED))
             return
 
-        await ctx.send("Creating a backup...", 9869050)
+        await ctx.send(text=Text().add_component(text="Creating a backup...", color="#9696FA"))
         backup_name = await asyncio.to_thread(lambda: _create_backup(ctx.server, BackupTypes.MANUAL, info))
-        await ctx.send(f"Backup {backup_name} Created!", 3329330)
+        await ctx.send(text=Text().add_component(text=f"Backup {backup_name} created successfully", color="#32CD32"))

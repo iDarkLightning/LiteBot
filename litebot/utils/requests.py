@@ -35,8 +35,7 @@ def post(url: str, data: dict, headers: Optional[dict] = None) -> dict:
     :rtype: dict
     """
     try:
-        res = requests.post(url, json=data, headers=headers)
+        res = requests.post(url, data=data, headers=headers)
         return res.json()
     except Exception as e:
-        print(e)
         raise ServerConnectionFailed(e)

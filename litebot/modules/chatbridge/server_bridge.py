@@ -6,6 +6,7 @@ from litebot.errors import ServerNotFound
 from litebot.minecraft import server_commands
 from litebot.minecraft.server import MinecraftServer
 from litebot.minecraft.server_commands.server_context import ServerCommandContext, ServerEventContext
+from litebot.minecraft.text import Text, Colors
 
 
 class BridgeConnection:
@@ -13,7 +14,9 @@ class BridgeConnection:
     Models a bridge connection.
     Models either the connection for a single player, or for an entire server
     """
-    def __init__(self, origin_server: MinecraftServer, connected_servers: List[MinecraftServer], player: Optional[str] = None) -> None:
+
+    def __init__(self, origin_server: MinecraftServer, connected_servers: List[MinecraftServer],
+                 player: Optional[str] = None) -> None:
         """
         :param origin_server: The server that is being connected
         :type origin_server: MinecraftServer
@@ -36,11 +39,12 @@ class BridgeConnection:
         :type message: str
         """
         if source_server in self._connected_servers and source_server is not self.origin_server:
-            await self.origin_server.send_message(player=self.player, message=message)
+            await self.origin_server.send_message(player=self.player,
+                                                  text=Text.bridge_message(source_server.name, message))
 
         for server in self._connected_servers:
             if server is not source_server:
-                await server.send_message(message=message)
+                await server.send_message(text=Text.bridge_message(self.origin_server.name, message))
 
     async def send_discord_message(self, source_server: MinecraftServer, message: str) -> None:
         """
@@ -54,10 +58,11 @@ class BridgeConnection:
             if server is not source_server:
                 await server.dispatch_message(message)
 
+
 class ServerBridge(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.connections: List[BridgeConnection] = [] 
+        self.connections: List[BridgeConnection] = []
 
     @server_commands.command(name="bridge")
     async def _bridge_command(self, ctx: ServerCommandContext) -> None:
@@ -82,7 +87,7 @@ class ServerBridge(commands.Cog):
             servers = [s for s in MinecraftServer.get_all_instances() if s is not ctx.server]
 
         for server in servers:
-            await server.send_message(message=message)
+            await server.send_message(text=Text.bridge_message(ctx.server.name, message))
 
     @_bridge_command.sub(name="connect")
     async def _bridge_player_connect(self, ctx: ServerCommandContext, server_name: Optional[str] = None) -> None:
@@ -99,7 +104,10 @@ class ServerBridge(commands.Cog):
 
         if ctx.player not in [s.player for s in self.connections]:
             self.connections.append(BridgeConnection(ctx.server, servers, ctx.player))
-        await ctx.send(f"Connected to {', '.join([s.name for s in servers])}")
+            await ctx.send(text=Text().add_component(text=f"Connected to {', '.join([s.name for s in servers])}",
+                                                     color=Colors.GREEN))
+        else:
+            await ctx.send(text=Text().add_component(text="Player is already connected", color=Colors.DARK_RED))
 
     @_bridge_command.sub(name="disconnect")
     async def _bridge_player_disconnect(self, ctx: ServerCommandContext) -> None:
@@ -107,7 +115,7 @@ class ServerBridge(commands.Cog):
         Disconnects a player's bridge connections
         """
         self.connections = list(filter(lambda s: s.player != ctx.player, self.connections))
-        await ctx.send("Disconnected from bridge connections")
+        await ctx.send(text=Text().add_component(text="Disconnected from bridge connections", color=Colors.GREEN))
 
     @_bridge_command.sub(name="server_connect")
     async def _bridge_server_connect(self, ctx: ServerCommandContext, server_name: Optional[str] = None) -> None:
@@ -124,15 +132,19 @@ class ServerBridge(commands.Cog):
 
         if ctx.server not in [s.origin_server for s in self.connections]:
             self.connections.append(BridgeConnection(ctx.server, servers))
-        await ctx.server.send_message(message=f"Server connected to {', '.join([s.name for s in servers])}", op_only=True)
+            await ctx.server.send_message(
+                text=Text().op_message(f"Server connected to {', '.join([s.name for s in servers])}"), op_only=True)
+        else:
+            await ctx.server.send_message(
+                text=Text().add_component(text="Server is already connected", color=Colors.DARK_RED), op_only=True)
 
     @_bridge_command.sub(name="server_disconnect")
     async def _bridge_server_disconnect(self, ctx: ServerCommandContext) -> None:
         """
         Disconnects a server's bridge connections
         """
-        self.connections= list(filter(lambda s: s.origin_server != ctx.server, self.connections))
-        await ctx.server.send_message(message="Disconnected from bridge connections", op_only=True)
+        self.connections = list(filter(lambda s: s.origin_server != ctx.server, self.connections))
+        await ctx.server.send_message(text=Text().op_message("Disconnected from bridge connections"), op_only=True)
 
     @server_commands.event(name="message")
     async def _bridge_message(self, ctx: ServerEventContext, message: str) -> None:

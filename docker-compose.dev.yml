@@ -17,6 +17,7 @@ services:
     image: itzg/minecraft-server
     ports:
     - 25565:25565
+    - 25570:25570
     environment:
       EULA: "TRUE"
       TYPE: "FABRIC"

@@ -10,7 +10,7 @@ from ..utils import embeds
 class ScoreboardCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        with open(os.path.join(os.getcwd(), "litebot", "utils", "scoreboards.json")) as f:
+        with open(os.path.join(os.getcwd(), "litebot", "utils", "assets", "scoreboards.json")) as f:
             self.scoreboards = json.load(f)
 
     @commands.command(name="scoreboard", aliases=["sb"])

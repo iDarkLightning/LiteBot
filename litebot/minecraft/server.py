@@ -319,7 +319,7 @@ class MinecraftServer:
 
         return await self._send_server_message(CHAT_MESSAGE_ROUTE, data)
 
-    async def send_message(self, message, color=16777215, op_only=False, player=None) -> dict:
+    async def send_message(self, text, op_only=False, player=None) -> dict:
         """
         Sends a system message to the server, only works if server is running LTA
 
@@ -330,11 +330,10 @@ class MinecraftServer:
             "color": 16777215
         }
 
-        :param message: The message to send to the server
-        :type message: str
+        :param text: The text to send to the server
+        :type text: litebot.minecraft.text.Text
         :param player: The player to send the message to
         :param op_only: Whether the message is only for OP players
-        :param color: The color of the message
         :return: The server's response
         :rtype: dict
         :raises: ServerNotRunningLTA
@@ -349,4 +348,6 @@ class MinecraftServer:
         if player:
             payload["player"] = player
 
-        return await self._send_server_message(SYSTEM_MESSAGE_ROUTE, {"message": message, "color": color}, payload)
+        data = text.build()
+
+        return await self._send_server_message(SYSTEM_MESSAGE_ROUTE, data, payload)

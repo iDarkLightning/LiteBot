@@ -17,7 +17,6 @@ class ServerAction:
             raise TypeError("Callback must be a coroutine")
 
         self.name = kwargs.get("name") or func.__name__
-        self.help_msg = kwargs.get("help")
         self.callback = func
         self.cog = cog # Will be set manually when adding the cog
         self._register_command(self)

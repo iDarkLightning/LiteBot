@@ -1,4 +1,7 @@
 from typing import Optional
+
+from litebot.minecraft.text import Text
+
 WHITE = 16777215
 
 class ServerCommandContext:
@@ -19,17 +22,19 @@ class ServerCommandContext:
         self.bot = bot
         self.player = player
 
-    async def send(self, message: str, color: Optional[int] = 16777215) -> None:
+    async def send(self, message=None, text: Text = None) -> None:
         """
         Enables us to easily send messages to the server
         from our command
         :param message: The message to send
         :type message: str
-        :param color: The color of our message in game
-        :type color: Optional[int]
+        :param text: A keyword argument for the text to send to the server
+        :type text: litebot.minecraft.text.Text
         """
-        await self.server.send_message(player=self.player, message=message, color=color)
+        if not text:
+            text = Text.from_str(message)
 
+        await self.server.send_message(text=text, player=self.player)
 
 class ServerEventContext:
     """
