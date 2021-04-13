@@ -1,7 +1,6 @@
-import requests
+
 from aiohttp import ClientSession, ContentTypeError, ClientResponse
 from typing import Optional, Union
-from litebot.errors import ServerConnectionFailed
 
 async def fetch(url: str, headers: Optional[dict] = None) -> Union[ClientResponse, dict]:
     """
@@ -21,7 +20,7 @@ async def fetch(url: str, headers: Optional[dict] = None) -> Union[ClientRespons
             except ContentTypeError:
                 return response
 
-def post(url: str, data: dict, headers: Optional[dict] = None) -> dict:
+async def post(url: str, data: dict, headers: Optional[dict] = None) -> Union[ClientResponse, dict]:
     """
     Makes an async post request and returns a dict with response
     application/json format response expected
@@ -34,8 +33,10 @@ def post(url: str, data: dict, headers: Optional[dict] = None) -> dict:
     :return: The server's response in JSON format
     :rtype: dict
     """
-    try:
-        res = requests.post(url, data=data, headers=headers)
-        return res.json()
-    except Exception as e:
-        raise ServerConnectionFailed(e)
+    async with ClientSession() as session:
+        async with session.post(url=url, data=str(data), headers=headers) as response:
+            try:
+                return await response.json()
+            except ContentTypeError:
+                return response
+

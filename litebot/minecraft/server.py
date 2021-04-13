@@ -286,7 +286,7 @@ class MinecraftServer:
         jwt_token = jwt_encode(payload, self.bot_instance.config["api_secret"])
 
         try:
-            return requests.post((self._lta_addr + route),
+            return await requests.post((self._lta_addr + route),
                           data=message, headers={"Authorization": "Bearer " + jwt_token})
         except Exception as e:
             raise ServerConnectionFailed(e)
