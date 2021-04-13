@@ -11,7 +11,6 @@ from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA
 from ..utils import requests
 from socket import timeout
 from typing import Optional, List, Tuple
-from async_property import async_property
 from jwt import encode as jwt_encode
 from discord import TextChannel
 from discord.errors import NotFound
@@ -86,14 +85,14 @@ class MinecraftServer:
     def running_lta(self):
         return self._lta_addr and self.bridge_channel_id
 
-    @async_property
-    async def bridge_channel(self) -> Optional[TextChannel]:
+    @property
+    def bridge_channel(self) -> Optional[TextChannel]:
         """
         :return: The TextChannel object for the server's bridge channel
         :rtype: TextChannel
         """
         try:
-            channel = await self.bot_instance.fetch_channel(self.bridge_channel_id)
+            channel = self.bot_instance.get_channel(self.bridge_channel_id)
             return channel
         except NotFound:
             return None

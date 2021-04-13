@@ -84,3 +84,10 @@ class ChannelNotWhitelisted(BaseCommandError):
     """
     Exception produced when a command which is whitelisted is performed on a unwhitelisted channel.
     """
+    pass
+
+class TicketNotFound(BaseCommandError):
+    """
+    Exception produced when a ticket command is run in a non-ticket channel
+    """
+    pass

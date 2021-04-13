@@ -1,8 +1,9 @@
 from typing import Optional
 import discord
-from async_property import async_property
 from discord.ext import commands, tasks
 from discord.utils import get
+
+from litebot.litebot import LiteBot
 from litebot.utils import embeds
 import datetime
 from datetime import datetime
@@ -10,26 +11,26 @@ from litebot.utils.data_manip import parse_reason, reason_datetime_parser
 
 
 class ModeratorCommands(commands.Cog):
-    def __init__(self, bot, module):
+    def __init__(self, bot: LiteBot, module):
         self.bot = bot
         self.config = self.bot.module_config[module]["config"]
         self._revoke_checks.start()
 
-    @async_property
-    async def mute_role(self) -> discord.Role:
+
+    async def _mute_role(self) -> discord.Role:
         """
         The mute role
         """
-        return get((await self.bot.guild).roles, id=self.config["mute_role_id"])
+        return get((await self.bot.guild()).roles, id=self.config["mute_role_id"])
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         """
         Prepares the mute role, and sets its perms
         """
-        for channel in (await self.bot.guild).channels:
+        for channel in (await self.bot.guild()).channels:
             try:
-                await channel.set_permissions((await self.mute_role), send_messages=False, connect=False)
+                await channel.set_permissions((await self._mute_role()), send_messages=False, connect=False)
             except discord.Forbidden:
                 pass
 
@@ -102,7 +103,7 @@ class ModeratorCommands(commands.Cog):
         """
         reason = parse_reason(ctx.author, args)
 
-        mute_role = await self.mute_role
+        mute_role = await self._mute_role()
 
         log_channel = await self.bot.log_channel
         await member.add_roles(mute_role, reason=reason)
@@ -116,7 +117,7 @@ class ModeratorCommands(commands.Cog):
         Revokes a mute.
         `member` The member you are pardoning
         """
-        mute_role = await self.mute_role
+        mute_role = await self._mute_role()
 
         if mute_role in member.roles:
             await member.remove_roles(mute_role)
@@ -132,13 +133,13 @@ class ModeratorCommands(commands.Cog):
         Checks every 60 seconds if any ban/mute time has expired.
         If the time has expired, the user is pardoned
         """
-        guild = await self.bot.guild
+        guild = await self.bot.guild()
         for ban in await guild.bans():
             parsed_time = reason_datetime_parser(ban.reason)
             if isinstance(parsed_time, datetime) and datetime.utcnow().time() >= parsed_time.time():
                 await self._handle_revoke_ban(ban.user)
 
-        mute_role = await self.mute_role
+        mute_role = await self._mute_role()
         members = filter(lambda m: mute_role in m.roles, guild.members)
 
         for member in members:
@@ -159,7 +160,7 @@ class ModeratorCommands(commands.Cog):
         :param user: The user who's ban is being removed
         :type user: discord.User
         """
-        guild = await self.bot.guild
+        guild = await self.bot.guild()
         await guild.unban(user, reason="The user's ban time is over")
         log_channel = await self.bot.log_channel
         log_embed = embeds.ModeratorLogEmbed(embeds.ModeratorActions.PARDON, "Revoked Ban: Time Expired",
@@ -174,7 +175,7 @@ class ModeratorCommands(commands.Cog):
         :param member: The member who's mute we are revoking
         :type member: discord.Member
         """
-        mute_role = await self.mute_role
+        mute_role = await self._mute_role()
 
         if mute_role in member.roles:
             await member.remove_roles(mute_role)

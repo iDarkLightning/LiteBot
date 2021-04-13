@@ -2,7 +2,6 @@ import importlib
 import discord
 import os
 import mongoengine
-from async_property import async_property
 from discord.ext import commands
 from .minecraft.server_commands.server_action import ServerCommand, ServerAction
 from .utils.config import MainConfig, ModuleConfig
@@ -40,11 +39,10 @@ class LiteBot(commands.Bot):
         for server in self.config["servers"]:
             MinecraftServer(server, self, **self.config["servers"][server])
 
-    @async_property
-    async def log_channel(self):
-        return await self.fetch_channel(self.config["log_channel_id"])
+    @property
+    def log_channel(self):
+        return self.get_channel(self.config["log_channel_id"])
 
-    @async_property
     async def guild(self):
         await self.wait_until_ready()
         return self.get_guild(self.config["main_guild_id"])

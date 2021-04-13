@@ -1,14 +1,15 @@
-from os import path, getcwd, listdir
+from os import path, getcwd
 from gspread import service_account
 
 from litebot.litebot import LiteBot
-from . import apps
+from . import apps, ticket_commands
 
 MODULE_NAME = "applications"
 
 def setup(bot):
     account = service_account(path.join(getcwd(), "litebot", "modules", MODULE_NAME, "creds.json"))
     bot.add_cog(apps.Applications(bot, account))
+    bot.add_cog(ticket_commands.TicketCommands(bot, account))
 
 def config(bot):
     return {
