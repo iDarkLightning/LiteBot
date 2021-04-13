@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, IntField
+from mongoengine import Document, StringField, IntField, DateTimeField
 
 class TrackedEvent(Document):
     """
@@ -6,6 +6,8 @@ class TrackedEvent(Document):
     A tracked event is a certain discord model that is currently being tracked for some purpose.
     tracking_id: The ID of the model that is being tracked. Must be unique
     event_tag: The tag, essentially the type of the event being tracked. Options: (poll)
+    expire_time: An optional time at which the event will expire
     """
     tracking_id = IntField(required=True, unique=True)
-    event_tag = StringField(required=True, choices=("poll",))
+    event_tag = StringField(required=True, choices=("poll","application"))
+    expire_time = DateTimeField()

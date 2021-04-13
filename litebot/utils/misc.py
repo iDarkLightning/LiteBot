@@ -118,3 +118,17 @@ async def is_image(url: str) -> bool:
     """
     res = await requests.fetch(url)
     return "image" in res.headers.get("Content-Type")
+
+
+class Toggleable:
+    def __init__(self):
+        self._val = False
+
+    def __enter__(self):
+        self._val = True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._val = False
+
+    def __bool__(self):
+        return self._val

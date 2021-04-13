@@ -10,4 +10,4 @@ env
 /config
 /minecraft_server
 /minecraft_server_two
-/database
+creds.json

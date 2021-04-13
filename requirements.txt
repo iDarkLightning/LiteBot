@@ -8,3 +8,4 @@ pytz~=2020.4
 requests
 mongoengine
 asyncpraw
+gspread
