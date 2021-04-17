@@ -11,8 +11,8 @@ def config_role_check(config_role: str) -> commands.check:
     """
     def predicate(ctx, *args, **kwargs):
         bot = ctx.bot
-        required_roles = [get(ctx.player.guild.roles, id=role) for role in bot.config[config_role]]
-        if not any(role in required_roles for role in ctx.player.roles):
+        required_roles = [get(ctx.author.guild.roles, id=role) for role in bot.config[config_role]]
+        if not any(role in required_roles for role in ctx.author.roles):
             raise commands.CheckFailure
         return True
     return commands.check(predicate)
@@ -29,8 +29,8 @@ def module_config_role_check(config_role: str, module_name: str) -> commands.che
     """
     def predicate(ctx, *args, **kwargs):
         bot = ctx.bot
-        required_roles = [get(ctx.player.guild.roles, id=role) for role in bot.module_config[module_name]["config"][config_role]]
-        if not any(role in required_roles for role in ctx.player.roles):
+        required_roles = [get(ctx.author.guild.roles, id=role) for role in bot.module_config[module_name]["config"][config_role]]
+        if not any(role in required_roles for role in ctx.author.roles):
             raise commands.CheckFailure
         return True
     return commands.check(predicate)

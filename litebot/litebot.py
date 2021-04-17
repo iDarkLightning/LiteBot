@@ -40,7 +40,7 @@ class LiteBot(commands.Bot):
             MinecraftServer(server, self, **self.config["servers"][server])
 
     @property
-    def log_channel(self):
+    def log_channel(self) -> discord.TextChannel:
         return self.get_channel(self.config["log_channel_id"])
 
     async def guild(self):

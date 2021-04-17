@@ -236,7 +236,7 @@ class MinecraftServer:
         """
 
         message = await parse_emoji(self.bot_instance, message)
-        await (await self.bridge_channel).send(message)
+        await self.bridge_channel.send(message)
 
     async def dispatch_command(self, author: str, command: str, sub: str, args: Tuple[str]) -> None:
         """

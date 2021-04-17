@@ -214,7 +214,7 @@ class Applications(commands.Cog):
         :param application: The appplication to create the ticket for
         :type application: Application
         """
-        channel: TextChannel = await (await self.bot.guild) \
+        channel: TextChannel = await (await self.bot.guild()) \
             .create_text_channel(name=f"{application.name.split('#')[0]} application",
                                  category=(await self.bot.fetch_channel(self._config["applications_category"])))
 
@@ -232,7 +232,7 @@ class Applications(commands.Cog):
             applicant = list(filter(
                 lambda m: m.name == application.name.split("#")[0] and m.discriminator == application.name.split("#")[
                     1],
-                (await self.bot.guild).members))[0]
+                (await self.bot.guild()).members))[0]
             await channel.set_permissions(applicant, read_messages=True, send_messages=True, attach_files=True)
             await channel.send(
                 f"Thank you for applying {applicant.mention}! Your application has been vouched by {voucher.mention}\nWe will be with you shortly")
