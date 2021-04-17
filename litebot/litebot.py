@@ -3,12 +3,14 @@ import discord
 import os
 import mongoengine
 from discord.ext import commands
+
 from .minecraft.server_commands.server_action import ServerCommand, ServerAction
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
-from .minecraft.server import MinecraftServer
+from .minecraft.server import MinecraftServer, ServerContainer
 from .utils.fmt_strings import MODULE_LOADING, MODULE_PATH
 from .system.help_command import HelpCommand
+from .utils.misc import Toggleable
 
 MODULES_PATH = "litebot/modules"
 REQUIRED_MODULES = (
@@ -25,19 +27,23 @@ class LiteBot(commands.Bot):
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.config["prefixes"]),
             help_command=HelpCommand(),
-            intents=discord.Intents.all())
+            intents=discord.Intents.all(),
+            case_insensitive=True)
         self.logger = get_logger("bot")
 
         self.db = mongoengine.connect("bot", host="mongo", port=27017)
         self.logger.info("Connected to Mongo Database")
 
-        self._initialising = False
+        self._initialising = Toggleable()
+        self.servers = ServerContainer()
         self._cur_module = None
+
+        self.using_lta = bool(os.environ.get("USING_LTA"))
         self._init_servers()
 
     def _init_servers(self):
         for server in self.config["servers"]:
-            MinecraftServer(server, self, **self.config["servers"][server])
+            self.servers.append(MinecraftServer(server, self, **self.config["servers"][server]))
 
     @property
     def log_channel(self) -> discord.TextChannel:
@@ -101,9 +107,8 @@ class LiteBot(commands.Bot):
 
             enabled = self.module_config[module]["enabled"]
             if not enabled and not self.module_config[module].get("cogs"):
-                self._initialising = True
-                super().load_extension(MODULE_PATH.format(module))
-                self._initialising = False
+                with self._initialising:
+                    super().load_extension(MODULE_PATH.format(module))
                 return
 
             if hasattr(lib, "requirements"):

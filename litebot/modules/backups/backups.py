@@ -8,7 +8,7 @@ import jwt
 from discord.ext import commands, tasks
 from sanic import Sanic
 
-from litebot.checks import role_checks
+from litebot.utils.checks import role_checks
 from litebot.core.converters import get_server
 from litebot.minecraft import server_commands
 from litebot.minecraft.server import MinecraftServer
@@ -194,7 +194,7 @@ class BackupsCommand(commands.Cog):
         """
         self.bot.logger.info("Starting Routine Backups...")
         current_daily_backups = []
-        for server in MinecraftServer.get_all_instances():
+        for server in self.bot.servers.get_all_instances():
             backup_type = BackupTypes.WEEKLY if datetime.today().weekday() == 6 else BackupTypes.DAILY
             info = BACKUP_INFO.format(server.name, datetime.utcnow(), backup_type.value, author=self.bot.user)
 

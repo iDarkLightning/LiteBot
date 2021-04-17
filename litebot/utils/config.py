@@ -73,24 +73,21 @@ class BaseConfig(dict):
 class MainConfig(BaseConfig):
     # The bot's default config
     DEFAULT_CONFIG = {
-        "token": "",
+        "token": "BOT TOKEN",
         "prefixes": [],
-        "main_guild_id": 1,
+        "main_guild_id": 0,
         "members_role": [],
         "operators_role": [],
-        "log_channel_id": 1,
-        "api_secret": "",
+        "log_channel_id": 0,
+        "api_secret": "API SECRET",
         "servers": {
             "name": {
-                "numerical_server_ip": "",
+                "numerical_server_ip": "THE SERVER IP ADDRESS, NO DNS",
                 "server_port": 25565,
                 "rcon_port": 25575,
-                "rcon_password": "",
+                "rcon_password": "THE PASSWORD FOR RCON CONNECTION",
                 "operator": True,
-                "litetech_additions": {
-                    "address": "",
-                    "bridge_channel_id": 0
-                }
+                "bridge_channel_id": 0
             }
         }
     }

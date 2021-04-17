@@ -7,6 +7,12 @@ from litebot.utils.logging import get_logger
 logger = get_logger("bot")
 ALGORITHM = "HS256"
 
+def validate_jwt(token: str, secret: str) -> Optional[dict]:
+    try:
+        return jwt.decode(token, secret, algorithms=ALGORITHM)
+    except jwt.InvalidTokenError:
+        pass
+
 async def validate_jwt_headers(request: Request, secret: str, auth_scheme: Optional[str] = "Bearer") -> Union[NoReturn, dict]:
     """
     This validates a JWT in a HTTP Request Headers and returns the decoded token

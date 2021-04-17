@@ -3,7 +3,7 @@ import os
 from discord.ext import commands
 from litebot.minecraft.server import MinecraftServer
 from litebot.utils.misc import scoreboard_image
-from ..checks import role_checks
+from ..utils.checks import role_checks
 from ..utils import embeds
 
 

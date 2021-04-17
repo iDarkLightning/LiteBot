@@ -11,7 +11,7 @@ def config(bot):
     }
 
 def requirements(bot):
-    servers = MinecraftServer.get_all_instances()
+    servers = bot.servers.get_all_instances()
     for server in servers:
         if server.server_dir:
             return True

@@ -7,6 +7,6 @@ def setup(bot):
     bot.add_cog(discord_bridge.DiscordBridge(bot))
 
 def requirements(bot):
-    for server in MinecraftServer.get_all_instances():
+    for server in bot.servers.get_all_instances():
         if server.running_lta:
             return True

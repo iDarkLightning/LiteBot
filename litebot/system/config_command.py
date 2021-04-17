@@ -2,7 +2,7 @@ from typing import Tuple
 from discord.ext import commands
 from .common import config_view, config_save
 from .converters import JSONConverter
-from ..checks.confirmation_checks import manage_server_confirmation
+from litebot.utils.checks.confirmation_checks import manage_server_confirmation
 
 
 class ConfigCommand(commands.Cog):

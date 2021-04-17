@@ -1,7 +1,18 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import datetime
+
+from typing import Optional, List, Tuple, TYPE_CHECKING
+from jwt import encode as jwt_encode
+from discord import TextChannel
+from discord.errors import NotFound
+from datetime import datetime, timedelta
+from discord import Message
 from pathlib import Path
+from socket import timeout
+
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
@@ -9,18 +20,11 @@ from .server_commands.server_action import ServerCommand, ServerEvent
 from .server_commands.server_context import ServerCommandContext, ServerEventContext
 from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA, ServerNotRunningCarpet
 from ..utils import requests
-from socket import timeout
-from typing import Optional, List, Tuple
-from jwt import encode as jwt_encode
-from discord import TextChannel
-from discord.errors import NotFound
-import datetime
-from datetime import datetime, timedelta
-import os
-from discord import Message
-
 from ..utils.data_manip import parse_emoji
 from ..utils.enums import BackupTypes
+
+if TYPE_CHECKING:
+    from litebot.litebot import LiteBot
 
 SERVER_DIR_NAME = "servers"
 BACKUP_DIR_NAME = "backups"
@@ -29,22 +33,74 @@ CHAT_MESSAGE_ROUTE = "/chat_message"
 SYSTEM_MESSAGE_ROUTE = "/system_message"
 TPS_COMMAND = "script run reduce(last_tick_times(),_a+_,0)/100;"
 
+class ServerContainer:
+    def __init__(self):
+        self._list = []
+
+    def append(self, item):
+        self._list.append(item)
+
+    def get_from_name(self, name: str) -> MinecraftServer:
+        """
+        Gets a server from its name
+        :param name: The name of the server to retrieve
+        :type name: str
+        :return: An instance of a Minecraft Server
+        :rtype: MinecraftServer
+        :raises: ServerNotFound
+        """
+        server = list(filter(lambda s: s.name == name, self._list))
+        if len(server) > 0:
+            return server[0]
+        else:
+            raise ServerNotFound
+
+    def get_from_channel(self, id_: int) -> MinecraftServer:
+        """
+        Gets a server from it's bridge channel id
+        :param id_: The ID of the pridge channel
+        :type id_: int
+        :return: An instance of a Minecraft Server
+        :rtype: MinecraftServer
+        :raises: ServerNotFound
+        """
+        server = list(filter(lambda s: s.bridge_channel_id == id_, self._list))
+        if len(server) > 0:
+            return server[0]
+        else:
+            raise ServerNotFound
+
+    def get_all_instances(self) -> List[MinecraftServer]:
+        """
+        Gets all server instances
+        :return: A list with all current instances of servers
+        :rtype: List[MinecraftServer]
+        """
+        return self._list
+
+    def get_first_instance(self) -> MinecraftServer:
+        """
+        Get's the first server instantiated.
+        :return: The first server instantiated
+        :rtype: MinecraftServer
+        """
+        return next(iter(self._list))
+
 class MinecraftServer:
     """
     Modules communication to and from a minecraft server
     """
-    instances = []
-
-    def __init__(self, name: str, bot, **info: dict) -> None:
+    def __init__(self, name: str, bot: LiteBot, **info: dict) -> None:
         self.name = name
         self.bot_instance = bot
+        self.operator = info["operator"]
+        self.bridge_channel_id = info["bridge_channel_id"]
         self._addr = info["numerical_server_ip"]
         self._port = info["server_port"]
         self._rcon = ServerRcon(self._addr, info["rcon_password"], info["rcon_port"])
-        self.operator = info["operator"]
-        self._lta_addr = info["litetech_additions"]["address"]
-        self.bridge_channel_id = info["litetech_additions"]["bridge_channel_id"]
-        self._add_instance(self)
+
+        if self.bot_instance.using_lta:
+            self._connection = None
 
     @property
     def server_dir(self) -> Optional[str]:
@@ -82,10 +138,6 @@ class MinecraftServer:
         return os.path.join(self.server_dir, BACKUP_DIR_NAME)
 
     @property
-    def running_lta(self):
-        return self._lta_addr and self.bridge_channel_id
-
-    @property
     def bridge_channel(self) -> Optional[TextChannel]:
         """
         :return: The TextChannel object for the server's bridge channel
@@ -97,64 +149,9 @@ class MinecraftServer:
         except NotFound:
             return None
 
-    @classmethod
-    def _add_instance(cls, instance: MinecraftServer) -> None:
-        """
-        Appends an instance of the class to a list of instances
-        :param instance: The instance to append
-        :type instance: MinecraftServer
-        """
-        cls.instances.append(instance)
-
-    @classmethod
-    def get_from_name(cls, name: str) -> MinecraftServer:
-        """
-        Gets a server from its name
-        :param name: The name of the server to retrieve
-        :type name: str
-        :return: An instance of a Minecraft Server
-        :rtype: MinecraftServer
-        :raises: ServerNotFound
-        """
-        server = list(filter(lambda s: s.name == name, cls.instances))
-        if len(server) > 0:
-            return server[0]
-        else:
-            raise ServerNotFound
-
-    @classmethod
-    def get_from_channel(cls, id_: int) -> MinecraftServer:
-        """
-        Gets a server from it's bridge channel id
-        :param id_: The ID of the pridge channel
-        :type id_: int
-        :return: An instance of a Minecraft Server
-        :rtype: MinecraftServer
-        :raises: ServerNotFound
-        """
-        server = list(filter(lambda s: s.bridge_channel_id == id_, cls.instances))
-        if len(server) > 0:
-            return server[0]
-        else:
-            raise ServerNotFound
-
-    @classmethod
-    def get_all_instances(cls) -> List[MinecraftServer]:
-        """
-        Gets all server instances
-        :return: A list with all current instances of servers
-        :rtype: List[MinecraftServer]
-        """
-        return cls.instances
-
-    @classmethod
-    def get_first_instance(cls) -> MinecraftServer:
-        """
-        Get's the first server instantiated.
-        :return: The first server instantiated
-        :rtype: MinecraftServer
-        """
-        return next(iter(cls.instances))
+    @property
+    def running_lta(self):
+        return bool(self._connection)
 
     def status(self) -> QueryResponse:
         """
@@ -171,7 +168,7 @@ class MinecraftServer:
         except timeout:
             return QueryResponse(status=False)
         except Exception:
-            raise ServerConnectionFailed
+            return QueryResponse(status=False)
 
     def tps(self) -> Tuple[float, float]:
         """

@@ -1,6 +1,6 @@
 from typing import Tuple
 from discord.ext import commands
-from litebot.checks.confirmation_checks import manage_server_confirmation
+from litebot.utils.checks.confirmation_checks import manage_server_confirmation
 from litebot.system.common import config_view, config_save
 from litebot.system.converters import JSONConverter
 from litebot.utils import embeds

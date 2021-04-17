@@ -27,20 +27,20 @@ services:
     - "./minecraft_server:/data"
     depends_on:
       - mongo
-  mc-two:
-    image: itzg/minecraft-server
-    ports:
-      - 25566:25566
-    environment:
-      EULA: "TRUE"
-      TYPE: "FABRIC"
-      VERSION: 1.16.3
-      RCON_PORT: 25576
-      ENABLE_QUERY: "yes"
-    volumes:
-      - "./minecraft_server_two:/data"
-    depends_on:
-      - mongo
+#  mc-two:
+#    image: itzg/minecraft-server
+#    ports:
+#      - 25566:25566
+#    environment:
+#      EULA: "TRUE"
+#      TYPE: "FABRIC"
+#      VERSION: 1.16.3
+#      RCON_PORT: 25576
+#      ENABLE_QUERY: "yes"
+#    volumes:
+#      - "./minecraft_server_two:/data"
+#    depends_on:
+#      - mongo
   mongo:
     image: mongo
     volumes:
