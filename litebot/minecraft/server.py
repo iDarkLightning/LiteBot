@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import datetime
 
@@ -11,17 +12,20 @@ from discord.errors import NotFound
 from datetime import datetime, timedelta
 from discord import Message
 from pathlib import Path
-from socket import timeout
+from socket import timeout, inet_aton
+
+from websockets import WebSocketCommonProtocol
 
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
-from .server_commands.server_action import ServerCommand, ServerEvent
-from .server_commands.server_context import ServerCommandContext, ServerEventContext
+from .server_commands.server_action import ServerCommand, ServerEvent, ActionTypes
+from .server_commands.server_context import ServerCommandContext, ServerEventPayload
 from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA, ServerNotRunningCarpet
 from ..utils import requests
 from ..utils.data_manip import parse_emoji
 from ..utils.enums import BackupTypes
+from .text import Text
 
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
@@ -29,8 +33,6 @@ if TYPE_CHECKING:
 SERVER_DIR_NAME = "servers"
 BACKUP_DIR_NAME = "backups"
 DEFAULT_WORLD_DIR_NAME = "world"
-CHAT_MESSAGE_ROUTE = "/chat_message"
-SYSTEM_MESSAGE_ROUTE = "/system_message"
 TPS_COMMAND = "script run reduce(last_tick_times(),_a+_,0)/100;"
 
 class ServerContainer:
@@ -100,7 +102,7 @@ class MinecraftServer:
         self._rcon = ServerRcon(self._addr, info["rcon_password"], info["rcon_port"])
 
         if self.bot_instance.using_lta:
-            self._connection = None
+            self._connection: Optional[WebSocketCommonProtocol] = None
 
     @property
     def server_dir(self) -> Optional[str]:
@@ -150,8 +152,12 @@ class MinecraftServer:
             return None
 
     @property
-    def running_lta(self):
-        return bool(self._connection)
+    def connected(self):
+        return bool(self._connection) and self._connection.open
+
+    async def connect(self, socket: WebSocketCommonProtocol):
+        self._connection = socket
+        self.bot_instance.logger.info(f"WebSocket connection established to {self.name}")
 
     def status(self) -> QueryResponse:
         """
@@ -205,6 +211,29 @@ class MinecraftServer:
 
         return server_online
 
+    async def dispatch(self, action, data):
+        if action == ActionTypes.COMMAND:
+            command = ServerCommand.get_from_name(data["name"])
+            ctx = ServerCommandContext(self, self.bot_instance, data["player"])
+
+            await command.invoke(ctx, data.get("args"))
+        elif action == ActionTypes.EVENT:
+            events = ServerEvent.get_from_name(data["name"])
+            payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("args"))
+
+            for event in events:
+                await event.invoke(payload)
+
+    async def recv_message(self, message: str) -> None:
+        """
+        Sends a given message to the server's bridge channel
+        :param message: The message to send
+        :type message: str
+        :raises: AttributeError
+        """
+        message = await parse_emoji(self.bot_instance, message)
+        await self.bridge_channel.send(message)
+
     def send_command(self, command: str) -> Optional[str]:
         """
         Executes a command on the server
@@ -223,97 +252,6 @@ class MinecraftServer:
 
         if resp:
             return resp
-
-    async def dispatch_message(self, message: str) -> None:
-        """
-        Sends a given message to the server's bridge channel
-        :param message: The message to send
-        :type message: str
-        :raises: AttributeError
-        """
-
-        message = await parse_emoji(self.bot_instance, message)
-        await self.bridge_channel.send(message)
-
-    async def dispatch_command(self, author: str, command: str, sub: str, args: Tuple[str]) -> None:
-        """
-        Executes a command sent from the server
-        :param author: The UUID of the player who executed the command
-        :type author: str
-        :param command: The name of the command
-        :type command: str
-        :param sub: The sub command
-        :type sub: str
-        :param args: The arguments for the command
-        :type args: Tuple[str]
-        """
-        command = ServerCommand.get_from_name(command)
-        ctx = ServerCommandContext(self, self.bot_instance, author)
-
-        if sub:
-            await command.invoke_sub(ctx, sub, args)
-        else:
-            await command.invoke(ctx, args)
-
-    async def dispatch_event(self, event: str, author: Optional[str], args: Tuple[str]) -> None:
-        events = ServerEvent.get_from_name(event)
-        ctx = ServerEventContext(self, self.bot_instance, author)
-
-        for event in events:
-            await event.invoke(ctx, args)
-
-    async def _send_server_message(self, route: str, message: dict, payload: Optional[dict] = None) -> dict:
-        """
-        Signs a JWT token and sends a message to the server
-        :param route: The route to send the message to
-        :type route: str
-        :param payload: The payload for the JWT Token
-        :type payload: dict
-        :param message: The message to send
-        :type message: dict
-        :return: The server's response
-        :rtype: dict
-        :raises: ServerConnectionFailed
-        """
-
-        if payload is None:
-            payload = {}
-        payload["exp"] = datetime.utcnow() + timedelta(seconds=30)
-
-        jwt_token = jwt_encode(payload, self.bot_instance.config["api_secret"])
-
-        try:
-            return await requests.post((self._lta_addr + route),
-                          data=message, headers={"Authorization": "Bearer " + jwt_token})
-        except Exception as e:
-            raise ServerConnectionFailed(e)
-
-    async def send_discord_message(self, message: Message) -> dict:
-        """
-        Sends a discord chat message to the server, only works if server is running LTA
-
-        :param message: The message to send
-        :type message: discord.Message
-        :return: The server's response
-        :rtype: dict
-        :raises: ServerNotRunningLTA
-        :raises: ServerConnectionFailed
-        """
-        if not self._lta_addr:
-            raise ServerNotRunningLTA
-
-        data = {
-            "userName": message.author.display_name,
-            "userRoleColor": message.author.color.value
-        }
-
-        if len(message.content) > 0:
-            data["messageContent"] = message.clean_content
-
-        if message.attachments:
-            data["attachments"] = {attachment.filename: attachment.url for attachment in message.attachments}
-
-        return await self._send_server_message(CHAT_MESSAGE_ROUTE, data)
 
     async def send_message(self, text, op_only=False, player=None) -> dict:
         """
@@ -335,15 +273,12 @@ class MinecraftServer:
         :raises: ServerNotRunningLTA
         :raises: ServerConnectionFailed
         """
-        if not self._lta_addr:
-            raise ServerNotRunningLTA
+        message = text.build()
+        payload = {"message": message}
 
-        payload = {}
         if op_only:
             payload["opOnly"] = op_only
         if player:
             payload["player"] = player
 
-        data = text.build()
-
-        return await self._send_server_message(SYSTEM_MESSAGE_ROUTE, data, payload)
+        await self._connection.send(json.dumps({"responseType": "message", "messageData": payload}))

@@ -14,6 +14,17 @@ class ConfigError(LiteBotException):
     """
     pass
 
+class InvalidEvent(LiteBotException):
+    """
+    Exception when an invalid server event is registered
+    """
+    pass
+
+class AuthFailure(LiteBotException):
+    """
+    Exception produced when a server tries to connect with an invalid auth token
+    """
+
 class MinecraftServerException(LiteBotException):
     """
     Base exception for all errors related to the Minecraft server

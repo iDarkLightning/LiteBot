@@ -3,9 +3,10 @@ from typing import Optional, List
 from discord.ext import commands
 
 from litebot.errors import ServerNotFound
+from litebot.litebot import LiteBot
 from litebot.minecraft import server_commands
 from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.server_commands.server_context import ServerCommandContext, ServerEventContext
+from litebot.minecraft.server_commands.server_context import ServerCommandContext, ServerEventPayload
 from litebot.minecraft.text import Text, Colors
 
 
@@ -56,11 +57,11 @@ class BridgeConnection:
         """
         for server in self._connected_servers:
             if server is not source_server:
-                await server.dispatch_message(message)
+                await server.recv_message(message)
 
 
 class ServerBridge(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: LiteBot):
         self.bot = bot
         self.connections: List[BridgeConnection] = []
 
@@ -82,9 +83,9 @@ class ServerBridge(commands.Cog):
         `server_name` The name of the server to send the message to
         """
         try:
-            servers = [MinecraftServer.get_from_name(server_name)]
+            servers = [self.bot.servers.get_from_name(server_name)]
         except ServerNotFound:
-            servers = [s for s in MinecraftServer.get_all_instances() if s is not ctx.server]
+            servers = [s for s in self.bot.servers.get_all_instances() if s is not ctx.server]
 
         for server in servers:
             await server.send_message(text=Text.bridge_message(ctx.server.name, message))
@@ -98,9 +99,9 @@ class ServerBridge(commands.Cog):
         `server_name` The server to connect the player to. If a name is not provided, will connect to all servers.
         """
         try:
-            servers = [MinecraftServer.get_from_name(server_name)]
+            servers = [self.bot.servers.get_from_name(server_name)]
         except ServerNotFound:
-            servers = [s for s in MinecraftServer.get_all_instances() if s is not ctx.server]
+            servers = [s for s in self.bot.servers.get_all_instances() if s is not ctx.server]
 
         if ctx.player not in [s.player for s in self.connections]:
             self.connections.append(BridgeConnection(ctx.server, servers, ctx.player))
@@ -126,9 +127,9 @@ class ServerBridge(commands.Cog):
         `server_name` The server to connect the player to. If a name is not provided, will connect to all servers.
         """
         try:
-            servers = [MinecraftServer.get_from_name(server_name)]
+            servers = [self.bot.servers.get_from_name(server_name)]
         except ServerNotFound:
-            servers = [s for s in MinecraftServer.get_all_instances() if s is not ctx.server]
+            servers = [s for s in self.bot.servers.get_all_instances() if s is not ctx.server]
 
         if ctx.server not in [s.origin_server for s in self.connections]:
             self.connections.append(BridgeConnection(ctx.server, servers))
@@ -146,16 +147,16 @@ class ServerBridge(commands.Cog):
         self.connections = list(filter(lambda s: s.origin_server != ctx.server, self.connections))
         await ctx.server.send_message(text=Text().op_message("Disconnected from bridge connections"), op_only=True)
 
-    @server_commands.event(name="message")
-    async def _bridge_message(self, ctx: ServerEventContext, message: str) -> None:
+    @server_commands.event(name="on_message")
+    async def _bridge_message(self, payload) -> None:
         """
         Accesses the message event, which is executed whenever a message is sent on a server.
         Forwards message to all connected bridge servers.
 
         :param ctx: The context that the event was executed in
-        :type ctx: ServerEventContext
+        :type ctx: ServerEventPayload
         :param message: The message sent
         :type message: str
         """
         for conn in self.connections:
-            await conn.send_bridge_message(ctx.server, message)
+            await conn.send_bridge_message(payload.server, payload.message)

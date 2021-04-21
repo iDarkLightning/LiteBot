@@ -2,6 +2,8 @@ from sanic.request import Request
 from sanic import exceptions
 import re, jwt
 from typing import NoReturn, Union, Optional
+
+from litebot.errors import AuthFailure
 from litebot.utils.logging import get_logger
 
 logger = get_logger("bot")
@@ -10,8 +12,8 @@ ALGORITHM = "HS256"
 def validate_jwt(token: str, secret: str) -> Optional[dict]:
     try:
         return jwt.decode(token, secret, algorithms=ALGORITHM)
-    except jwt.InvalidTokenError:
-        pass
+    except jwt.InvalidTokenError as e:
+        raise AuthFailure(e)
 
 async def validate_jwt_headers(request: Request, secret: str, auth_scheme: Optional[str] = "Bearer") -> Union[NoReturn, dict]:
     """

@@ -27,7 +27,7 @@ class ServerCommands(commands.Cog):
             server = get_server(ctx, "")
             command = args[0]
         else:
-            if args[0] in [server.name for server in MinecraftServer.get_all_instances()]:
+            if args[0] in [server.name for server in self.bot.servers.get_all_instances()]:
                 server = get_server(ctx, args[0])
                 command = " ".join(args).partition(f"{server.name} ")[2]
             else:
@@ -45,10 +45,10 @@ class ServerCommands(commands.Cog):
         :type message: discord.Message
         """
         if not message.content.startswith("/") or not message.channel.id in [s.bridge_channel_id for s in
-                                                                             MinecraftServer.get_all_instances()]:
+                                                                             self.bot.servers.get_all_instances()]:
             return
 
-        server = MinecraftServer.get_from_channel(message.channel.id)
+        server = self.bot.servers.get_from_channel(message.channel.id)
         command = message.content.split("/")[1]
         await self._handle_server_command(message.channel, message.author, server, command)
 
@@ -85,7 +85,7 @@ class ServerCommands(commands.Cog):
         """
         whitelists = []
         ops = []
-        for server in MinecraftServer.get_all_instances():
+        for server in self.bot.servers.get_all_instances():
             whitelist_res = server.send_command(f"whitelist add {player_name}")
             if player_name in whitelist_res:
                 whitelists.append(whitelist_res)
@@ -104,7 +104,7 @@ class ServerCommands(commands.Cog):
         """
         whitelists = []
         ops = []
-        for server in MinecraftServer.get_all_instances():
+        for server in self.bot.servers.get_all_instances():
             whitelist_res = server.send_command(f"whitelist remove {player_name}")
             if player_name in whitelist_res:
                 whitelists.append(whitelist_res)

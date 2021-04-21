@@ -2,9 +2,12 @@ from __future__ import annotations
 import asyncio
 import inspect
 from typing import List, Callable, Tuple, Any, Optional
-from litebot.errors import ServerActionNotFound
+from litebot.errors import ServerActionNotFound, InvalidEvent
 from litebot.minecraft.server_commands.server_context import ServerCommandContext
 
+class ActionTypes:
+    COMMAND = "command"
+    EVENT = "event"
 
 class ServerAction:
     """
@@ -87,27 +90,6 @@ class ServerCommand(ServerAction):
 
         return decorator
 
-    async def invoke_sub(self, ctx: ServerCommandContext, sub: str, args: Tuple[Any]) -> None:
-        """
-        Invokes a subcommand registered for a command
-        :param ctx: The context that the command is being invoked in
-        :type ctx: ServerCommandContext
-        :param sub: The name of the subcommand to invoke
-        :type sub: str
-        :param args: The arguments required for the command
-        :type args: Tuple[any]
-        :raises: ServerActionNotFound
-        """
-        sub = self.subs.get(sub)
-
-        if not sub:
-            raise ServerActionNotFound
-
-        if sub.cog:
-            await sub.callback(sub.cog, ctx, *args)
-        else:
-            await sub.callback(ctx, *args)
-
     async def invoke(self, ctx: ServerCommandContext, args: Tuple[Any]) -> None:
         """
         Invokes the command
@@ -122,6 +104,18 @@ class ServerCommand(ServerAction):
             await self.callback(ctx, *args)
 
 class ServerEvent(ServerAction):
+    VALID_EVENTS = (
+        "on_message"
+    )
+
+    def __init__(self, func, cog=None, **kwargs):
+        name = kwargs.get("name") or func.__name__
+
+        if name not in ServerEvent.VALID_EVENTS:
+            raise InvalidEvent
+
+        super().__init__(func, cog, **kwargs)
+
     @classmethod
     def get_from_name(cls, name: str) -> List[ServerEvent]:
         """
@@ -138,18 +132,18 @@ class ServerEvent(ServerAction):
         else:
             raise ServerActionNotFound
 
-    async def invoke(self, ctx, args: Tuple[Any]) -> None:
+    async def invoke(self, payload) -> None:
         """
         Invokes the event
         :param ctx: The server that the event was dispatched from
-        :type ctx: ServerEventContext
+        :type ctx: ServerEventPayload
         :param args: The arguments for the event
         :type args: List[str]
         """
         if self.cog:
-            await self.callback(self.cog, ctx, *args)
+            await self.callback(self.cog, payload)
         else:
-            await self.callback(ctx, *args)
+            await self.callback(payload)
 
 def command(**kwargs) -> Callable:
     """

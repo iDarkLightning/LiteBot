@@ -91,16 +91,13 @@ class ModuleCommand(commands.Cog):
 
     @_config.command(name="view")
     @commands.before_invoke(manage_server_confirmation)
-    async def _config_view(self, ctx: commands.Context, module: str, *subs: Tuple[str]) -> None:
+    async def _config_view(self, ctx: commands.Context) -> None:
         """
         This command lets you view the config for a specified module.
         `module` The module to view the config for
         `subs` The subkeys to view in the module
         """
-        try:
-            await config_view(self.bot.module_config[module]["config"], ctx, subs)
-        except KeyError:
-            await ctx.send(embed=embeds.ErrorEmbed(f"There is no module matching: {module}"))
+        await config_view(self.bot.module_config, ctx)
 
     @_config.command(name="set")
     async def _config_set(self, ctx: commands.Context, module: str, key: str, *, value: JSONConverter) -> None:

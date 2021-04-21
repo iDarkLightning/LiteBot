@@ -12,22 +12,22 @@ class BaseConfig(dict):
 
     def __init__(self, file_name: str, required: bool) -> None:
         super().__init__(self)
-        self._file_path = os.path.join(os.getcwd(), CONFIG_DIR_NAME, file_name)
+        self.file_path = os.path.join(os.getcwd(), CONFIG_DIR_NAME, file_name)
         self.required = required
         self._load_from_file()
 
     def _load_from_file(self) -> None:
         """
-        Loads the config from `self._file_path`
+        Loads the config from `self.file_path`
         Writes DEFAULT_CONFIG if there is no valid config file at the path
         """
         try:
-            with open(self._file_path) as f:
+            with open(self.file_path) as f:
                 self.update(json.load(f))
-            self._match_default(self, self._file_path)
+            self._match_default(self, self.file_path)
         except FileNotFoundError:
-            logger.warning(f"No file found at {self._file_path}! Writing Default!")
-            self._write_default_config(self._file_path)
+            logger.warning(f"No file found at {self.file_path}! Writing Default!")
+            self._write_default_config(self.file_path)
             if self.required:
                 logger.error("Required config file has been generated. Please fill it out and restart!")
                 sys.exit()
@@ -66,7 +66,7 @@ class BaseConfig(dict):
         """
         Saves the current config
         """
-        with open(self._file_path, "w") as f:
+        with open(self.file_path, "w") as f:
             json.dump(self, f, indent=4, separators=(",", ":"))
 
 
@@ -137,7 +137,7 @@ class ModuleConfig(BaseConfig):
             return self[module]["cogs"][cog_name]
         except KeyError:
             self.register_cog(module, cog_name)
-            logger.warning(f"The cog: {cog_name} for module: {module} has been registered. It is disabled by default, you can enable it at {self._file_path}")
+            logger.warning(f"The cog: {cog_name} for module: {module} has been registered. It is disabled by default, you can enable it at {self.file_path}")
             return False
 
     def match_module(self, module: str, config: dict) -> None:
@@ -170,7 +170,7 @@ class ModuleConfig(BaseConfig):
         :type initial_val: Optional[bool]
         """
         self[module] = {"enabled": initial_val}
-        logger.info(f"Registed a new module: {module}. It has been disabled by default, you can enable it at {self._file_path}")
+        logger.info(f"Registed a new module: {module}. It has been disabled by default, you can enable it at {self.file_path}")
 
     def toggle_module(self, module: str, val: bool) -> None:
         if self.get(module) is None:

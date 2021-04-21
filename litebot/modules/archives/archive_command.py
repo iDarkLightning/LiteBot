@@ -23,7 +23,7 @@ def _attachment_to_dict(attachment: Attachment):
 def _message_to_dict(message: Message):
     return {
         "attachments": [_attachment_to_dict(a) for a in message.attachments],
-        "author": _member_to_dict(message.author),
+        "player": _member_to_dict(message.author),
         "channel": message.channel.id,
         "clean_content": message.clean_content,
         "content": message.content,

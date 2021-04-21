@@ -1,8 +1,4 @@
-from typing import Optional
-
 from litebot.minecraft.text import Text
-
-WHITE = 16777215
 
 class ServerCommandContext:
     """
@@ -36,7 +32,7 @@ class ServerCommandContext:
 
         await self.server.send_message(text=text, player=self.player)
 
-class ServerEventContext:
+class ServerEventPayload:
     """
     A context object for a ServerCommand.
     Lets us easily interact with both the server and the bot
@@ -49,7 +45,23 @@ class ServerEventContext:
     :param player: An optional player that executed the event
     :type player: str
     """
-    def __init__(self, server, bot, player: Optional[str]) -> None:
+
+    PAYLOAD_MAPPINGS = {
+        "on_message": ("message", "player_name")
+    }
+
+    # This is so that we have type hinting for our dynamically set arguments
+    message: str
+    player_name: str
+
+    def __init__(self, server, bot, event_name, args) -> None:
         self.bot = bot
         self.server = server
-        self.player = player
+
+        for i, v in enumerate(args):
+            setattr(self, ServerEventPayload.PAYLOAD_MAPPINGS[event_name][i], v)
+
+        for attr in ServerEventPayload.PAYLOAD_MAPPINGS[event_name]:
+            if not hasattr(self, attr):
+                setattr(self, attr, None)
+

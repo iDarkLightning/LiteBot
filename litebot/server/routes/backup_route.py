@@ -4,7 +4,7 @@ from sanic import Blueprint, response, exceptions
 from sanic.request import Request
 from sanic.response import BaseHTTPResponse
 
-from litebot.api_server.middlewares.jwt import validate_jwt_query
+from litebot.server.middlewares.jwt import validate_jwt_query
 from litebot.errors import ServerNotFound
 from litebot.minecraft.server import MinecraftServer
 

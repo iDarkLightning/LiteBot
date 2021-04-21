@@ -14,7 +14,6 @@ class ScoreboardCommand(commands.Cog):
             self.scoreboards = json.load(f)
 
     @commands.command(name="scoreboard", aliases=["sb"])
-    @role_checks.config_role_check("members_role")
     async def _scoreboard(self, ctx: commands.Context, objective_name: str, option: str = None) -> None:
         """
         This command lets you view the scoreboard for an ingame objective.
@@ -23,7 +22,7 @@ class ScoreboardCommand(commands.Cog):
         `all` will show the values for all scoreboard entities as opposed to just the whitelisted players.
         `board` will show only the values that would appear on the actual ingame sidebar.
         """
-        server = MinecraftServer.get_first_instance()
+        server = self.bot.servers.get_first_instance()
 
         if option and option.upper() == "ALL":
             player_list = server.send_command("scoreboard players list")

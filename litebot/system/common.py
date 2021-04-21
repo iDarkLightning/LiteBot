@@ -1,4 +1,6 @@
 from typing import Tuple, Union
+
+import discord
 from discord import HTTPException
 from discord.ext import commands
 from .converters import JSONConverter
@@ -10,42 +12,20 @@ from ..utils.menus import CodeBlockMenu, ConfirmMenu
 
 CHAR_LIMIT = 1500
 
-async def config_view(dict_, ctx: commands.Context, subs: Tuple[Tuple[str]]) -> None:
+async def config_view(config: BaseConfig, ctx: commands.Context) -> None:
     """
     Takes a dictionary, formats and sends it
     This is designed to be used in a command,
     as it interacts directly with the user.
-    :param dict_: The dictionary to format
-    :type dict_: dict
-    :param ctx: The context the command is being invoked in
+    :param config: The config file to send
+    :type config: BaseConfig
+    :param ctx: The context the command is being executed in
     :type ctx: commands.Context
-    :param subs: The nested path in the dictionary
-    :type subs: Tuple[Tuple[str]]
     """
-    current_item: dict = dict_
+    with open(config.file_path) as f:
+        file = discord.File(f)
+        await ctx.send(file=file)
 
-    try:
-        for sub in subs:
-            current_item = current_item[sub]
-    except KeyError:
-        await ctx.send(
-            embed=embeds.ErrorEmbed(f"The path at {'.'.join(subs)} is invalid, sending up to last valid path"))
-
-    flattened = flatten_dict(current_item)
-
-    res_str = ""
-    for k, v in flattened.items():
-        if isinstance(v, str):
-            res_str += f"{k}: '{v}'\n"
-        else:
-            res_str += f"{k}: {v}\n"
-
-    try:
-        await ctx.send(CODE_BLOCK.format("py", res_str))
-    except HTTPException:
-        parts = split_string(res_str, CHAR_LIMIT)
-        menu = CodeBlockMenu(parts)
-        await menu.start(ctx)
 
 async def config_save(config: BaseConfig, ctx: commands.Context, key: str, value: JSONConverter) -> None:
     """
