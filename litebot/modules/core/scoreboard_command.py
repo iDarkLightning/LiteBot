@@ -3,8 +3,8 @@ import os
 from discord.ext import commands
 from litebot.minecraft.server import MinecraftServer
 from litebot.utils.misc import scoreboard_image
-from ..utils.checks import role_checks
-from ..utils import embeds
+from litebot.utils.checks import role_checks
+from litebot.utils import embeds
 
 
 class ScoreboardCommand(commands.Cog):

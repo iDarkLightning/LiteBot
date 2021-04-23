@@ -1,8 +1,7 @@
-from typing import Tuple
 from discord.ext import commands
 from litebot.utils.checks.confirmation_checks import manage_server_confirmation
-from litebot.system.common import config_view, config_save
-from litebot.system.converters import JSONConverter
+from litebot.modules.system.common import config_view, config_save
+from litebot.modules.system.converters import JSONConverter
 from litebot.utils import embeds
 from litebot.utils.fmt_strings import MODULE_CONFIG_PATH, MODULE_PATH, MODULE_LOADING, CODE_BLOCK, COG_LOADING
 

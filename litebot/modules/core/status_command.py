@@ -1,7 +1,7 @@
 from discord.ext import commands
 
 from litebot.utils.checks import role_checks
-from litebot.core.converters import get_server
+from litebot.modules.core.converters import get_server
 from litebot.utils import embeds
 import datetime
 from datetime import datetime

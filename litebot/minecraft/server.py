@@ -19,9 +19,9 @@ from websockets import WebSocketCommonProtocol
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
-from .server_commands.server_action import ServerCommand, ServerEvent, ActionTypes
-from .server_commands.server_context import ServerCommandContext, ServerEventPayload
-from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningLTA, ServerNotRunningCarpet
+from .commands.action import ServerCommand, ServerEvent
+from .commands.context import ServerCommandContext, ServerEventPayload
+from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
 from ..utils import requests
 from ..utils.data_manip import parse_emoji
 from ..utils.enums import BackupTypes
@@ -38,6 +38,10 @@ TPS_COMMAND = "script run reduce(last_tick_times(),_a+_,0)/100;"
 class ServerContainer:
     def __init__(self):
         self._list = []
+
+    def __iter__(self):
+        for i in self._list:
+            yield i
 
     def append(self, item):
         self._list.append(item)
@@ -159,6 +163,8 @@ class MinecraftServer:
         self._connection = socket
         self.bot_instance.logger.info(f"WebSocket connection established to {self.name}")
 
+        await self._connection.send(json.dumps({"commandData": ServerCommand.get_built()}))
+
     def status(self) -> QueryResponse:
         """
         Gets the status of the server including online players
@@ -212,17 +218,46 @@ class MinecraftServer:
         return server_online
 
     async def dispatch(self, action, data):
-        if action == ActionTypes.COMMAND:
-            command = ServerCommand.get_from_name(data["name"])
-            ctx = ServerCommandContext(self, self.bot_instance, data["player"])
+        meth = getattr(self, "dispatch_" + action, None)
 
-            await command.invoke(ctx, data.get("args"))
-        elif action == ActionTypes.EVENT:
-            events = ServerEvent.get_from_name(data["name"])
-            payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("args"))
+        if meth:
+            return await meth(data)
 
-            for event in events:
-                await event.invoke(payload)
+        return await self.send_message(Text.op_message("LiteBot: Sent invalid action!"), op_only=True)
+
+    async def fetch(self, obj, data):
+        meth = getattr(self, "fetch_" + obj, None)
+
+        if meth:
+            return await meth(data)
+
+        return []
+
+    async def dispatch_command(self, data):
+        command = ServerCommand.get_from_name(data["name"])
+        ctx = ServerCommandContext(self, self.bot_instance, data["player"])
+
+        args = [command.arg_types[i](a).val for i, a in enumerate(data.get("args", []))]
+
+        try:
+            await command.invoke(ctx, args)
+        except TypeError:
+            pass
+
+    async def dispatch_event(self, data):
+        events = ServerEvent.get_from_name(data["name"])
+        payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("args"))
+
+        for event in events:
+            await event.invoke(payload)
+
+    async def fetch_suggester(self, data):
+        command = ServerCommand.get_from_name(data["name"])
+        ctx = ServerCommandContext(self, self.bot_instance, data["player"])
+
+        suggestor = command.suggestors[data["arg"]]()
+
+        return await suggestor.suggest(ctx, data["arg"], data["args"])
 
     async def recv_message(self, message: str) -> None:
         """
@@ -253,7 +288,7 @@ class MinecraftServer:
         if resp:
             return resp
 
-    async def send_message(self, text, op_only=False, player=None) -> dict:
+    async def send_message(self, text, op_only=False, player=None) -> None:
         """
         Sends a system message to the server, only works if server is running LTA
 
@@ -281,4 +316,5 @@ class MinecraftServer:
         if player:
             payload["player"] = player
 
-        await self._connection.send(json.dumps({"responseType": "message", "messageData": payload}))
+        await self._connection.send(json.dumps({"messageData": payload}))
+

@@ -24,6 +24,12 @@ class AuthFailure(LiteBotException):
     """
     Exception produced when a server tries to connect with an invalid auth token
     """
+    pass
+
+class ArgumentError(LiteBotException):
+    """
+    Exception produced when the argument type for a server command does not inherit ArgumentType
+    """
 
 class MinecraftServerException(LiteBotException):
     """

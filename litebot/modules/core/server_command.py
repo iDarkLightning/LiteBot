@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from litebot.utils.checks import role_checks
-from litebot.core.converters import get_server
+from litebot.modules.core.converters import get_server
 from litebot.minecraft.server import MinecraftServer
 from litebot.utils.fmt_strings import CODE_BLOCK, WHITELIST_ADD, WHITELIST_REMOVE
 from litebot.utils.misc import check_role

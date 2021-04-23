@@ -4,9 +4,10 @@ from discord.ext import commands
 
 from litebot.errors import ServerNotFound
 from litebot.litebot import LiteBot
-from litebot.minecraft import server_commands
+from litebot.minecraft import commands as mc_commands
+from litebot.minecraft.commands.arguments import StrictSuggester, MessageArgumentType
 from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.server_commands.server_context import ServerCommandContext, ServerEventPayload
+from litebot.minecraft.commands.context import ServerCommandContext, ServerEventPayload
 from litebot.minecraft.text import Text, Colors
 
 
@@ -59,13 +60,16 @@ class BridgeConnection:
             if server is not source_server:
                 await server.recv_message(message)
 
+class ServerSuggester(StrictSuggester):
+    async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
+        return [s.name for s in ctx.bot.servers if s is not ctx.server]
 
 class ServerBridge(commands.Cog):
     def __init__(self, bot: LiteBot):
         self.bot = bot
         self.connections: List[BridgeConnection] = []
 
-    @server_commands.command(name="bridge")
+    @mc_commands.command(name="bridge")
     async def _bridge_command(self, ctx: ServerCommandContext) -> None:
         """
         Defines a server command called `bridge`.
@@ -76,7 +80,7 @@ class ServerBridge(commands.Cog):
         pass
 
     @_bridge_command.sub(name="send")
-    async def _bridge_player_send(self, ctx: ServerCommandContext, message: str, server_name: str) -> None:
+    async def _bridge_player_send(self, ctx: ServerCommandContext, server_name: ServerSuggester, message: MessageArgumentType) -> None:
         """
         Sends a single message to another another server
         `message` The message to send
@@ -91,7 +95,7 @@ class ServerBridge(commands.Cog):
             await server.send_message(text=Text.bridge_message(ctx.server.name, message))
 
     @_bridge_command.sub(name="connect")
-    async def _bridge_player_connect(self, ctx: ServerCommandContext, server_name: Optional[str] = None) -> None:
+    async def _bridge_player_connect(self, ctx: ServerCommandContext, server_name: Optional[ServerSuggester] = None) -> None:
         """
         Connects a single player to another server.
         All messages sent by the player will be forwarded to all players on the connected servers.
@@ -118,8 +122,15 @@ class ServerBridge(commands.Cog):
         self.connections = list(filter(lambda s: s.player != ctx.player, self.connections))
         await ctx.send(text=Text().add_component(text="Disconnected from bridge connections", color=Colors.GREEN))
 
-    @_bridge_command.sub(name="server_connect")
-    async def _bridge_server_connect(self, ctx: ServerCommandContext, server_name: Optional[str] = None) -> None:
+    @_bridge_command.sub(name="server", op_level=1)
+    async def _bridge_server(self, ctx: ServerCommandContext) -> None:
+        """
+        A namespace for the `server` sub command
+        """
+        pass
+
+    @_bridge_server.sub(name="connect")
+    async def _bridge_server_connect(self, ctx: ServerCommandContext, server_name: Optional[ServerSuggester] = None) -> None:
         """
         Connects the entire server to the other servers.
         All messages sent by all players on the server will be sent to the connected servers.
@@ -139,7 +150,7 @@ class ServerBridge(commands.Cog):
             await ctx.server.send_message(
                 text=Text().add_component(text="Server is already connected", color=Colors.DARK_RED), op_only=True)
 
-    @_bridge_command.sub(name="server_disconnect")
+    @_bridge_server.sub(name="disconnect")
     async def _bridge_server_disconnect(self, ctx: ServerCommandContext) -> None:
         """
         Disconnects a server's bridge connections
@@ -147,7 +158,7 @@ class ServerBridge(commands.Cog):
         self.connections = list(filter(lambda s: s.origin_server != ctx.server, self.connections))
         await ctx.server.send_message(text=Text().op_message("Disconnected from bridge connections"), op_only=True)
 
-    @server_commands.event(name="on_message")
+    @mc_commands.event(name="on_message")
     async def _bridge_message(self, payload) -> None:
         """
         Accesses the message event, which is executed whenever a message is sent on a server.

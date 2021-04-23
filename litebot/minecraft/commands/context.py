@@ -47,12 +47,13 @@ class ServerEventPayload:
     """
 
     PAYLOAD_MAPPINGS = {
-        "on_message": ("message", "player_name")
+        "on_message": ("message", "player_uuid", "player_name")
     }
 
     # This is so that we have type hinting for our dynamically set arguments
     message: str
     player_name: str
+    player_uuid: str
 
     def __init__(self, server, bot, event_name, args) -> None:
         self.bot = bot

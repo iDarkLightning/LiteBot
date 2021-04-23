@@ -1,13 +1,39 @@
 from __future__ import annotations
 import asyncio
 import inspect
-from typing import List, Callable, Tuple, Any, Optional
-from litebot.errors import ServerActionNotFound, InvalidEvent
-from litebot.minecraft.server_commands.server_context import ServerCommandContext
+from typing import List, Callable, Tuple, Any, Optional, get_type_hints, get_args, Union, Type
+from litebot.errors import ServerActionNotFound, InvalidEvent, ArgumentError
+from litebot.minecraft.commands.arguments import ArgumentType, Suggester
+from litebot.minecraft.commands.context import ServerCommandContext
 
-class ActionTypes:
-    COMMAND = "command"
-    EVENT = "event"
+def _build_args(func: Callable) -> Union[
+    tuple[list, dict], tuple[list[dict[str, Union[bool, Any]]], dict[Any, Type[Suggester]], list[Type[ArgumentType]]]]:
+    arg_hints = {k: v for k, v in get_type_hints(func).items() if k != "return" and v is not ServerCommandContext}
+    if not arg_hints:
+        return [], {}, []
+
+    args = []
+    arg_types = []
+    suggestors = {}
+    started_optional = False
+
+    for arg_name, arg_type in arg_hints.items():
+        generic_args = get_args(arg_type)
+        arg_type = generic_args[0] if generic_args else arg_type
+
+        if not issubclass(arg_type, ArgumentType) or (started_optional and not generic_args):
+            raise ArgumentError("Invalid arguments for server command!")
+
+        if generic_args:
+            started_optional = True
+
+        args.append({"name": arg_name, "type": arg_type.REPR, "optional": started_optional})
+        arg_types.append(arg_type)
+
+        if issubclass(arg_type, Suggester):
+            suggestors[arg_name] = arg_type
+
+    return args, suggestors, arg_types
 
 class ServerAction:
     """
@@ -50,9 +76,25 @@ class ServerAction:
             raise ServerActionNotFound
 
 class ServerCommand(ServerAction):
+    actions = []
+
     def __init__(self, func, cog=None, **kwargs):
         super().__init__(func, cog, **kwargs)
+
+        self.is_sub = bool(kwargs.get("is_sub"))
+        self.register = bool(kwargs.get("register")) if kwargs.get("register") is not None else True
+        self.op_level = kwargs.get("op_level") or 0
+
+        args, suggestors, arg_types = _build_args(func)
+        self.arguments = args
+        self.suggestors = suggestors
+        self.arg_types = arg_types
+
         self.subs: dict[str, ServerCommand] = {}
+
+    @classmethod
+    def get_built(cls):
+        return [c.build() for c in cls.actions if not c.is_sub]
 
     @property
     def help_msg(self) -> Optional[str]:
@@ -62,6 +104,24 @@ class ServerCommand(ServerAction):
         :rtype: Optional[str]
         """
         return inspect.getdoc(self.callback)
+
+    def build(self):
+        if not self.register:
+            return
+
+        data = {"name": self.name, "OPLevel": self.op_level}
+
+        if self.arguments:
+            data["arguments"] = self.arguments
+
+        subs = []
+
+        for sub in self.subs.values():
+            subs.append(sub.build())
+
+        data["subs"] = subs
+
+        return data
 
     def sub(self, **kwargs):
         """
@@ -85,12 +145,14 @@ class ServerCommand(ServerAction):
         :rtype: Callable
         """
         def decorator(func):
-            sub_command = ServerCommand(func, **kwargs)
+            sub_command = ServerCommand(func, is_sub=True, **kwargs)
             self.subs[sub_command.name] = sub_command
+
+            return sub_command
 
         return decorator
 
-    async def invoke(self, ctx: ServerCommandContext, args: Tuple[Any]) -> None:
+    async def invoke(self, ctx: ServerCommandContext, args: List[Any]) -> None:
         """
         Invokes the command
         :param ctx: The server that the command is being invoked to

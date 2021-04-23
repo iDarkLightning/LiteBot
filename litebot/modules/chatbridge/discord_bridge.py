@@ -5,9 +5,9 @@ from discord import Message
 
 from litebot.errors import ServerNotFound
 from litebot.litebot import LiteBot
-from litebot.minecraft import server_commands
+from litebot.minecraft import commands as mc_commands
 from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.server_commands.server_context import ServerEventPayload
+from litebot.minecraft.commands.context import ServerEventPayload
 from litebot.minecraft.text import Text, Colors
 
 
@@ -31,7 +31,7 @@ class DiscordBridge(commands.Cog):
         if not message.author.bot:
             await self._process_message(server, message)
 
-    @server_commands.event(name="on_message")
+    @mc_commands.event(name="on_message")
     async def _server_message(self, payload):
         """
         Forwards a message sent on a server to the bridge channel.
@@ -47,7 +47,7 @@ class DiscordBridge(commands.Cog):
             return await payload.server.recv_message(payload.message)
 
         matched_connections = list(filter(
-            lambda s: s.player == payload.player or s.origin_server == payload.server, server_bridge.connections))
+            lambda s: s.player == payload.player_uuid or s.origin_server == payload.server, server_bridge.connections))
 
         if len(matched_connections) == 0:
             if not payload.player_name:
