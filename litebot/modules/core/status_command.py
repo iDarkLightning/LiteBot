@@ -1,12 +1,13 @@
 from discord.ext import commands
 
+from litebot.core import Cog
 from litebot.utils.checks import role_checks
 from litebot.modules.core.converters import get_server
 from litebot.utils import embeds
 import datetime
 from datetime import datetime
 
-class StatusCommand(commands.Cog):
+class StatusCommand(Cog):
     def __init__(self, bot):
         self.bot = bot
 

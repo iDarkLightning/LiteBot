@@ -1,6 +1,8 @@
 from typing import List, Optional
 import discord
 from discord.ext import commands
+
+from litebot.core import Cog
 from litebot.modules.discord_utils.converters import RoleConverter
 from litebot.utils.data_manip import split_string
 from litebot.utils.embeds import InfoEmbed
@@ -8,7 +10,7 @@ from litebot.utils.menus import DescriptionMenu
 
 CHAR_LIMIT = 250
 
-class ListCommand(commands.Cog):
+class ListCommand(Cog):
     def __init__(self, bot, module):
         self.bot = bot
 

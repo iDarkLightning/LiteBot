@@ -2,13 +2,15 @@ from datetime import datetime
 import discord
 import pytz
 from discord.ext import commands
+
+from litebot.core import Cog
 from litebot.utils import embeds
 from litebot.utils.data_manip import split_string
 from litebot.utils.menus import CodeBlockMenu
 
 CHAR_LIMIT = 1500
 
-class TimezoneCommand(commands.Cog):
+class TimezoneCommand(Cog):
     def __init__(self, bot, module):
         self.bot = bot
 

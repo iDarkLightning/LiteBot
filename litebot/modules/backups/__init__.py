@@ -10,10 +10,10 @@ def config(bot):
         "backup_role": []
     }
 
-def requirements(bot):
-    servers = bot.servers.get_all_instances()
-    for server in servers:
-        if server.server_dir:
-            return True
-
-    return False
+# def requirements(bot):
+#     servers = bot.servers.get_all_instances()
+#     for server in servers:
+#         if server.server_dir:
+#             return True
+#
+#     return False

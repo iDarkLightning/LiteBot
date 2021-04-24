@@ -1,13 +1,13 @@
 import json
 import os
 from discord.ext import commands
-from litebot.minecraft.server import MinecraftServer
+
+from litebot.core import Cog
 from litebot.utils.misc import scoreboard_image
-from litebot.utils.checks import role_checks
 from litebot.utils import embeds
 
 
-class ScoreboardCommand(commands.Cog):
+class ScoreboardCommand(Cog):
     def __init__(self, bot):
         self.bot = bot
         with open(os.path.join(os.getcwd(), "litebot", "utils", "assets", "scoreboards.json")) as f:

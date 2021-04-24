@@ -1,4 +1,6 @@
 from discord.ext import commands
+
+from litebot.core import Cog
 from litebot.utils.checks.confirmation_checks import manage_server_confirmation
 from litebot.modules.system.common import config_view, config_save
 from litebot.modules.system.converters import JSONConverter
@@ -6,7 +8,7 @@ from litebot.utils import embeds
 from litebot.utils.fmt_strings import MODULE_CONFIG_PATH, MODULE_PATH, MODULE_LOADING, CODE_BLOCK, COG_LOADING
 
 
-class ModuleCommand(commands.Cog):
+class ModuleCommand(Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -38,6 +40,10 @@ class ModuleCommand(commands.Cog):
         try:
             self.bot.module_config.toggle_module(module, True)
             self.bot.load_extension(MODULE_PATH.format(module))
+
+            for server in self.bot.servers:
+                await server.send_command_tree()
+
             self.bot.logger.info(MODULE_LOADING.format("Loaded", module))
             await ctx.send(embed=embeds.SuccessEmbed(MODULE_LOADING.format("Loaded", module)))
         except ModuleNotFoundError:
@@ -55,6 +61,10 @@ class ModuleCommand(commands.Cog):
         try:
             self.bot.module_config.toggle_module(module, False)
             self.bot.unload_extension(MODULE_PATH.format(module))
+
+            for server in self.bot.servers:
+                await server.send_command_tree()
+
             self.bot.logger.info(MODULE_LOADING.format("Unloaded", module))
             await ctx.send(embed=embeds.SuccessEmbed(MODULE_LOADING.format("Unloaded", module)))
         except ModuleNotFoundError:
@@ -71,6 +81,10 @@ class ModuleCommand(commands.Cog):
         """
         try:
             self.bot.reload_extension(MODULE_PATH.format(module))
+
+            for server in self.bot.servers:
+                await server.send_command_tree()
+
             self.bot.logger.info(MODULE_LOADING.format("Reloaded", module))
             await ctx.send(embed=embeds.SuccessEmbed(MODULE_LOADING.format("Reloaded", module)))
         except Exception as e:
@@ -138,6 +152,10 @@ class ModuleCommand(commands.Cog):
         try:
             self.bot.module_config.toggle_cog(module, cog_name, True)
             self.bot.reload_extension(MODULE_PATH.format(module))
+
+            for server in self.bot.servers:
+                await server.send_command_tree()
+
             self.bot.logger.info(COG_LOADING.format("Loaded", cog_name, module))
             await ctx.send(embed=embeds.SuccessEmbed(COG_LOADING.format("Loaded", cog_name, module)))
         except ModuleNotFoundError:
@@ -156,6 +174,10 @@ class ModuleCommand(commands.Cog):
         try:
             self.bot.module_config.toggle_cog(module, cog_name, False)
             self.bot.reload_extension(MODULE_PATH.format(module))
+
+            for server in self.bot.servers:
+                await server.send_command_tree()
+
             self.bot.logger.info(COG_LOADING.format("Unloaded", cog_name, module))
             await ctx.send(embed=embeds.SuccessEmbed(COG_LOADING.format("Unloaded", cog_name, module)))
         except ModuleNotFoundError:

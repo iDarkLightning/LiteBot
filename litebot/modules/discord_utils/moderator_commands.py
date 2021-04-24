@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands, tasks
 from discord.utils import get
 
+from litebot.core import Cog
 from litebot.litebot import LiteBot
 from litebot.utils import embeds
 import datetime
@@ -10,7 +11,7 @@ from datetime import datetime
 from litebot.utils.data_manip import parse_reason, reason_datetime_parser
 
 
-class ModeratorCommands(commands.Cog):
+class ModeratorCommands(Cog):
     def __init__(self, bot: LiteBot, module):
         self.bot = bot
         self.config = self.bot.module_config[module]["config"]

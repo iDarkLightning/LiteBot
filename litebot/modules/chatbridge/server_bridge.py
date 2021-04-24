@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from discord.ext import commands
 
+from litebot.core import Cog
 from litebot.errors import ServerNotFound
 from litebot.litebot import LiteBot
 from litebot.minecraft import commands as mc_commands
@@ -64,7 +65,7 @@ class ServerSuggester(StrictSuggester):
     async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
         return [s.name for s in ctx.bot.servers if s is not ctx.server]
 
-class ServerBridge(commands.Cog):
+class ServerBridge(Cog):
     def __init__(self, bot: LiteBot):
         self.bot = bot
         self.connections: List[BridgeConnection] = []

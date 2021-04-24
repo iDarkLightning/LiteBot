@@ -6,6 +6,7 @@ from discord.ext import commands, tasks
 from gspread import Client
 from gspread.exceptions import APIError
 
+from litebot.core import Cog
 from litebot.litebot import LiteBot
 from litebot.models import TrackedEvent, Application
 from litebot.utils import embeds
@@ -18,7 +19,7 @@ YES_EMOJI = "<:yes:760951181283033128>"
 NO_EMOJI = "<:no:816732205526155316>"
 
 
-class Applications(commands.Cog):
+class Applications(Cog):
     def __init__(self, bot: LiteBot, gc: Client):
         self.bot = bot
         self._config = self.bot.module_config["applications"]["config"]

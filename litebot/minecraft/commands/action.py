@@ -39,7 +39,6 @@ class ServerAction:
     """
     A base class for a server command and a server event.
     """
-    actions = []
 
     def __init__(self, func, cog=None, **kwargs) -> None:
         if not asyncio.iscoroutinefunction(func):
@@ -48,40 +47,12 @@ class ServerAction:
         self.name = kwargs.get("name") or func.__name__
         self.callback = func
         self.cog = cog # Will be set manually when adding the cog
-        self._register_command(self)
-
-    @classmethod
-    def _register_command(cls, instance: ServerAction) -> None:
-        """
-        Adds the command to an internal list of commands
-        :param instance: The command instance
-        :type instance: ServerAction
-        """
-        cls.actions.append(instance)
-
-    @classmethod
-    def get_from_name(cls, name: str) -> ServerAction:
-        """
-        Gets a command from the internal list of commands
-        :param name: The name of the command to retrieve
-        :type name: str
-        :return: The command with the given name
-        :rtype: ServerAction
-        :raises: ServerActionNotFound
-        """
-        server = list(filter(lambda s: s.name == name, cls.actions))
-        if len(server) > 0:
-            return server[0]
-        else:
-            raise ServerActionNotFound
 
 class ServerCommand(ServerAction):
-    actions = []
-
     def __init__(self, func, cog=None, **kwargs):
         super().__init__(func, cog, **kwargs)
 
-        self.is_sub = bool(kwargs.get("is_sub"))
+        self.parent = kwargs.get("parent")
         self.register = bool(kwargs.get("register")) if kwargs.get("register") is not None else True
         self.op_level = kwargs.get("op_level") or 0
 
@@ -92,10 +63,6 @@ class ServerCommand(ServerAction):
 
         self.subs: dict[str, ServerCommand] = {}
 
-    @classmethod
-    def get_built(cls):
-        return [c.build() for c in cls.actions if not c.is_sub]
-
     @property
     def help_msg(self) -> Optional[str]:
         """
@@ -104,6 +71,10 @@ class ServerCommand(ServerAction):
         :rtype: Optional[str]
         """
         return inspect.getdoc(self.callback)
+
+    @property
+    def full_name(self):
+        return ".".join(self._get_full_path())
 
     def build(self):
         if not self.register:
@@ -145,12 +116,20 @@ class ServerCommand(ServerAction):
         :rtype: Callable
         """
         def decorator(func):
-            sub_command = ServerCommand(func, is_sub=True, **kwargs)
+            sub_command = ServerCommand(func, parent=self, **kwargs)
             self.subs[sub_command.name] = sub_command
 
             return sub_command
 
         return decorator
+
+    def _get_full_path(self):
+        res = [self.name]
+
+        if self.parent:
+            res.extend(self.parent._get_full_path())
+
+        return res[::-1]
 
     async def invoke(self, ctx: ServerCommandContext, args: List[Any]) -> None:
         """
@@ -167,7 +146,7 @@ class ServerCommand(ServerAction):
 
 class ServerEvent(ServerAction):
     VALID_EVENTS = (
-        "on_message"
+        "on_message",
     )
 
     def __init__(self, func, cog=None, **kwargs):
@@ -177,22 +156,6 @@ class ServerEvent(ServerAction):
             raise InvalidEvent
 
         super().__init__(func, cog, **kwargs)
-
-    @classmethod
-    def get_from_name(cls, name: str) -> List[ServerEvent]:
-        """
-        Gets a command from the internal list of commands
-        :param name: The name of the event to retrieve
-        :type name: str
-        :return: All the events registed with the name
-        :rtype: ServerAction
-        :raises: ServerActionNotFound
-        """
-        server = list(filter(lambda s: s.name == name, cls.actions))
-        if len(server) > 0:
-            return server
-        else:
-            raise ServerActionNotFound
 
     async def invoke(self, payload) -> None:
         """

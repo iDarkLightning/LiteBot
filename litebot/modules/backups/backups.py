@@ -1,6 +1,7 @@
 import asyncio
 import os
 import shutil
+import traceback
 import zipfile
 from datetime import datetime, timedelta
 from typing import Optional
@@ -8,6 +9,7 @@ import jwt
 from discord.ext import commands, tasks
 from sanic import Sanic
 
+from litebot.core import Cog
 from litebot.utils.checks import role_checks
 from litebot.modules.core.converters import get_server
 from litebot.minecraft import commands as mc_commands
@@ -75,10 +77,10 @@ def _restore_backup(server: MinecraftServer, backup_path: str) -> None:
         raise Exception
 
 
-class BackupsCommand(commands.Cog):
+class BackupsCommand(Cog):
     def __init__(self, bot):
         self.bot = bot
-        self._routine_backups.start()
+        # self._routine_backups.start()
 
     @commands.group(name="backup")
     @role_checks.module_config_role_check("backup_role", module_name="backups")

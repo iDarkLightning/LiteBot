@@ -3,6 +3,7 @@ import re
 from discord.ext import commands
 from discord import Message
 
+from litebot.core import Cog
 from litebot.errors import ServerNotFound
 from litebot.litebot import LiteBot
 from litebot.minecraft import commands as mc_commands
@@ -11,7 +12,7 @@ from litebot.minecraft.commands.context import ServerEventPayload
 from litebot.minecraft.text import Text, Colors
 
 
-class DiscordBridge(commands.Cog):
+class DiscordBridge(Cog):
     def __init__(self, bot: LiteBot):
         self.bot = bot
         self.config = self.bot.module_config["chatbridge"]["config"]

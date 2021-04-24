@@ -1,12 +1,13 @@
 from discord.ext import commands
 from gspread import Client
 
+from litebot.core import Cog
 from litebot.errors import TicketNotFound
 from litebot.litebot import LiteBot
 from litebot.models import Application
 
 
-class TicketCommands(commands.Cog):
+class TicketCommands(Cog):
     def __init__(self, bot: LiteBot, gc: Client):
         self.bot = bot
         self.gc = gc

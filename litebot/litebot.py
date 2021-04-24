@@ -3,8 +3,10 @@ import discord
 import os
 import mongoengine
 from discord.ext import commands
+from discord.ext.commands import Command
 
-from .minecraft.commands.action import ServerCommand, ServerAction
+from .core import Cog
+from .minecraft.commands.action import ServerCommand, ServerAction, ServerEvent
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer, ServerContainer
@@ -24,6 +26,9 @@ class LiteBot(commands.Bot):
     def __init__(self):
         self.config = MainConfig()
         self.module_config = ModuleConfig()
+        self.server_commands = {}
+        self.server_events = {k: [] for k in ServerEvent.VALID_EVENTS}
+
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.config["prefixes"]),
             help_command=HelpCommand(),
@@ -56,16 +61,6 @@ class LiteBot(commands.Bot):
     def add_cog(self, cog: commands.Cog, required: bool = False) -> None:
         if self._initialising and not required:
             self.module_config.register_cog(self._cur_module, cog.__cog_name__)
-
-        func_list = [getattr(cog, func) for func in dir(cog)]
-        server_actions = [func for func in func_list if isinstance(func, ServerAction)]
-
-        for server_action in server_actions:
-            server_action.cog = cog
-
-            if isinstance(server_action, ServerCommand) and server_action.subs:
-                for val in server_action.subs.values():
-                    val.cog = cog
 
         if required:
             super().add_cog(cog)
@@ -125,6 +120,24 @@ class LiteBot(commands.Bot):
                     self.logger.info(MODULE_LOADING.format("Loaded", module))
 
             self.module_config.save()
+
+    def add_command(self, command):
+        if not isinstance(command, ServerCommand):
+            return super().add_command(command)
+
+        self.server_commands[command.full_name] = command
+
+    def remove_command(self, name):
+        if name not in self.server_commands:
+            return super().remove_command(name)
+
+        self.server_commands.pop(name)
+
+    def add_event(self, event):
+        self.server_events[event.name].append(event)
+
+    def remove_event(self, name, cog):
+        self.server_events[name] = list(filter(lambda e: e.cog is not cog, self.server_events[name]))
 
     async def on_ready(self):
         self.logger.info(f"{self.user.name} is now online!")

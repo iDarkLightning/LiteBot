@@ -1,5 +1,7 @@
 import discord
 from discord.ext import commands
+
+from litebot.core import Cog
 from litebot.utils.checks import role_checks
 from litebot.modules.core.converters import get_server
 from litebot.minecraft.server import MinecraftServer
@@ -7,7 +9,7 @@ from litebot.utils.fmt_strings import CODE_BLOCK, WHITELIST_ADD, WHITELIST_REMOV
 from litebot.utils.misc import check_role
 
 
-class ServerCommands(commands.Cog):
+class ServerCommands(Cog):
     def __init__(self, bot):
         self.bot = bot
 

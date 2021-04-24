@@ -4,6 +4,7 @@ from typing import Optional
 from discord import Message, Member, Attachment
 from discord.ext import commands
 
+from litebot.core import Cog
 from litebot.errors import ConfirmationDenied
 from litebot.litebot import LiteBot
 from litebot.models import TrackedEvent
@@ -50,7 +51,7 @@ async def archive_channel(channel) -> None:
                     category=channel.category.name, messages=[_message_to_dict(m) for m in messages],
                     users=[_member_to_dict(m) for m in channel.members]).save()
 
-class ArchiveCommand(commands.Cog):
+class ArchiveCommand(Cog):
     def __init__(self, bot: LiteBot):
         self.bot = bot
 

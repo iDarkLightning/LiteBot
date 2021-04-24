@@ -2,8 +2,10 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 
+from litebot.core import Cog
 
-class AutoRole(commands.Cog):
+
+class AutoRole(Cog):
     def __init__(self, bot, module):
         self.bot = bot
         self.config = self.bot.module_config[module]["config"]

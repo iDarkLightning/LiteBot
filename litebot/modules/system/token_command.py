@@ -2,11 +2,13 @@ import jwt
 import discord
 from typing import Optional
 from discord.ext import commands
+
+from litebot.core import Cog
 from litebot.utils import embeds
 from litebot.utils.fmt_strings import CODE_BLOCK
 
 
-class TokenCommand(commands.Cog):
+class TokenCommand(Cog):
     def __init__(self, bot):
         self.bot = bot
 

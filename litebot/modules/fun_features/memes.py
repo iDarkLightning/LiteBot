@@ -1,5 +1,7 @@
 from asyncpraw import Reddit
 from discord.ext import commands
+
+from litebot.core import Cog
 from litebot.errors import ChannelNotWhitelisted
 from litebot.litebot import LiteBot
 from litebot.utils import embeds
@@ -8,7 +10,7 @@ from litebot.utils.misc import is_image, check_role
 USER_AGENT = f"web:idarklightning:litebot:v{LiteBot.VERSION}"
 SUBREDDIT = "funny+memes"
 
-class MemesCommand(commands.Cog):
+class MemesCommand(Cog):
     def __init__(self, bot: LiteBot) -> None:
         self.bot = bot
         self.config = self.bot.module_config["fun_features"]["config"]

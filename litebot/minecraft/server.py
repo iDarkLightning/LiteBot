@@ -163,7 +163,7 @@ class MinecraftServer:
         self._connection = socket
         self.bot_instance.logger.info(f"WebSocket connection established to {self.name}")
 
-        await self._connection.send(json.dumps({"commandData": ServerCommand.get_built()}))
+        await self.send_command_tree()
 
     def status(self) -> QueryResponse:
         """
@@ -234,7 +234,9 @@ class MinecraftServer:
         return []
 
     async def dispatch_command(self, data):
-        command = ServerCommand.get_from_name(data["name"])
+        print("hi there")
+        command = self.bot_instance.server_commands[data["name"]]
+        print(command)
         ctx = ServerCommandContext(self, self.bot_instance, data["player"])
 
         args = [command.arg_types[i](a).val for i, a in enumerate(data.get("args", []))]
@@ -245,14 +247,14 @@ class MinecraftServer:
             pass
 
     async def dispatch_event(self, data):
-        events = ServerEvent.get_from_name(data["name"])
+        events = self.bot_instance.server_events[data["name"]]
         payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("args"))
 
         for event in events:
             await event.invoke(payload)
 
     async def fetch_suggester(self, data):
-        command = ServerCommand.get_from_name(data["name"])
+        command = self.bot_instance.server_commands[data["name"]]
         ctx = ServerCommandContext(self, self.bot_instance, data["player"])
 
         suggestor = command.suggestors[data["arg"]]()
@@ -268,6 +270,14 @@ class MinecraftServer:
         """
         message = await parse_emoji(self.bot_instance, message)
         await self.bridge_channel.send(message)
+
+    async def send_command_tree(self):
+        if not self.connected:
+            return
+
+        await self._connection.send(json.dumps({
+            "commandData": [s.build() for s in self.bot_instance.server_commands.values()]
+        }))
 
     def send_command(self, command: str) -> Optional[str]:
         """

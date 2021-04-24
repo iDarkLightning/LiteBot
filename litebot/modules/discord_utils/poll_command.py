@@ -4,6 +4,8 @@ from typing import Union, Tuple, List, Optional, Any
 from mongoengine.errors import NotUniqueError
 from discord.ext import commands
 from discord.ext.commands import MemberConverter, MemberNotFound, RoleConverter, RoleNotFound
+
+from litebot.core import Cog
 from litebot.utils.checks import role_checks
 from litebot.models import PollPreset
 from litebot.models import TrackedEvent
@@ -93,7 +95,7 @@ def parse_preset(poll: PollPreset, role: Optional[discord.Role], member: Optiona
 
     return heading, prompts
 
-class PollCommand(commands.Cog):
+class PollCommand(Cog):
     def __init__(self, bot):
         self.bot = bot
 
