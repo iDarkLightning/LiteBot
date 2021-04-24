@@ -3,26 +3,20 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import datetime
 
-from typing import Optional, List, Tuple, TYPE_CHECKING
-from jwt import encode as jwt_encode
+from typing import Optional, Tuple, TYPE_CHECKING
 from discord import TextChannel
 from discord.errors import NotFound
-from datetime import datetime, timedelta
-from discord import Message
 from pathlib import Path
-from socket import timeout, inet_aton
+from socket import timeout
 
 from websockets import WebSocketCommonProtocol
 
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
-from .commands.action import ServerCommand, ServerEvent
 from .commands.context import ServerCommandContext, ServerEventPayload
 from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
-from ..utils import requests
 from ..utils.data_manip import parse_emoji
 from ..utils.enums import BackupTypes
 from .text import Text
@@ -39,58 +33,29 @@ class ServerContainer:
     def __init__(self):
         self._list = []
 
-    def __iter__(self):
-        for i in self._list:
-            yield i
+    @property
+    def all(self):
+        return self._list
 
     def append(self, item):
         self._list.append(item)
 
-    def get_from_name(self, name: str) -> MinecraftServer:
-        """
-        Gets a server from its name
-        :param name: The name of the server to retrieve
-        :type name: str
-        :return: An instance of a Minecraft Server
-        :rtype: MinecraftServer
-        :raises: ServerNotFound
-        """
-        server = list(filter(lambda s: s.name == name, self._list))
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            server = list(filter(lambda s: s.name == item, self._list))
+        elif isinstance(item, int):
+            server = list(filter(lambda s: s.bridge_channel_id == item, self._list))
+        else:
+            raise TypeError("Servers can only be retrieved through name or channel!")
+
         if len(server) > 0:
             return server[0]
         else:
             raise ServerNotFound
 
-    def get_from_channel(self, id_: int) -> MinecraftServer:
-        """
-        Gets a server from it's bridge channel id
-        :param id_: The ID of the pridge channel
-        :type id_: int
-        :return: An instance of a Minecraft Server
-        :rtype: MinecraftServer
-        :raises: ServerNotFound
-        """
-        server = list(filter(lambda s: s.bridge_channel_id == id_, self._list))
-        if len(server) > 0:
-            return server[0]
-        else:
-            raise ServerNotFound
-
-    def get_all_instances(self) -> List[MinecraftServer]:
-        """
-        Gets all server instances
-        :return: A list with all current instances of servers
-        :rtype: List[MinecraftServer]
-        """
-        return self._list
-
-    def get_first_instance(self) -> MinecraftServer:
-        """
-        Get's the first server instantiated.
-        :return: The first server instantiated
-        :rtype: MinecraftServer
-        """
-        return next(iter(self._list))
+    def __iter__(self):
+        for i in self._list:
+            yield i
 
 class MinecraftServer:
     """
@@ -126,7 +91,6 @@ class MinecraftServer:
         if os.path.exists(world_dir):
             return world_dir
         else:
-            level_name = None
             with open(os.path.join(self.server_dir, "server.properties")) as f:
                 props = {k: v.removesuffix("\n") for k,v in [line.split("=", 2) for line in f.readlines() if "=" in line]}
                 level_name = props["level-name"]
@@ -160,6 +124,11 @@ class MinecraftServer:
         return bool(self._connection) and self._connection.open
 
     async def connect(self, socket: WebSocketCommonProtocol):
+        """
+        Connects to the server via a websocket connection
+        :param socket: The socket that is being used to connect
+        :type socket: WebSocketCommonProtocol
+        """
         self._connection = socket
         self.bot_instance.logger.info(f"WebSocket connection established to {self.name}")
 
@@ -217,7 +186,15 @@ class MinecraftServer:
 
         return server_online
 
-    async def dispatch(self, action, data):
+    async def dispatch(self, action: str, data: dict) -> None:
+        """
+        Dispatches an action from the server.
+        See methods starting with `dispatch_` to see actions that can be dispatched
+        :param action: The action to dispatch
+        :type action: str
+        :param data: The data for the action
+        :type data: dict
+        """
         meth = getattr(self, "dispatch_" + action, None)
 
         if meth:
@@ -226,6 +203,15 @@ class MinecraftServer:
         return await self.send_message(Text.op_message("LiteBot: Sent invalid action!"), op_only=True)
 
     async def fetch(self, obj, data):
+        """
+        Fetches data from the bot for the server
+        See methods starting with `fetch_` to see the data that can be fetched
+        :param obj: The data to fetch
+        :type obj: str
+        :param data: The data that is being used to fetch the data
+        :type data: dict
+        :return: The data being fetched
+        """
         meth = getattr(self, "fetch_" + obj, None)
 
         if meth:
@@ -233,10 +219,13 @@ class MinecraftServer:
 
         return []
 
-    async def dispatch_command(self, data):
-        print("hi there")
+    async def dispatch_command(self, data: dict):
+        """
+        Dispatches a command from the server
+        :param data: The data being used to dispatch the command
+        :type data: dict
+        """
         command = self.bot_instance.server_commands[data["name"]]
-        print(command)
         ctx = ServerCommandContext(self, self.bot_instance, data["player"])
 
         args = [command.arg_types[i](a).val for i, a in enumerate(data.get("args", []))]
@@ -246,14 +235,24 @@ class MinecraftServer:
         except TypeError:
             pass
 
-    async def dispatch_event(self, data):
+    async def dispatch_event(self, data: dict):
+        """
+        Dispatches an event from the server
+        :param data: The data being used to dispatch the event
+        :type data: dict
+        """
         events = self.bot_instance.server_events[data["name"]]
         payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("args"))
 
         for event in events:
             await event.invoke(payload)
 
-    async def fetch_suggester(self, data):
+    async def fetch_suggester(self, data: dict):
+        """
+        Fetches suggestions for completing a command
+        :param data: The data that is being used to fetch the suggestions
+        :type data: dict
+        """
         command = self.bot_instance.server_commands[data["name"]]
         ctx = ServerCommandContext(self, self.bot_instance, data["player"])
 
@@ -272,6 +271,9 @@ class MinecraftServer:
         await self.bridge_channel.send(message)
 
     async def send_command_tree(self):
+        """
+        Builds and sends the command tree to the server if the server is connected
+        """
         if not self.connected:
             return
 

@@ -19,7 +19,7 @@ async def _websocket(request: Request, socket: WebSocketCommonProtocol):
             data = json.loads(message)
             payload = validate_jwt(data["auth"], request.app.config.BOT_INSTANCE.config["api_secret"])
 
-            server = request.app.config.BOT_INSTANCE.servers.get_from_name(payload["server_name"])
+            server = request.app.config.BOT_INSTANCE.servers[payload["server_name"]]
 
             if not server.connected:
                 await server.connect(socket)
@@ -35,7 +35,7 @@ async def _fetch(request: Request, item: str):
     payload = await validate_jwt_headers(request, request.app.config.BOT_INSTANCE.config["api_secret"])
 
     try:
-        server = request.app.config.BOT_INSTANCE.servers.get_from_name(payload["server_name"])
+        server = request.app.config.BOT_INSTANCE.servers[payload["server_name"]]
         return response.json(await server.fetch(item, json.loads(request.args.get("data"))))
     except (ServerNotFound, KeyError):
         raise exceptions.NotFound("Invalid token payload!")

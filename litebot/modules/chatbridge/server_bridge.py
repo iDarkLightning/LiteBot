@@ -1,6 +1,5 @@
 from typing import Optional, List
 
-from discord.ext import commands
 
 from litebot.core import Cog
 from litebot.errors import ServerNotFound
@@ -88,9 +87,9 @@ class ServerBridge(Cog):
         `server_name` The name of the server to send the message to
         """
         try:
-            servers = [self.bot.servers.get_from_name(server_name)]
+            servers = [self.bot.servers[server_name]]
         except ServerNotFound:
-            servers = [s for s in self.bot.servers.get_all_instances() if s is not ctx.server]
+            servers = [s for s in self.bot.servers.all if s is not ctx.server]
 
         for server in servers:
             await server.send_message(text=Text.bridge_message(ctx.server.name, message))
@@ -104,9 +103,9 @@ class ServerBridge(Cog):
         `server_name` The server to connect the player to. If a name is not provided, will connect to all servers.
         """
         try:
-            servers = [self.bot.servers.get_from_name(server_name)]
+            servers = [self.bot.servers[server_name]]
         except ServerNotFound:
-            servers = [s for s in self.bot.servers.get_all_instances() if s is not ctx.server]
+            servers = [s for s in self.bot.servers.all if s is not ctx.server]
 
         if ctx.player not in [s.player for s in self.connections]:
             self.connections.append(BridgeConnection(ctx.server, servers, ctx.player))
@@ -139,9 +138,9 @@ class ServerBridge(Cog):
         `server_name` The server to connect the player to. If a name is not provided, will connect to all servers.
         """
         try:
-            servers = [self.bot.servers.get_from_name(server_name)]
+            servers = [self.bot.servers[server_name]]
         except ServerNotFound:
-            servers = [s for s in self.bot.servers.get_all_instances() if s is not ctx.server]
+            servers = [s for s in self.bot.servers.all if s is not ctx.server]
 
         if ctx.server not in [s.origin_server for s in self.connections]:
             self.connections.append(BridgeConnection(ctx.server, servers))
@@ -165,10 +164,8 @@ class ServerBridge(Cog):
         Accesses the message event, which is executed whenever a message is sent on a server.
         Forwards message to all connected bridge servers.
 
-        :param ctx: The context that the event was executed in
-        :type ctx: ServerEventPayload
-        :param message: The message sent
-        :type message: str
+        :param payload: The payload for the event
+        :type payload: ServerEventPayload
         """
         for conn in self.connections:
             await conn.send_bridge_message(payload.server, payload.message)

@@ -1,4 +1,10 @@
+from typing import TYPE_CHECKING, Any
+
+from litebot.litebot import LiteBot
 from litebot.minecraft.text import Text
+
+if TYPE_CHECKING:
+    from litebot.minecraft.server import MinecraftServer
 
 class ServerCommandContext:
     """
@@ -13,7 +19,7 @@ class ServerCommandContext:
     :param player: The player that executed the command
     :type player: str
     """
-    def __init__(self, server, bot, player: str) -> None:
+    def __init__(self, server: MinecraftServer, bot: LiteBot, player: str) -> None:
         self.server = server
         self.bot = bot
         self.player = player
@@ -34,16 +40,17 @@ class ServerCommandContext:
 
 class ServerEventPayload:
     """
-    A context object for a ServerCommand.
-    Lets us easily interact with both the server and the bot
-    through a single object.
+    The payload for a server event.
+    Lets us access all the data for our event, as well as access the server and bot objects.
 
     :param server: The server that the command is being executed to
     :type server: MinecraftServer
     :param bot: The bot that the command is registered to
     :type bot: LiteBot
-    :param player: An optional player that executed the event
-    :type player: str
+    :param event_name: The name of the event being registered
+    :type event_name: Str
+    :param args: The arguments for the event
+    :type args: list[Any]
     """
 
     PAYLOAD_MAPPINGS = {
@@ -55,7 +62,7 @@ class ServerEventPayload:
     player_name: str
     player_uuid: str
 
-    def __init__(self, server, bot, event_name, args) -> None:
+    def __init__(self, server: MinecraftServer, bot: LiteBot, event_name: str, args: list[Any]) -> None:
         self.bot = bot
         self.server = server
 

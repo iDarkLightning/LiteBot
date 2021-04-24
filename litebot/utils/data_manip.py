@@ -1,7 +1,7 @@
 import re
 import datetime
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional, List, Any
 import discord
 from discord.utils import get
 
@@ -128,7 +128,7 @@ def datetime_string_parser(str_: str) -> Optional[datetime]:
         time_args = {k: int(v) for k, v in [split_nums_chars(s) for s in full]}
         return datetime.utcnow() + timedelta(**time_args)
 
-def parse_reason(executor: discord.Member, args: tuple[str]) -> str:
+def parse_reason(executor: discord.Member, args: tuple[Any]) -> str:
     """
     Takes the user's action reason and parses it into a reason with their expire time
     as well as the executor's ID plus the original reason.

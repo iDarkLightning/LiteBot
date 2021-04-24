@@ -1,7 +1,6 @@
 import asyncio
 import os
 import shutil
-import traceback
 import zipfile
 from datetime import datetime, timedelta
 from typing import Optional
@@ -196,7 +195,7 @@ class BackupsCommand(Cog):
         """
         self.bot.logger.info("Starting Routine Backups...")
         current_daily_backups = []
-        for server in self.bot.servers.get_all_instances():
+        for server in self.bot.servers.all:
             backup_type = BackupTypes.WEEKLY if datetime.today().weekday() == 6 else BackupTypes.DAILY
             info = BACKUP_INFO.format(server.name, datetime.utcnow(), backup_type.value, author=self.bot.user)
 

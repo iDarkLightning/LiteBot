@@ -22,7 +22,7 @@ class ScoreboardCommand(Cog):
         `all` will show the values for all scoreboard entities as opposed to just the whitelisted players.
         `board` will show only the values that would appear on the actual ingame sidebar.
         """
-        server = self.bot.servers.get_first_instance()
+        server = next(iter(self.bot.servers.all))
 
         if option and option.upper() == "ALL":
             player_list = server.send_command("scoreboard players list")

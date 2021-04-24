@@ -29,7 +29,7 @@ class ConfigCommand(Cog):
         This command lets you view the main config for the bot.
         `subs` The subkeys to view in the config
         """
-        await config_view(self.bot.config, ctx, subs)
+        await config_view(self.bot.config, ctx)
 
     @_config.command()
     async def set(self, ctx: commands.Context, key: str, *, value: JSONConverter) -> None:

@@ -56,7 +56,7 @@ class ModeratorCommands(Cog):
         reason = f"{reason} [{datetime.utcnow()}] [{ctx.author.id}]"
 
         await member.kick(reason=reason)
-        log_channel = await self.bot.log_channel
+        log_channel = self.bot.log_channel
         log_embed = embeds.ModeratorLogEmbed(embeds.ModeratorActions.KICK, reason, ctx.author, member)
         await log_channel.send(embed=log_embed)
         self.bot.logger.info(f"{ctx.author} kicked {member.name}. Info: {reason}")
@@ -75,7 +75,7 @@ class ModeratorCommands(Cog):
         reason = parse_reason(ctx.author, args)
 
         await member.ban(reason=reason)
-        log_channel = await self.bot.log_channel
+        log_channel = self.bot.log_channel
         log_embed = embeds.ModeratorLogEmbed(embeds.ModeratorActions.BAN, reason, ctx.author, member)
         await log_channel.send(embed=log_embed)
         self.bot.logger.info(f"{ctx.author} banned {member.name}. Info: {reason}")
@@ -106,7 +106,7 @@ class ModeratorCommands(Cog):
 
         mute_role = await self._mute_role()
 
-        log_channel = await self.bot.log_channel
+        log_channel = self.bot.log_channel
         await member.add_roles(mute_role, reason=reason)
         log_embed = embeds.ModeratorLogEmbed(embeds.ModeratorActions.MUTE, reason, ctx.author, member)
         await log_channel.send(embed=log_embed)
@@ -122,7 +122,7 @@ class ModeratorCommands(Cog):
 
         if mute_role in member.roles:
             await member.remove_roles(mute_role)
-            log_channel = await self.bot.log_channel
+            log_channel = self.bot.log_channel
             log_embed = embeds.ModeratorLogEmbed(embeds.ModeratorActions.PARDON, "Revoked Mute", ctx.author, member)
             await log_channel.send(embed=log_embed)
         else:
@@ -163,7 +163,7 @@ class ModeratorCommands(Cog):
         """
         guild = await self.bot.guild()
         await guild.unban(user, reason="The user's ban time is over")
-        log_channel = await self.bot.log_channel
+        log_channel = self.bot.log_channel
         log_embed = embeds.ModeratorLogEmbed(embeds.ModeratorActions.PARDON, "Revoked Ban: Time Expired",
                                              self.bot.user, user)
         await log_channel.send(embed=log_embed)
@@ -180,7 +180,7 @@ class ModeratorCommands(Cog):
 
         if mute_role in member.roles:
             await member.remove_roles(mute_role)
-            log_channel = await self.bot.log_channel
+            log_channel = self.bot.log_channel
             log_embed = embeds.ModeratorLogEmbed(embeds.ModeratorActions.PARDON, "Revoked Mute: Time Expired",
                                                  self.bot.user, member)
             await log_channel.send(embed=log_embed)

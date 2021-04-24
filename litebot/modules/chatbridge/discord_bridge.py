@@ -25,7 +25,7 @@ class DiscordBridge(Cog):
         :type message: discord.Message
         """
         try:
-            server = self.bot.servers.get_from_channel(message.channel.id)
+            server = self.bot.servers[message.channel.id]
         except ServerNotFound:
             return
 
@@ -37,10 +37,8 @@ class DiscordBridge(Cog):
         """
         Forwards a message sent on a server to the bridge channel.
         If the server is connected to another server, then the connected bridge channel is used
-        :param ctx: The context the event was executed in
-        :type ctx: ServerEventPayload
-        :param message: The message sent
-        :type message: str
+        :param payload: The payload for the event
+        :type payload: ServerEventPayload
         """
         server_bridge = self.bot.get_cog("ServerBridge")
 

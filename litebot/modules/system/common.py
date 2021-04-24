@@ -1,14 +1,10 @@
-from typing import Tuple, Union
-
 import discord
-from discord import HTTPException
 from discord.ext import commands
 from .converters import JSONConverter
 from litebot.utils import embeds
 from litebot.utils.config import BaseConfig
-from litebot.utils.data_manip import flatten_dict, split_string, unflatten_dict
-from litebot.utils.fmt_strings import CODE_BLOCK
-from litebot.utils.menus import CodeBlockMenu, ConfirmMenu
+from litebot.utils.data_manip import flatten_dict, unflatten_dict
+from litebot.utils.menus import ConfirmMenu
 
 CHAR_LIMIT = 1500
 

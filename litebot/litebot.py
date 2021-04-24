@@ -3,10 +3,8 @@ import discord
 import os
 import mongoengine
 from discord.ext import commands
-from discord.ext.commands import Command
 
-from .core import Cog
-from .minecraft.commands.action import ServerCommand, ServerAction, ServerEvent
+from .minecraft.commands.action import ServerCommand, ServerEvent
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
 from .minecraft.server import MinecraftServer, ServerContainer

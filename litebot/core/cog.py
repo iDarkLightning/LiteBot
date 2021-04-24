@@ -16,7 +16,6 @@ class Cog(DPYcog):
                 continue
 
         server_actions = [func for func in func_list if isinstance(func, ServerAction)]
-
         self.__server_actions__ = server_actions
 
         return self

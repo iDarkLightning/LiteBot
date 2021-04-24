@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from typing import Any, Optional
+from typing import Optional
 from ..utils.logging import get_logger
 
 CONFIG_DIR_NAME = "config"

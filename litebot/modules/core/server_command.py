@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from litebot.core import Cog
+from litebot.litebot import LiteBot
 from litebot.utils.checks import role_checks
 from litebot.modules.core.converters import get_server
 from litebot.minecraft.server import MinecraftServer
@@ -10,7 +11,7 @@ from litebot.utils.misc import check_role
 
 
 class ServerCommands(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: LiteBot):
         self.bot = bot
 
     @commands.command(name="run", aliases=["execute"])
@@ -29,7 +30,7 @@ class ServerCommands(Cog):
             server = get_server(ctx, "")
             command = args[0]
         else:
-            if args[0] in [server.name for server in self.bot.servers.get_all_instances()]:
+            if args[0] in [server.name for server in self.bot.servers.all]:
                 server = get_server(ctx, args[0])
                 command = " ".join(args).partition(f"{server.name} ")[2]
             else:
@@ -47,10 +48,10 @@ class ServerCommands(Cog):
         :type message: discord.Message
         """
         if not message.content.startswith("/") or not message.channel.id in [s.bridge_channel_id for s in
-                                                                             self.bot.servers.get_all_instances()]:
+                                                                             self.bot.servers.all]:
             return
 
-        server = self.bot.servers.get_from_channel(message.channel.id)
+        server = self.bot.servers[message.channel.id]
         command = message.content.split("/")[1]
         await self._handle_server_command(message.channel, message.author, server, command)
 
@@ -87,7 +88,7 @@ class ServerCommands(Cog):
         """
         whitelists = []
         ops = []
-        for server in self.bot.servers.get_all_instances():
+        for server in self.bot.servers.all:
             whitelist_res = server.send_command(f"whitelist add {player_name}")
             if player_name in whitelist_res:
                 whitelists.append(whitelist_res)
@@ -106,7 +107,7 @@ class ServerCommands(Cog):
         """
         whitelists = []
         ops = []
-        for server in self.bot.servers.get_all_instances():
+        for server in self.bot.servers.all:
             whitelist_res = server.send_command(f"whitelist remove {player_name}")
             if player_name in whitelist_res:
                 whitelists.append(whitelist_res)

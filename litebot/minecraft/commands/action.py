@@ -1,8 +1,8 @@
 from __future__ import annotations
 import asyncio
 import inspect
-from typing import List, Callable, Tuple, Any, Optional, get_type_hints, get_args, Union, Type
-from litebot.errors import ServerActionNotFound, InvalidEvent, ArgumentError
+from typing import List, Callable, Any, Optional, get_type_hints, get_args, Union, Type
+from litebot.errors import InvalidEvent, ArgumentError
 from litebot.minecraft.commands.arguments import ArgumentType, Suggester
 from litebot.minecraft.commands.context import ServerCommandContext
 
@@ -160,10 +160,8 @@ class ServerEvent(ServerAction):
     async def invoke(self, payload) -> None:
         """
         Invokes the event
-        :param ctx: The server that the event was dispatched from
-        :type ctx: ServerEventPayload
-        :param args: The arguments for the event
-        :type args: List[str]
+        :param payload: The payload for the event
+        :type payload: ServerEventPayload
         """
         if self.cog:
             await self.callback(self.cog, payload)
@@ -174,7 +172,8 @@ def command(**kwargs) -> Callable:
     """
     A decorator that will convert a function into
     a ServerCommand object, and effectively
-    register the command. This can be used inside or outside of a cog.
+    register the command. This can only be used inside of a cog!
+    For registering without a cog, see `LiteBot.server_command`
 
     Example
     --------
@@ -188,9 +187,6 @@ def command(**kwargs) -> Callable:
             print("Hi There!!!")
 
             await ctx.send("We executed the command!")
-
-    The usage inside a cog will be identical. If used in a cog,
-    you will be able to access the Cog object using command.cog
 
     :param kwargs: The additional arguments when registering the command
     :type kwargs: str
