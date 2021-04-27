@@ -278,7 +278,7 @@ class MinecraftServer:
             return
 
         await self._connection.send(json.dumps({
-            "commandData": [s.build() for s in self.bot_instance.server_commands.values()]
+            "commandData": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent]
         }))
 
     def send_command(self, command: str) -> Optional[str]:
@@ -317,9 +317,10 @@ class MinecraftServer:
         :param op_only: Whether the message is only for OP players
         :return: The server's response
         :rtype: dict
-        :raises: ServerNotRunningLTA
-        :raises: ServerConnectionFailed
         """
+        if not self.connected:
+            return
+
         message = text.build()
         payload = {"message": message}
 

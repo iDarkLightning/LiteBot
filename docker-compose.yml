@@ -5,13 +5,13 @@ services:
     volumes:
     - "./logs:/bot/logs"
     - "./config:/bot/config"
+    - "C:/Users/nirjh/Java Projects/litebot-mod/run:/bot/servers/smp"
     environment:
       PYTHONUNBUFFERED: 1
     env_file:
       - .env
     ports:
       - ${SERVER_PORT}:8080
-
   mongo:
     image: mongo
     volumes:
@@ -20,7 +20,6 @@ services:
     - 27017:27017
     logging:
       driver: none
-
   mongo-express:
     image: mongo-express
     environment:

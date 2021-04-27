@@ -79,7 +79,7 @@ def _restore_backup(server: MinecraftServer, backup_path: str) -> None:
 class BackupsCommand(Cog):
     def __init__(self, bot):
         self.bot = bot
-        # self._routine_backups.start()
+        self._routine_backups.start()
 
     @commands.group(name="backup")
     @role_checks.module_config_role_check("backup_role", module_name="backups")
@@ -180,10 +180,9 @@ class BackupsCommand(Cog):
                                 _external=True, _scheme="http").replace(" ", "%20")
 
         await ctx.author.send(embed=embeds.InfoEmbed(f"{backup_name}: Download",
-                                                     description=url,
+                                                     description=f"[Click to download]({url})",
                                                      timestamp=datetime.utcnow())
-                              .set_footer(text="This link will be valid for the next 5 minutes")
-                              .set_thumbnail(url=ctx.author.avatar_url))
+                              .set_footer(text="This link will be valid for the next 5 minutes"))
 
     @tasks.loop(hours=24.0)
     async def _routine_backups(self):
@@ -195,7 +194,7 @@ class BackupsCommand(Cog):
         """
         self.bot.logger.info("Starting Routine Backups...")
         current_daily_backups = []
-        for server in self.bot.servers.all:
+        for server in [s for s in self.bot.servers.all if s.backup_dir]:
             backup_type = BackupTypes.WEEKLY if datetime.today().weekday() == 6 else BackupTypes.DAILY
             info = BACKUP_INFO.format(server.name, datetime.utcnow(), backup_type.value, author=self.bot.user)
 
@@ -225,7 +224,6 @@ class BackupsCommand(Cog):
         :type ctx: ServerCommandContext
         """
         info = BACKUP_INFO.format(ctx.server.name, datetime.utcnow(), BackupTypes.MANUAL.value, author=self.bot.user)
-
         if not ctx.server.world_dir:
             await ctx.send(text=Text().add_component(
                 text="Could not find the backup directory for this server", color=Colors.DARK_RED))

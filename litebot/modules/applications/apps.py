@@ -28,6 +28,7 @@ class Applications(Cog):
         spreadsheet = self._gc.open_by_url(self._config["spreadsheet_url"])
         self._worksheet = spreadsheet.get_worksheet(0)
         self._current_applications = len(self._worksheet.get_all_values())
+        self._expire_time = {k: v for k, v in self._config["vouch_expire_time"].items() if v}
         self._new_application.start()
         self._vouch_expire.start()
         self._creating_ticket = Toggleable()
@@ -115,6 +116,7 @@ class Applications(Cog):
 
             message = await self._verify_channel.fetch_message(matched_event.tracking_id)
             await message.delete()
+            matched_event.delete()
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: RawMessageDeleteEvent) -> None:
@@ -155,7 +157,7 @@ class Applications(Cog):
         await confirm_message.add_reaction(CONFIRM_YES)
 
         TrackedEvent(tracking_id=confirm_message.id,
-                     event_tag="application", expire_time=datetime.utcnow() + timedelta(minutes=2)).save()
+                     event_tag="application", expire_time=datetime.utcnow() + timedelta(**self._expire_time)).save()
         Application(name=name, confirmation_message=confirm_message.id,
                     application_embeds=[embed.to_dict() for embed in embed_list]).save()
 

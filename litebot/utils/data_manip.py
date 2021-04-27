@@ -198,3 +198,6 @@ async def parse_emoji(bot_instance, message: str) -> str:
         return message
 
     return re.sub(emoji_reg, "{}", message).format(emoji)
+
+def snakify(str_: str) -> str:
+    return str_.replace(" ", "_").lower()

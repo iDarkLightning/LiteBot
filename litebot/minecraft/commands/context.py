@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
 
-from litebot.litebot import LiteBot
 from litebot.minecraft.text import Text
 
 if TYPE_CHECKING:
+    from litebot.litebot import LiteBot
     from litebot.minecraft.server import MinecraftServer
 
 class ServerCommandContext:

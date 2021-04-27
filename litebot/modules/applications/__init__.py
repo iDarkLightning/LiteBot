@@ -17,7 +17,14 @@ def config(bot):
         "discord_name_question": "",
         "applications_category": 0,
         "voting_channel": 0,
-        "verify_channel": 0
+        "verify_channel": 0,
+        "vouch_expire_time": {
+            "weeks": 0,
+            "days": 0,
+            "hours": 0,
+            "minutes": 0,
+            "seconds": 0
+        }
     }
 
 def requirements(bot: LiteBot):

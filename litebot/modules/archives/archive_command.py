@@ -42,8 +42,6 @@ def _member_to_dict(member: Member):
         "display_name": member.display_name,
     }
 
-
-
 async def archive_channel(channel) -> None:
     messages = await channel.history(limit=None, oldest_first=True).flatten()
 
@@ -92,7 +90,10 @@ class ArchiveCommand(Cog):
             return
 
         channel = self.bot.get_channel(matched_event.extra_info["deletion_channel"])
+        message = await self.bot.log_channel.fetch_message(payload.message_id)
         await channel.delete()
+        await message.delete()
+        matched_event.delete()
 
     def _filter_targets(self, guild, target):
         if isinstance(target, discord.Member):

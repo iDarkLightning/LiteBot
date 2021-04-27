@@ -29,9 +29,14 @@ class ModeratorCommands(Cog):
         """
         Prepares the mute role, and sets its perms
         """
+        mute_role = await self._mute_role()
+
+        if not mute_role:
+            return
+
         for channel in (await self.bot.guild()).channels:
             try:
-                await channel.set_permissions((await self._mute_role()), send_messages=False, connect=False)
+                await channel.set_permissions(mute_role, send_messages=False, connect=False)
             except discord.Forbidden:
                 pass
 

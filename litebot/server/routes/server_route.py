@@ -16,9 +16,9 @@ FETCH_ROUTE = "/fetch/<item:string>"
 async def _websocket(request: Request, socket: WebSocketCommonProtocol):
     async for message in socket:
         try:
-            data = json.loads(message)
+            data: dict = json.loads(message)
             payload = validate_jwt(data["auth"], request.app.config.BOT_INSTANCE.config["api_secret"])
-
+            data.pop("auth")
             server = request.app.config.BOT_INSTANCE.servers[payload["server_name"]]
 
             if not server.connected:

@@ -8,7 +8,6 @@ class Cog(DPYcog):
         self = super().__new__(cls, *args, **kwargs)
 
         func_list = []
-
         for func in dir(self):
             try:
                 func_list.append(getattr(self, func))

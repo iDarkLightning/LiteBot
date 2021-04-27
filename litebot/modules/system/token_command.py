@@ -19,7 +19,7 @@ class TokenCommand(Cog):
         Use this command to generate a JWT token to use with the bot's API.
         `member` An optional member parameter, if you would like to generate the token for someone else
         """
-        user: discord.Member = member if member else ctx.message.player
+        user: discord.Member = member if member else ctx.message.author
         token = jwt.encode(
             {
                 "user": user.id

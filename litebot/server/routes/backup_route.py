@@ -31,7 +31,7 @@ async def _validate_jwt(request: Request) -> None:
 
     token_payload = await validate_jwt_query(request, request.app.config.BOT_INSTANCE.config["api_secret"])
     try:
-        server = request.app.config.BOT_INSTANCE.config[token_payload["server_name"]]
+        server = request.app.config.BOT_INSTANCE.servers[token_payload["server_name"]]
     except KeyError:
         raise exceptions.NotFound("Invalid token payload!")
     except ServerNotFound:

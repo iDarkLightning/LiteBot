@@ -74,7 +74,7 @@ class ServerCommand(ServerAction):
 
     @property
     def full_name(self):
-        return ".".join(self._get_full_path())
+        return ".".join(self._get_full_path()[::-1])
 
     def build(self):
         if not self.register:
@@ -129,7 +129,7 @@ class ServerCommand(ServerAction):
         if self.parent:
             res.extend(self.parent._get_full_path())
 
-        return res[::-1]
+        return res
 
     async def invoke(self, ctx: ServerCommandContext, args: List[Any]) -> None:
         """
@@ -202,7 +202,8 @@ def event(**kwargs) -> Callable:
     """
     A decorator that will convert a function into
     a ServerEvent object, and effectively
-    register the event. This can be used inside or outside of a cog.
+    register the event. This can only be used inside of a cog!
+    For registering an event without a cog, see `LiteBot.server_event`
 
     Unlike a command, you can register multiple events with the same name.
     They will all be executed when the event is invoked.
@@ -215,8 +216,6 @@ def event(**kwargs) -> Callable:
         async def command(ctx, arg1):
             print("Hi There!!!")
 
-    The usage inside a cog will be identical. If used in a cog,
-    you will be able to access the Cog object using event.cog
 
     :param kwargs: The additional arguments when registering the event
     :type kwargs: str
