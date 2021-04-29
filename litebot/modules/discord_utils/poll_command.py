@@ -11,7 +11,7 @@ from litebot.models import PollPreset
 from litebot.models import TrackedEvent
 from litebot.errors import PollCommandError
 from litebot.utils import embeds
-from litebot.utils.menus import CodeBlockMenu
+from litebot.utils.menus import CodeBlockMenu, ConfirmMenu
 
 ORDINAL_A = 127462
 
@@ -223,6 +223,10 @@ class PollCommand(Cog):
             heading, opts, _ = await parse_poll_message(ctx, poll_str)
         except PollCommandError:
             await ctx.send(embed=embeds.ErrorEmbed("Incorrect syntax/arguments for poll to be constructed"))
+            return
+
+        confirmation = await ConfirmMenu(f"{heading}\n" + "\n".join([f"{v}: {k}" for k, v in opts.items()])).prompt(ctx)
+        if not confirmation:
             return
 
         try:

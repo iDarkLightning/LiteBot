@@ -25,8 +25,8 @@ async def _validate_jwt(request: Request) -> None:
         "server_name": "smp"
     }
 
-    :param request:
-    :type request:
+    :param request: The HTTPRequest object, provided by Sanic
+    :type request: sanic.request.Request
     """
 
     token_payload = await validate_jwt_query(request, request.app.config.BOT_INSTANCE.config["api_secret"])

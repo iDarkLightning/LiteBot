@@ -1,6 +1,7 @@
 discord.py~=1.7.1
 pyjwt~=2.0.0
 sanic~=20.12.1
+sanic-cors
 git+https://github.com/Rapptz/discord-ext-menus
 pillow~=8.0.1
 pytz~=2020.4

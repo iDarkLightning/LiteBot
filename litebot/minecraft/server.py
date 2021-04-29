@@ -8,7 +8,7 @@ from typing import Optional, Tuple, TYPE_CHECKING
 from discord import TextChannel
 from discord.errors import NotFound
 from pathlib import Path
-from socket import timeout
+from socket import timeout, gethostbyaddr, gaierror
 
 from websockets import WebSocketCommonProtocol
 
@@ -123,6 +123,13 @@ class MinecraftServer:
     def connected(self):
         return bool(self._connection) and self._connection.open
 
+    @property
+    def _has_valid_addr(self) -> bool:
+        try:
+            return bool(gethostbyaddr(self._addr))
+        except gaierror:
+            return False
+
     async def connect(self, socket: WebSocketCommonProtocol):
         """
         Connects to the server via a websocket connection
@@ -141,6 +148,9 @@ class MinecraftServer:
         :rtype: QueryResponse
         :raises: ServerConnectionFailed
         """
+        if not self._has_valid_addr:
+            return QueryResponse(status=False)
+
         try:
             connection = UDPSocketConnection((self._addr, self._port))
             querier = ServerQuerier(connection)
@@ -290,6 +300,9 @@ class MinecraftServer:
         :rtype: str
         :raises: ServerConnectionFailed
         """
+        if not self._has_valid_addr:
+            raise ServerConnectionFailed
+
         try:
             self._rcon.connect()
         except Exception:

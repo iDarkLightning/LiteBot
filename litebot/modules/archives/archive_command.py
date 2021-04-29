@@ -24,11 +24,12 @@ def _attachment_to_dict(attachment: Attachment):
 def _message_to_dict(message: Message):
     return {
         "attachments": [_attachment_to_dict(a) for a in message.attachments],
-        "player": _member_to_dict(message.author),
+        "author": _member_to_dict(message.author),
         "channel": message.channel.id,
         "clean_content": message.clean_content,
         "content": message.content,
         "created_at": message.created_at,
+        "created_at_str": message.created_at.strftime("%d/%m/%y"),
         "embeds": [e.to_dict() for e in message.embeds],
         "id": message.id,
         "jump_url": message.jump_url
@@ -37,15 +38,17 @@ def _message_to_dict(message: Message):
 def _member_to_dict(member: Member):
     return {
         "name": member.name,
+        "avatar": str(member.avatar_url),
         "color": member.color.value,
         "id": member.id,
         "display_name": member.display_name,
     }
 
-async def archive_channel(channel) -> None:
+async def archive_channel(archiver: Member, channel: discord.TextChannel) -> None:
     messages = await channel.history(limit=None, oldest_first=True).flatten()
 
-    ArchivedChannel(channel_id=channel.id, name=channel.name, topic=channel.topic,
+    ArchivedChannel(archiver=_member_to_dict(archiver), pins=[_message_to_dict(m) for m in (await channel.pins())],
+                    channel_id=channel.id, name=channel.name, topic=channel.topic,
                     category=channel.category.name, messages=[_message_to_dict(m) for m in messages],
                     users=[_member_to_dict(m) for m in channel.members]).save()
 
@@ -76,7 +79,7 @@ class ArchiveCommand(Cog):
 
         async with channel.typing():
             message = await channel.send(embed=embeds.InfoEmbed("Archiving Channel..."))
-            await archive_channel(channel)
+            await archive_channel(ctx.author, channel)
             await message.edit(embed=embeds.InfoEmbed("Channel Archived!"))
 
         message = await self.bot.log_channel.send(embed=embeds.InfoEmbed(f"Please confirm the deletion of {channel.name}"))

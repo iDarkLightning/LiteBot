@@ -6,6 +6,7 @@ from .routes import ROUTES
 from ..litebot import LiteBot
 from sanic.log import logger, access_logger
 from ..utils.logging import set_logger, set_access_logger
+from sanic_cors import CORS
 
 APP_NAME = "LiteBot-API"
 SERVER_HOST = "0.0.0.0"
@@ -26,6 +27,7 @@ def get_server_coro(bot_instance: LiteBot) -> Coroutine[Any, Any, Optional[Async
     :rtype: AsyncioServer
     """
     app = Sanic(APP_NAME)
+    CORS(app)
 
     # A stupid hackfix that I have to do to make the logging work appropriately
     # I don't like it, but I don't see a better way to achieve this
