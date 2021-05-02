@@ -242,6 +242,7 @@ class MinecraftServer:
 
         try:
             await command.invoke(ctx, args)
+            await self._connection.send(json.dumps({"afterInvoke": data["name"]}))
         except TypeError:
             pass
 

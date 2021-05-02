@@ -48,16 +48,17 @@ class DiscordBridge(Cog):
         matched_connections = list(filter(
             lambda s: s.player == payload.player_uuid or s.origin_server == payload.server, server_bridge.connections))
 
-        if len(matched_connections) == 0:
-            if not payload.player_name:
-                return await payload.server.recv_message(payload.message)
-
+        if not payload.player_name:
+            message = payload.message
+        else:
             prefix, suffix = re.split("\\$player_name", self.config["incoming_messages"], 2)
             message = prefix + payload.player_name + suffix + payload.message
+
+        if len(matched_connections) == 0:
             return await payload.server.recv_message(message)
 
         for conn in matched_connections:
-            await conn.send_discord_message(payload.server, payload.message)
+            await conn.send_discord_message(payload.server, message)
 
     async def _process_message(self, server: MinecraftServer, message: Message) -> None:
         prefix, suffix = re.split("\\$player_name", self.config["outgoing_messages"], 2)

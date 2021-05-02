@@ -1,3 +1,4 @@
+import re
 from typing import Optional, List
 
 
@@ -67,6 +68,7 @@ class ServerSuggester(StrictSuggester):
 class ServerBridge(Cog):
     def __init__(self, bot: LiteBot):
         self.bot = bot
+        self.config = self.bot.module_config["chatbridge"]["config"]
         self.connections: List[BridgeConnection] = []
 
     @mc_commands.command(name="bridge")
@@ -104,7 +106,7 @@ class ServerBridge(Cog):
         """
         try:
             servers = [self.bot.servers[server_name]]
-        except ServerNotFound:
+        except (TypeError, ServerNotFound):
             servers = [s for s in self.bot.servers.all if s is not ctx.server]
 
         if ctx.player not in [s.player for s in self.connections]:
@@ -168,4 +170,10 @@ class ServerBridge(Cog):
         :type payload: ServerEventPayload
         """
         for conn in self.connections:
-            await conn.send_bridge_message(payload.server, payload.message)
+            if not payload.player_name:
+                return await payload.server.recv_message(payload.message)
+
+            prefix, suffix = re.split("\\$player_name", self.config["incoming_messages"], 2)
+            message = prefix + payload.player_name + suffix + payload.message
+
+            await conn.send_bridge_message(payload.server, message)

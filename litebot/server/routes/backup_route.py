@@ -46,7 +46,7 @@ async def download_backup(request: Request, backup_name: str) -> BaseHTTPRespons
 
     Example URL
     ------------
-        http://localhost:8080/backups/download_backup/backup.zip
+        http://localhost:8080/backups/download_backup/backup.zip?token=tokengoeshere
 
     :param request: The HTTPRequest object, provided by Sanic
     :type request: sanic.request.Request

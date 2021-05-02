@@ -1,7 +1,7 @@
 import json as json
 from sanic import Blueprint
 from sanic.request import Request
-from sanic.response import BaseHTTPResponse, json_response
+from sanic.response import BaseHTTPResponse, json as json_response
 
 from litebot.models.archived_channel_model import ArchivedChannel
 from litebot.server.middlewares.jwt import validate_jwt_headers

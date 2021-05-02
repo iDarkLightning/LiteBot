@@ -8,8 +8,8 @@ MODULE_NAME = "applications"
 
 def setup(bot):
     account = service_account(path.join(getcwd(), "litebot", "modules", MODULE_NAME, "creds.json"))
-    bot.add_cog(apps.Applications(bot, account))
-    bot.add_cog(ticket_commands.TicketCommands(bot, account))
+    bot.add_cog(apps.Applications(bot, account), MODULE_NAME)
+    bot.add_cog(ticket_commands.TicketCommands(bot, account), MODULE_NAME)
 
 def config(bot):
     return {

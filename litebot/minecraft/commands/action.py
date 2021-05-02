@@ -80,11 +80,7 @@ class ServerCommand(ServerAction):
         if not self.register:
             return
 
-        data = {"name": self.name, "OPLevel": self.op_level}
-
-        if self.arguments:
-            data["arguments"] = self.arguments
-
+        data = {"name": self.name, "OPLevel": self.op_level, "arguments": self.arguments}
         subs = []
 
         for sub in self.subs.values():

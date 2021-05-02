@@ -37,9 +37,9 @@ class LiteBot(commands.Bot):
         self.db = mongoengine.connect("bot", host="mongo", port=27017)
         self.logger.info("Connected to Mongo Database")
 
+        self._cur_module = None
         self._initialising = Toggleable()
         self.servers = ServerContainer()
-        self._cur_module = None
 
         self.using_lta = bool(os.environ.get("USING_LTA"))
         self._init_servers()
@@ -91,7 +91,6 @@ class LiteBot(commands.Bot):
             except Exception as e:
                 self.logger.exception(e, exc_info=e)
 
-            self._cur_module = module
             if hasattr(lib, "config"):
                 config = getattr(lib, "config")(self)
                 self.module_config.match_module(module, config)
@@ -99,6 +98,7 @@ class LiteBot(commands.Bot):
                 if module not in self.module_config:
                     self.module_config.register_module(module)
 
+            self._cur_module = module
             enabled = self.module_config[module]["enabled"]
             if not enabled and not self.module_config[module].get("cogs"):
                 with self._initialising:
@@ -118,6 +118,14 @@ class LiteBot(commands.Bot):
                     self.logger.info(MODULE_LOADING.format("Loaded", module))
 
             self.module_config.save()
+
+    def load_extension(self, name, *, package=None):
+        if "." not in name:
+            self._cur_module = name
+        else:
+            self._cur_module = name.split(".")[-1]
+
+        super().load_extension(name)
 
     def add_command(self, command):
         if not isinstance(command, ServerCommand):
