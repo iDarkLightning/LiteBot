@@ -1,0 +1,10 @@
+discord.py~=1.7.1
+pyjwt~=2.0.0
+sanic~=21.3
+sanic-cors
+https://github.com/Rapptz/discord-ext-menus/archive/309c70222eec33acacb8c21bbb0fbe9bc57de661.tar.gz#egg=discord-ext-menus
+pillow~=8.0.1
+pytz~=2020.4
+mongoengine~=0.23.0
+asyncpraw~=7.2.0
+gspread~=3.7.0
