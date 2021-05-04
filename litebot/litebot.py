@@ -52,7 +52,7 @@ class LiteBot(commands.Bot):
     def log_channel(self) -> discord.TextChannel:
         return self.get_channel(self.config["log_channel_id"])
 
-    async def guild(self):
+    async def guild(self) -> discord.Guild:
         await self.wait_until_ready()
         return self.get_guild(self.config["main_guild_id"])
 

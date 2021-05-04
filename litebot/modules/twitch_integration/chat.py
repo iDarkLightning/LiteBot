@@ -1,39 +1,22 @@
-import asyncio
-import inspect
-import traceback
-from ast import literal_eval
 from random import randint
-from typing import List, Dict
 
+import discord
 
-from discord.ext import tasks
 from litebot.core import Cog
-import socket
-
 from litebot.minecraft import commands
 from litebot.litebot import LiteBot
-from litebot.minecraft.commands.arguments import StringArgumentType, StrictSuggester
+from litebot.minecraft.commands.arguments import StrictSuggester, Suggester
 from litebot.minecraft.commands.context import ServerCommandContext
-from litebot.minecraft.server import MinecraftServer
 from litebot.minecraft.text import Text, Colors
-from litebot.modules.twitch_integration.client import TwitchClient, ENCODING
+from litebot.modules.twitch_integration.client import TwitchClient, BUF_SIZE, ENCODING, Connection, ConnectedPlayer
 
-TWITCH_SERVER = "irc.chat.twitch.tv"
-TWICH_PORT = 6667
-BUF_SIZE = 2048
-
-class Connection:
-    def __init__(self, channel: str, sock: socket.socket, color: str):
-        self.channel = channel
-        self.sock = sock
-        self.color = color
-
-class ConnectedPlayer:
-    def __init__(self, server: MinecraftServer, player: str):
-        self.server = server
-        self.player = player
 
 class ConnectedChannelSuggester(StrictSuggester):
+    """
+    A strict suggester for the /stream disconnect command.
+    Suggests the channels that the player is currently connected to, and ensures that they do not attempt to
+    disconnect from a channel that they aren't connected to.
+    """
     async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
         chat_cog = ctx.bot.get_cog("TwitchChat")
         to_suggest = []
@@ -44,6 +27,36 @@ class ConnectedChannelSuggester(StrictSuggester):
                 to_suggest.append(channel)
 
         return to_suggest
+
+class ChannelSuggester(Suggester):
+    """
+    A suggester for the /stream connect command.
+    Suggests channels that other members on the server are currently connected to, or the channel of any members who
+    might be currently streaming on twitch.
+    """
+    async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
+        chat_cog = ctx.bot.get_cog("TwitchChat")
+        guild = await ctx.bot.guild()
+        streams = list(filter(lambda n: n is not None,map(
+            self.get_stream_name, filter(lambda m: any([isinstance(a, discord.Streaming) for a in m.activities]),
+                           sum([role.members for role in [guild.get_role(r) for r in ctx.bot.config["members_role"]]],
+                               [])))))
+
+        streams.extend(chat_cog.channels.keys())
+        current_connections = []
+
+        for channel in chat_cog.channels:
+            connections = chat_cog.connections[channel]
+            if ctx.player in [c.player for c in connections]:
+                current_connections.append(channel)
+
+        return list(set([s for s in streams if s not in current_connections]))
+
+    def get_stream_name(self, member: discord.Member):
+        streaming_activity = list(filter(lambda a: isinstance(a, discord.Streaming), member.activities))[0]
+
+        if streaming_activity.platform == "Twitch":
+            return streaming_activity.twitch_name
 
 class TwitchChat(Cog):
     def __init__(self, bot: LiteBot):
@@ -61,7 +74,11 @@ class TwitchChat(Cog):
         pass
 
     @_stream.sub(name="connect")
-    async def _stream_connect(self, ctx: ServerCommandContext, channel: StringArgumentType):
+    async def _stream_connect(self, ctx: ServerCommandContext, channel: ChannelSuggester):
+        """
+        Connects you to the stream chat for a twitch streamer!
+        `channel` The name of the channel to connect you to
+        """
         task = self.channels.get(channel)
 
         if not task:
@@ -80,69 +97,30 @@ class TwitchChat(Cog):
 
         await ctx.send(text=Text().add_component(text=f"Connected to {channel}-stream!", color=Colors.GREEN))
 
-    @_stream.sub(name="view")
-    async def _stream_view(self, ctx: ServerCommandContext):
-        print(self.connections, self.channels)
-
     @_stream.sub(name="disconnect")
     async def _stream_disconnect(self, ctx: ServerCommandContext, channel: ConnectedChannelSuggester):
+        """
+        Disconnects you from a connected stream
+        """
         self.connections[channel] = list(filter(lambda c: c.player != ctx.player, self.connections[channel]))
 
         if not len(self.connections[channel]):
             task = self.channels[channel]
-            print(asyncio.get_running_loop())
-            try:
-                task.cancel()
-            except Exception as e:
-                traceback.print_exception(type(e), e, e.__traceback__)
+            task.cancel()
 
             del self.channels[channel]
 
         await ctx.send(text=Text().add_component(text=f"Disconnected from {channel}-stream!", color=Colors.GREEN))
 
-    async def _receive_msgs(self, conn):
+    async def _receive_msgs(self, conn: Connection):
+        """
+        An async task to continuously receive and process messages from the connected channel
+        :param conn: The connected channel
+        :type conn: Connection
+        """
         while True:
             res = (await self._bot.loop.sock_recv(conn.sock, BUF_SIZE)).decode(ENCODING)
-            if not res:
-                continue
 
-            msgs = res.split("\r\n")
-            for msg in msgs:
-                if "PING" in msg:
-                    await self._bot.loop.sock_sendall(conn.sock, "PONG :tmi.twitch.tv\r\n".encode(ENCODING))
+            if res:
+                await self._client.process_message(res, conn, self.connections.get(conn.channel))
 
-                try:
-                    src, _, channel,    message = msg.split(" ", 3)
-                except ValueError as e:
-                    continue
-
-                text = Text()
-                text.add_component(text=f"[{channel.replace(':', '').replace('#', '')}-stream] ", color=Colors.DARK_GRAY)
-                text.add_component(text=src.split("!", 1)[0].replace(":", ""), color=conn.color)
-                text.add_component(text=" " + message.replace(":", ""), color=Colors.WHITE)
-
-                for player in self.connections.get(conn.channel):
-                    await player.server.send_message(text, player=player.player)
-
-    # @tasks.loop(seconds=0.5)
-    # async def _receive_msgs(self):
-    #     for player in self._connected_players:
-    #         res = (await self._bot.loop.sock_recv(player.channel, BUF_SIZE)).decode(ENCODING)
-    #         if not res:
-    #             continue
-    #
-    #         if "PING" in res:
-    #             await self._bot.loop.sock_sendall(player.channel, "PONG".encode(ENCODING))
-    #
-    #         try:
-    #             src, _, channel, message = res.split(" ", 3)
-    #         except ValueError:
-    #             continue
-    #
-    #
-    #         text = Text()
-    #         text.add_component(text=f"[{channel.replace(':', '').replace('#', '')}-stream] ", color=Colors.DARK_GRAY)
-    #         text.add_component(text=src.split("!", 1)[0].replace(":", ""), color=player.color)
-    #         text.add_component(text=" " + message.removesuffix("\r\n").replace(":", ""), color=Colors.WHITE)
-    #
-    #         await player.server.send_message(text, player=player.player)

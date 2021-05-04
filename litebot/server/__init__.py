@@ -41,4 +41,4 @@ def get_server_coro(bot_instance: LiteBot) -> Coroutine[Any, Any, Optional[Async
     app.config.SERVER_NAME = os.environ.get("SERVER_NAME")
     add_routes(app)
 
-    return app.create_server(host=SERVER_HOST, port=SERVER_PORT, return_asyncio_server=True, access_log=False)
+    return app.create_server(host=SERVER_HOST, port=SERVER_PORT, return_asyncio_server=True)
