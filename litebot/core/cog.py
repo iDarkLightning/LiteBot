@@ -4,6 +4,8 @@ from litebot.minecraft.commands.action import ServerAction, ServerCommand
 
 
 class Cog(DPYcog):
+    __cog_name__: str
+
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls, *args, **kwargs)
 

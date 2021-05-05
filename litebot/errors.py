@@ -26,6 +26,24 @@ class AuthFailure(LiteBotException):
     """
     pass
 
+class ModuleError(LiteBotException):
+    """
+    Base class for exceptions related to loading and unloading modules
+    """
+    pass
+
+class UnsatisfiedRequirements(ModuleError):
+    """
+    Exception raised when the packages a module requires is not installed!
+    """
+    pass
+
+class ModuleLoadError(ModuleError):
+    """
+    Exception produced when there is an issue in loading a module
+    """
+    pass
+
 class ArgumentError(LiteBotException):
     """
     Exception produced when the argument type for a server command does not inherit ArgumentType

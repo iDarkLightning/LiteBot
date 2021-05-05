@@ -4,6 +4,7 @@ import os
 import mongoengine
 from discord.ext import commands
 
+from .core import Cog
 from .minecraft.commands.action import ServerCommand, ServerEvent
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
@@ -56,7 +57,7 @@ class LiteBot(commands.Bot):
         await self.wait_until_ready()
         return self.get_guild(self.config["main_guild_id"])
 
-    def add_cog(self, cog: commands.Cog, required: bool = False) -> None:
+    def add_cog(self, cog: Cog, required: bool = False) -> None:
         if self._initialising and not required:
             self.module_config.register_cog(self._cur_module, cog.__cog_name__)
 
