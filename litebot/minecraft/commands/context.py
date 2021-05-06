@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Any
 
+from litebot.minecraft.player import Player
 from litebot.minecraft.text import Text
 
 if TYPE_CHECKING:
@@ -18,13 +20,13 @@ class ServerCommandContext:
     :type server: MinecraftServer
     :param bot: The bot that the command is registered to
     :type bot: LiteBot
-    :param player: The player that executed the command
-    :type player: str
+    :param player_data: The data for the player that executed the command
+    :type player_data: str
     """
-    def __init__(self, server: MinecraftServer, bot: LiteBot, player: str) -> None:
+    def __init__(self, server: MinecraftServer, bot: LiteBot, player_data: str) -> None:
         self.server = server
         self.bot = bot
-        self.player = player
+        self.player = Player(**json.loads(player_data))
 
     async def send(self, message=None, text: Text = None) -> None:
         """

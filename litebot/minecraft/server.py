@@ -12,6 +12,7 @@ from socket import timeout, gethostbyaddr, gaierror
 
 from websockets import WebSocketCommonProtocol
 
+from .player import Player
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
@@ -314,7 +315,7 @@ class MinecraftServer:
         if resp:
             return resp
 
-    async def send_message(self, text, op_only=False, player=None) -> None:
+    async def send_message(self, text, op_only: bool = False, player: Player = None) -> None:
         """
         Sends a system message to the server, only works if server is running LTA
 
@@ -341,7 +342,7 @@ class MinecraftServer:
         if op_only:
             payload["opOnly"] = op_only
         if player:
-            payload["player"] = player
+            payload["player"] = player.uuid
 
         await self._connection.send(json.dumps({"messageData": payload}))
 

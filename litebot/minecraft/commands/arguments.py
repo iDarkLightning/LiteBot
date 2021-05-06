@@ -1,7 +1,9 @@
 import abc
+import json
 
 from litebot.errors import ArgumentError
 from litebot.minecraft.commands.context import ServerCommandContext
+from litebot.minecraft.player import Player
 
 
 class ArgumentType(abc.ABC):
@@ -10,14 +12,14 @@ class ArgumentType(abc.ABC):
     @abc.abstractmethod
     def __init__(self, val, expected_type):
         if not isinstance(val, expected_type):
-            raise ArgumentError(f"Expected type {expected_type}! Received type: {val}")
+            raise ArgumentError(f"Expected type {expected_type}! Received type: {type(val)}")
 
         self.val = val
 
-class StringArgumentType(ArgumentType):
+class StringArgumentType(ArgumentType, str):
     def __init__(self, val: str = None) -> None:
         if val:
-            super().__init__(val, str)
+            ArgumentType.__init__(self, val, str)
 
 class MessageArgumentType(StringArgumentType, str):
     REPR = "MessageArgument"
@@ -26,13 +28,33 @@ class IntegerArgumentType(ArgumentType, int):
     REPR = "IntegerArgument"
 
     def __init__(self, val: int):
-        super().__init__(val, int)
+        super().__init__(int(val), int)
 
-class BooleanArgumentType(ArgumentType ):
+class BooleanArgumentType(ArgumentType):
     REPR = "BooleanArgument"
 
     def __init__(self, val: bool):
         super().__init__(val, bool)
+
+class PlayerArgumentType(ArgumentType, Player):
+    REPR = "PlayerArgument"
+
+    def __init__(self, val):
+        val = Player(**json.loads(val))
+
+        super().__init__(val, Player)
+
+class BlockPosArgumentType(ArgumentType):
+    REPR = "BlockPosArgument"
+
+    def __init__(self, val):
+        super().__init__(json.loads(val), list)
+
+class DimensionArgumentType(ArgumentType):
+    REPR = "DimensionArgument"
+
+    def __init__(self, val):
+        super().__init__(val, str)
 
 class Suggester(StringArgumentType, abc.ABC):
     REPR = "SuggesterArgument"
