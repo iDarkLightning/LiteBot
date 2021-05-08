@@ -127,6 +127,20 @@ class ServerCommand(ServerAction):
 
         return res
 
+    def create_context(self, server, bot, data):
+        cmd_args = []
+        full_args = data.get("args")
+
+        args = data.get("args", {})
+        for arg in self.arguments:
+            cmd_args.append(args.get(arg["name"]))
+
+            if args.get(arg["name"]):
+                del args[arg["name"]]
+
+        ctx = ServerCommandContext(self, server, bot, data["player"], args=[a for a in cmd_args if a is not None], full_args=full_args)
+        return ctx
+
     async def invoke(self, ctx: ServerCommandContext, args: List[Any]) -> None:
         """
         Invokes the command

@@ -7,6 +7,7 @@ from litebot.minecraft.player import Player
 from litebot.minecraft.text import Text
 
 if TYPE_CHECKING:
+    from litebot.minecraft.commands.action import ServerCommand
     from litebot.litebot import LiteBot
     from litebot.minecraft.server import MinecraftServer
 
@@ -23,10 +24,19 @@ class ServerCommandContext:
     :param player_data: The data for the player that executed the command
     :type player_data: str
     """
-    def __init__(self, server: MinecraftServer, bot: LiteBot, player_data: str) -> None:
+    def __init__(self, command: ServerCommand, server: MinecraftServer, bot: LiteBot, player_data: str, **kwargs) -> None:
+        self.command = command
+        self.cog = command.cog
         self.server = server
         self.bot = bot
+        self.args = kwargs["args"]
+        self.full_args = kwargs["full_args"]
         self.player = Player(**json.loads(player_data))
+
+    async def invoke(self):
+        args = [self.command.arg_types[i](a).val for i, a in enumerate(self.args)]
+
+        await self.command.invoke(self, args)
 
     async def send(self, message=None, text: Text = None) -> None:
         """

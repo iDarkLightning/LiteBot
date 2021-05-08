@@ -25,8 +25,8 @@ class LiteBot(commands.Bot):
     def __init__(self):
         self.config = MainConfig()
         self.module_config = ModuleConfig()
-        self.server_commands = {}
-        self.server_events = {k: [] for k in ServerEvent.VALID_EVENTS}
+        self.server_commands: dict[str, ServerCommand] = {}
+        self.server_events: dict[str, ServerEvent] = {k: [] for k in ServerEvent.VALID_EVENTS}
 
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.config["prefixes"]),

@@ -237,14 +237,13 @@ class MinecraftServer:
         :type data: dict
         """
         command = self.bot_instance.server_commands[data["name"]]
-        ctx = ServerCommandContext(self, self.bot_instance, data["player"])
-
-        args = [command.arg_types[i](a).val for i, a in enumerate(data.get("args", []))]
+        ctx = command.create_context(self, self.bot_instance, data)
 
         try:
-            await command.invoke(ctx, args)
+            await ctx.invoke()
             await self._connection.send(json.dumps({"afterInvoke": data["name"]}))
-        except TypeError:
+        except TypeError as e:
+            print(e)
             pass
 
     async def dispatch_event(self, data: dict):
@@ -254,7 +253,7 @@ class MinecraftServer:
         :type data: dict
         """
         events = self.bot_instance.server_events[data["name"]]
-        payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("args"))
+        payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("vargs"))
 
         for event in events:
             await event.invoke(payload)
@@ -266,7 +265,7 @@ class MinecraftServer:
         :type data: dict
         """
         command = self.bot_instance.server_commands[data["name"]]
-        ctx = ServerCommandContext(self, self.bot_instance, data["player"])
+        ctx = command.create_context(self, self.bot_instance, data)
 
         suggestor = command.suggestors[data["arg"]]()
 

@@ -23,7 +23,7 @@ class ConnectedChannelSuggester(StrictSuggester):
 
         for channel in chat_cog.channels:
             connections = chat_cog.connections[channel]
-            if ctx.player in [c.player for c in connections]:
+            if ctx.player.uuid in [c.player.uuid for c in connections]:
                 to_suggest.append(channel)
 
         return to_suggest
@@ -47,7 +47,7 @@ class ChannelSuggester(Suggester):
 
         for channel in chat_cog.channels:
             connections = chat_cog.connections[channel]
-            if ctx.player in [c.player for c in connections]:
+            if ctx.player.uuid in [c.player.uuid for c in connections]:
                 current_connections.append(channel)
 
         return list(set([s for s in streams if s not in current_connections]))
