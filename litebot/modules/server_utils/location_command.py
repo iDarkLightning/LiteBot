@@ -63,7 +63,7 @@ class LocationCommand(Cog):
         dimension = dimension or ctx.player.dimension
 
         try:
-            Location(location_id=f"{ctx.server.name}_{snakify(name)}", name=name, dimension=dimension,
+            l = Location(location_id=f"{ctx.server.name}_{snakify(name)}", name=name, dimension=dimension,
                      coordinates=[pos_x, pos_y, pos_z], tolerance=tolerance).save()
             await ctx.send(text=Text().add_component(
                 text=f"New location: {name} has been added at {pos_x}, {pos_y}, {pos_z}", color=Colors.GREEN))
@@ -78,6 +78,7 @@ class LocationCommand(Cog):
         `name` The name of the location to get coordinates for
         """
         location = Location.objects(location_id=f"{ctx.server.name}_{name}").first()
+        ctx["location"] = location.to_json()
         t = Text()
         t.add_component(text=location.name, color=Colors.DARK_PURPLE)
         t.add_component(text=" is at ", color=Colors.WHITE)
@@ -154,6 +155,8 @@ class LocationCommand(Cog):
 
         locations = [l for l in Location.objects() if l.tolerance is not None]
         distances = {l.name: calculate_3d_distance(l.coordinates, player.get_block_pos()) for l in locations}
+
+        print(distances)
 
         t = self._add_distances(distances, t)
         await ctx.send(text=t)

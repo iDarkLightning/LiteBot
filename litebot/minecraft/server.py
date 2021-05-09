@@ -239,9 +239,10 @@ class MinecraftServer:
         command = self.bot_instance.server_commands[data["name"]]
         ctx = command.create_context(self, self.bot_instance, data)
 
+
         try:
             await ctx.invoke()
-            await self._connection.send(json.dumps({"afterInvoke": data["name"]}))
+            await self._connection.send(json.dumps({"afterInvoke": data["name"], "args": ctx.after_invoke_args}))
         except TypeError as e:
             print(e)
             pass

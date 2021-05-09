@@ -13,7 +13,7 @@ def _build_args(func: Callable) -> Union[
         return [], {}, []
 
     args = []
-    arg_types = []
+    arg_types = {}
     suggestors = {}
     started_optional = False
 
@@ -28,7 +28,7 @@ def _build_args(func: Callable) -> Union[
             started_optional = True
 
         args.append({"name": arg_name, "type": arg_type.REPR, "optional": started_optional})
-        arg_types.append(arg_type)
+        arg_types[arg_name] = arg_type
 
         if issubclass(arg_type, Suggester):
             suggestors[arg_name] = arg_type
@@ -128,17 +128,17 @@ class ServerCommand(ServerAction):
         return res
 
     def create_context(self, server, bot, data):
-        cmd_args = []
+        cmd_args = {}
         full_args = data.get("args")
 
         args = data.get("args", {})
         for arg in self.arguments:
-            cmd_args.append(args.get(arg["name"]))
+            cmd_args[arg["name"]] = (args.get(arg["name"]))
 
             if args.get(arg["name"]):
                 del args[arg["name"]]
 
-        ctx = ServerCommandContext(self, server, bot, data["player"], args=[a for a in cmd_args if a is not None], full_args=full_args)
+        ctx = ServerCommandContext(self, server, bot, data["player"], args=cmd_args, full_args=full_args)
         return ctx
 
     async def invoke(self, ctx: ServerCommandContext, args: List[Any]) -> None:

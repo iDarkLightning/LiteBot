@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import traceback
 from typing import TYPE_CHECKING, Any
 
 from litebot.minecraft.player import Player
@@ -29,12 +30,16 @@ class ServerCommandContext:
         self.cog = command.cog
         self.server = server
         self.bot = bot
+        self.after_invoke_args = {}
         self.args = kwargs["args"]
         self.full_args = kwargs["full_args"]
         self.player = Player(**json.loads(player_data))
 
+    def __setitem__(self, key, value):
+        self.after_invoke_args[key] = value
+
     async def invoke(self):
-        args = [self.command.arg_types[i](a).val for i, a in enumerate(self.args)]
+        args = [self.command.arg_types[name](arg).val for name, arg in self.args.items()]
 
         await self.command.invoke(self, args)
 
