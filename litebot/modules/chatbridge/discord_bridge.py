@@ -46,7 +46,7 @@ class DiscordBridge(Cog):
             return await payload.server.recv_message(payload.message)
 
         matched_connections = list(filter(
-            lambda s: s.player == payload.player_uuid or s.origin_server == payload.server, server_bridge.connections))
+            lambda s: s.player.uuid == payload.player_uuid or s.origin_server == payload.server, server_bridge.connections))
 
         if not payload.player_name:
             message = payload.message

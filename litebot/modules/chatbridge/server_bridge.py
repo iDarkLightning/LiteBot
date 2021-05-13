@@ -121,7 +121,7 @@ class ServerBridge(Cog):
         """
         Disconnects a player's bridge connections
         """
-        self.connections = list(filter(lambda s: s.player != ctx.player, self.connections))
+        self.connections = list(filter(lambda s: s.player.uuid != ctx.player.uuid, self.connections))
         await ctx.send(text=Text().add_component(text="Disconnected from bridge connections", color=Colors.GREEN))
 
     @_bridge_command.sub(name="server", op_level=1)
