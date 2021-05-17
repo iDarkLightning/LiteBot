@@ -37,10 +37,10 @@ class TicketCommands(Cog):
         except APIError:
             await ctx.send(embed=embeds.ErrorEmbed("Sorry, the process encountered an API error, please try again!"))
 
-    async def cog_before_invoke(self, ctx):
-        ticket = Application.objects(ticket_id=ctx.channel.id).first()
-
-        if ctx.invoked_subcommand != "create" and not ticket:
-            raise TicketNotFound
-
-        ctx.ticket = ticket
+    # async def cog_before_invoke(self, ctx):
+    #     ticket = Application.objects(ticket_id=ctx.channel.id).first()
+    #
+    #     if ctx.invoked_subcommand != "create" and not ticket:
+    #         raise TicketNotFound
+    #
+    #     ctx.ticket = ticket
