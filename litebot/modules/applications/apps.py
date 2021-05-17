@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Tuple, List
 
-from discord import RawReactionActionEvent, TextChannel, Embed, RawMessageDeleteEvent, NotFound, User
+from discord import RawReactionActionEvent, TextChannel, Embed, RawMessageDeleteEvent, NotFound, User, HTTPException
 from discord.ext import commands, tasks
 from gspread import Client
 from gspread.exceptions import APIError
@@ -17,6 +17,8 @@ EMBED_FIELD_MAX = 25
 FIELD_CHAR_MAX = 1024
 YES_EMOJI = "<:yes:760951181283033128>"
 NO_EMOJI = "<:no:816732205526155316>"
+CHECK_EMOJI = "☑️"
+CROSS_EMOJI = "❌"
 
 
 class Applications(Cog):
@@ -228,8 +230,14 @@ class Applications(Cog):
         application.update(ticket_id=channel.id)
 
         voting_message = await self._voting_channel.send(embed=embeds.InfoEmbed(f"Vote for {application.name.split('#')[0]}"))
-        await voting_message.add_reaction(YES_EMOJI)
-        await voting_message.add_reaction(NO_EMOJI)
+
+        try:
+            await voting_message.add_reaction(YES_EMOJI)
+            await voting_message.add_reaction(NO_EMOJI)
+        except HTTPException:
+            await voting_message.clear_reactions()
+            await voting_message.add_reaction(CHECK_EMOJI)
+            await voting_message.add_reaction(CROSS_EMOJI)
 
         try:
             applicant = list(filter(
