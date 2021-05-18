@@ -208,7 +208,6 @@ class Applications(Cog):
                         new_embed.add_field(name=q, value=part, inline=False)
                     else:
                         new_embed.add_field(name="^ Extended", value=part, inline=False)
-
         return new_embed
 
     async def _create_application(self, voucher: User, application: Application) -> None:

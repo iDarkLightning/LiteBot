@@ -102,7 +102,7 @@ class TwitchChat(Cog):
         """
         Disconnects you from a connected stream
         """
-        self.connections[channel] = list(filter(lambda c: c.player != ctx.player, self.connections[channel]))
+        self.connections[channel] = list(filter(lambda c: c.player.uuid != ctx.player.uuid, self.connections[channel]))
 
         if not len(self.connections[channel]):
             task = self.channels[channel]
