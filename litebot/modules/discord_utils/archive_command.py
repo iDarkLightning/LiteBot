@@ -1,5 +1,5 @@
 import discord
-from typing import Optional
+from typing import Optional, Any, Type
 
 from discord import Message, Member, Attachment
 from discord.ext import commands
@@ -44,13 +44,15 @@ def _member_to_dict(member: Member):
         "display_name": member.display_name,
     }
 
-async def archive_channel(archiver: Member, channel: discord.TextChannel) -> None:
+async def archive_channel(archiver: Member, channel: discord.TextChannel) -> tuple[Any, Type[ArchivedChannel]]:
     messages = await channel.history(limit=None, oldest_first=True).flatten()
 
     ArchivedChannel(archiver=_member_to_dict(archiver), pins=[_message_to_dict(m) for m in (await channel.pins())],
                     channel_id=channel.id, name=channel.name, topic=channel.topic,
                     category=channel.category.name, messages=[_message_to_dict(m) for m in messages],
                     users=[_member_to_dict(m) for m in channel.members]).save()
+
+    return messages, ArchivedChannel
 
 class ArchiveCommand(Cog):
     def __init__(self, bot: LiteBot):
