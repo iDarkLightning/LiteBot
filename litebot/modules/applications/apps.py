@@ -1,3 +1,4 @@
+import datetime
 from datetime import datetime, timedelta
 from typing import Tuple, List
 
@@ -75,7 +76,8 @@ class Applications(Cog):
         Deletes all current verify messages that have expired
         """
         events = [e for e in TrackedEvent.objects(event_tag="application") if
-                  datetime.utcnow().time() >= e.expire_time.time()]
+                  datetime.utcnow() >= e.expire_time]
+
         for event in events:
             try:
                 message = await self._verify_channel.fetch_message(event.tracking_id)
