@@ -29,6 +29,10 @@ class TicketCommands(Cog):
 
     @_ticket.command(name="deny")
     async def _ticket_deny(self, ctx: commands.Context, *, reason: str) -> None:
+        """
+        Deny a ticket
+        `reason` The reason that the ticket is being denied
+        """
         ticket = Application.objects(ticket_id=ctx.channel.id).first()
 
         if not ticket:
@@ -60,6 +64,9 @@ class TicketCommands(Cog):
 
     @_ticket.command(name="create")
     async def _ticket_create(self, ctx: commands.Context, num: int) -> None:
+        """
+        Create a new ticket given the ticket number
+        """
         apps = self.bot.get_cog("Applications")
 
         try:
