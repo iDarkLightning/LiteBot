@@ -9,12 +9,12 @@ from mongoengine import NotUniqueError
 
 from litebot.core import Cog
 from litebot.litebot import LiteBot
-from litebot.minecraft import commands
-from litebot.minecraft.commands.arguments import BlockPosArgumentType, IntegerArgumentType, DimensionArgumentType, \
+from litebot.core.minecraft import commands
+from litebot.core.minecraft import BlockPosArgumentType, IntegerArgumentType, DimensionArgumentType, \
     StringArgumentType, StrictSuggester, PlayerArgumentType
-from litebot.minecraft.commands.context import ServerCommandContext
-from litebot.minecraft.player import Player
-from litebot.minecraft.text import Text, Colors
+from litebot.core.minecraft import ServerCommandContext
+from litebot.core.minecraft import Player
+from litebot.core.minecraft.text import Text, Colors
 from litebot.models.location_model import Location
 from litebot.utils import embeds
 from litebot.utils.data_manip import snakify

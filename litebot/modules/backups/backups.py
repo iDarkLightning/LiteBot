@@ -11,10 +11,10 @@ from sanic import Sanic
 from litebot.core import Cog
 from litebot.utils.checks import role_checks
 from litebot.modules.core.converters import get_server
-from litebot.minecraft import commands as mc_commands
-from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.commands.context import ServerCommandContext
-from litebot.minecraft.text import Text, Colors
+from litebot.core.minecraft import commands as mc_commands
+from litebot.core.minecraft import MinecraftServer
+from litebot.core.minecraft import ServerCommandContext
+from litebot.core.minecraft.text import Text, Colors
 from litebot.modules.backups.converters import convert_backup_path
 from litebot.utils import embeds
 from litebot.utils.enums import BackupTypes

@@ -5,11 +5,11 @@ from typing import Optional, List
 from litebot.core import Cog
 from litebot.errors import ServerNotFound
 from litebot.litebot import LiteBot
-from litebot.minecraft import commands as mc_commands
-from litebot.minecraft.commands.arguments import StrictSuggester, MessageArgumentType
-from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.commands.context import ServerCommandContext, ServerEventPayload
-from litebot.minecraft.text import Text, Colors
+from litebot.core.minecraft import commands as mc_commands
+from litebot.core.minecraft import StrictSuggester, MessageArgumentType
+from litebot.core.minecraft import MinecraftServer
+from litebot.core.minecraft import ServerCommandContext
+from litebot.core.minecraft.text import Text, Colors
 
 
 class BridgeConnection:

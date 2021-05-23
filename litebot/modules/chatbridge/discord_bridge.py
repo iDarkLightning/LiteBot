@@ -6,10 +6,9 @@ from discord import Message
 from litebot.core import Cog
 from litebot.errors import ServerNotFound
 from litebot.litebot import LiteBot
-from litebot.minecraft import commands as mc_commands
-from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.commands.context import ServerEventPayload
-from litebot.minecraft.text import Text, Colors
+from litebot.core.minecraft import commands as mc_commands
+from litebot.core.minecraft import MinecraftServer
+from litebot.core.minecraft.text import Text, Colors
 
 
 class DiscordBridge(Cog):

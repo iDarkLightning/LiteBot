@@ -1,6 +1,6 @@
 from discord.ext.commands import Cog as DPYcog
 
-from litebot.minecraft.commands.action import ServerAction, ServerCommand
+from litebot.core.minecraft.commands.action import ServerAction, ServerCommand
 
 
 class Cog(DPYcog):

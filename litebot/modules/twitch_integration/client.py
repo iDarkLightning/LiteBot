@@ -2,8 +2,8 @@ import asyncio
 import socket
 from typing import Optional, List
 
-from litebot.minecraft.server import MinecraftServer
-from litebot.minecraft.text import Text, Colors
+from litebot.core.minecraft import MinecraftServer
+from litebot.core.minecraft.text import Text, Colors
 
 class Connection:
     """

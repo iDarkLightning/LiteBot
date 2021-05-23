@@ -17,9 +17,9 @@ from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
 from .commands.context import ServerCommandContext, ServerEventPayload
-from ..errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
-from ..utils.data_manip import parse_emoji
-from ..utils.enums import BackupTypes
+from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
+from litebot.utils.data_manip import parse_emoji
+from litebot.utils.enums import BackupTypes
 from .text import Text
 
 if TYPE_CHECKING:

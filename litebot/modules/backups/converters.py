@@ -1,5 +1,5 @@
 import os
-from litebot.minecraft.server import MinecraftServer
+from litebot.core.minecraft import MinecraftServer
 
 
 def convert_backup_path(backup_name: str, server: MinecraftServer) -> str:

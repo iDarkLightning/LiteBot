@@ -3,8 +3,8 @@ import asyncio
 import inspect
 from typing import List, Callable, Any, Optional, get_type_hints, get_args, Union, Type
 from litebot.errors import InvalidEvent, ArgumentError
-from litebot.minecraft.commands.arguments import ArgumentType, Suggester
-from litebot.minecraft.commands.context import ServerCommandContext
+from litebot.core.minecraft import ArgumentType, Suggester
+from litebot.core.minecraft import ServerCommandContext
 
 def _build_args(func: Callable) -> Union[
     tuple[list, dict], tuple[list[dict[str, Union[bool, Any]]], dict[Any, Type[Suggester]], list[Type[ArgumentType]]]]:

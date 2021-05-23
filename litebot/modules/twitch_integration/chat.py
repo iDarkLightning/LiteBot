@@ -3,11 +3,11 @@ from random import randint
 import discord
 
 from litebot.core import Cog
-from litebot.minecraft import commands
+from litebot.core.minecraft import commands
 from litebot.litebot import LiteBot
-from litebot.minecraft.commands.arguments import StrictSuggester, Suggester
-from litebot.minecraft.commands.context import ServerCommandContext
-from litebot.minecraft.text import Text, Colors
+from litebot.core.minecraft import StrictSuggester, Suggester
+from litebot.core.minecraft import ServerCommandContext
+from litebot.core.minecraft.text import Text, Colors
 from litebot.modules.twitch_integration.client import TwitchClient, BUF_SIZE, ENCODING, Connection, ConnectedPlayer
 
 

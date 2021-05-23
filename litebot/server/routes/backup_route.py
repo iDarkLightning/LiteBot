@@ -6,7 +6,7 @@ from sanic.response import BaseHTTPResponse
 
 from litebot.server.middlewares.jwt import validate_jwt_query
 from litebot.errors import ServerNotFound
-from litebot.minecraft.server import MinecraftServer
+from litebot.core.minecraft import MinecraftServer
 
 blueprint = Blueprint("backups", url_prefix="/backups")
 

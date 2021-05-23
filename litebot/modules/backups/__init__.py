@@ -1,5 +1,4 @@
 from .backups import BackupsCommand
-from ...minecraft.server import MinecraftServer
 
 
 def setup(bot):

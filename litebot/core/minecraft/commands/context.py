@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import json
-import traceback
 from typing import TYPE_CHECKING, Any
 
-from litebot.minecraft.player import Player
-from litebot.minecraft.text import Text
+from litebot.core.minecraft import Player
+from litebot.core.minecraft.text import Text
 
 if TYPE_CHECKING:
-    from litebot.minecraft.commands.action import ServerCommand
+    from litebot.core.minecraft.commands.action import ServerCommand
     from litebot.litebot import LiteBot
-    from litebot.minecraft.server import MinecraftServer
+    from litebot.core.minecraft import MinecraftServer
 
 class ServerCommandContext:
     """

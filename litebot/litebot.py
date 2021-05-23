@@ -5,10 +5,10 @@ import mongoengine
 from discord.ext import commands
 
 from .core import Cog
-from .minecraft.commands.action import ServerCommand, ServerEvent
+from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
-from .minecraft.server import MinecraftServer, ServerContainer
+from litebot.core.minecraft import MinecraftServer, ServerContainer
 from .utils.fmt_strings import MODULE_LOADING, MODULE_PATH
 from litebot.modules.system.help_command import HelpCommand
 from .utils.misc import Toggleable
@@ -26,7 +26,7 @@ class LiteBot(commands.Bot):
         self.config = MainConfig()
         self.module_config = ModuleConfig()
         self.server_commands: dict[str, ServerCommand] = {}
-        self.server_events: dict[str, ServerEvent] = {k: [] for k in ServerEvent.VALID_EVENTS}
+        self.server_events: dict[str, list[ServerEvent]] = {k: [] for k in ServerEvent.VALID_EVENTS}
 
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.config["prefixes"]),
@@ -79,9 +79,7 @@ class LiteBot(commands.Bot):
             super().load_extension(module)
             self.logger.info(MODULE_LOADING.format("Loaded", module))
 
-        modules = filter(lambda path: os.path.isdir(os.path.join(MODULES_PATH, path))
-                                      and path != "__pycache__" and MODULE_PATH.format(path) not in REQUIRED_MODULES,
-                         os.listdir(os.path.join(os.getcwd(), MODULES_PATH)))
+        from litebot.modules import modules
 
         for module in modules:
             spec = importlib.util.find_spec(MODULE_PATH.format(module))

@@ -1,5 +1,5 @@
 from discord.ext import commands
-from litebot.minecraft.server import MinecraftServer
+from litebot.core.minecraft import MinecraftServer
 
 def get_server(ctx: commands.Context, name: str) -> MinecraftServer:
     if name:
