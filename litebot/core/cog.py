@@ -3,11 +3,11 @@ from __future__ import annotations
 import inspect
 from typing import TYPE_CHECKING
 
-from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command
+from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command, Context
 from discord.ext.commands._types import _BaseCommand
 
 from litebot.core.minecraft.commands.action import ServerAction, ServerCommand
-from litebot.core.settings import Setting, SettingsManager
+from litebot.core.settings import Setting, SettingsManager, SettingTypes
 
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
@@ -165,11 +165,17 @@ class Cog(DPYCog, metaclass=CogMeta):
     @classmethod
     def setting(cls, **kwargs):
         def decorator(func):
-            setting_ = Setting(func, **kwargs)
             if isinstance(func, _BaseCommand):
-                func.callback.__setting__ = setting_
-                return func
-            func.__setting__ = setting_
+                kwargs["type"] = SettingTypes.DISC_COMMAND
+                func.callback.__setting__ = Setting(func, **kwargs)
+            elif isinstance(func, ServerCommand):
+                kwargs["type"] = SettingTypes.MC_COMMAND
+                func.__setting__ = Setting(func, **kwargs)
+            elif hasattr(func, "__cog_listener__"):
+                kwargs["type"] = SettingTypes.EVENT
+                func.__setting__ = Setting(func, **kwargs)
+            else:
+                raise TypeError("Setting must be a discord/mc command or a listener!")
             return func
         return decorator
 
@@ -183,7 +189,19 @@ class Cog(DPYCog, metaclass=CogMeta):
             command.cog = self
             if command.parent is None:
                 try:
-                    if bot.settings_manager.setting_enabled_(command.callback.__setting__):
+                    setting = command.callback.__setting__
+                    if setting.enabled:
+
+                        def id_checks(ctx: Context):
+                            setting_ = ctx.command.callback.__setting__
+                            if ctx.author.id in setting_.id_checks:
+                                return True
+                            if not setting_.id_checks:
+                                return True
+
+                            return set([role.id for role in ctx.author.roles]) & set(setting_.id_checks)
+
+                        command.add_check(id_checks)
                         bot.add_command(command)
                 except Exception as e:
                     for to_undo in self.__discord_commands__[:index]:
@@ -192,7 +210,8 @@ class Cog(DPYCog, metaclass=CogMeta):
                     raise e
 
         for command in self.__mc_commands__:
-            if bot.settings_manager.setting_enabled_(command.__setting__):
+            if command.__setting__.enabled:
+                command.op_level = command.__setting__.op_level
                 bot.add_command(command)
 
         if cls.bot_check is not Cog.bot_check:
@@ -202,7 +221,7 @@ class Cog(DPYCog, metaclass=CogMeta):
             bot.add_check(self.bot_check_once, call_once=True)
 
         for name, type_, method_name in self.__cog_listeners__:
-            if bot.settings_manager.setting_enabled_(getattr(self, method_name).__setting__):
+            if getattr(self, method_name).__setting__.enabled:
                 if type_ == Cog.ListenerTypes.DISCORD:
                     bot.add_listener(getattr(self, method_name), name)
                 else:
