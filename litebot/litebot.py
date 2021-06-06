@@ -1,22 +1,26 @@
 import importlib
+from typing import Callable, Union
+
 import discord
 import os
 import mongoengine
 from discord.ext import commands
+from discord.ext.commands import Command
 
 from .core import Cog
 from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
+from .core.settings import SettingsManager
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
-from litebot.core.minecraft import MinecraftServer, ServerContainer
+from litebot.core.minecraft.server import MinecraftServer, ServerContainer
 from .utils.fmt_strings import MODULE_LOADING, MODULE_PATH
 from litebot.modules.system.help_command import HelpCommand
 from .utils.misc import Toggleable
 
-MODULES_PATH = "litebot/modules"
+MODULES_PATH = "litebot/test_modules"
 REQUIRED_MODULES = (
-    "litebot.modules.system",
-    "litebot.modules.core"
+    # "litebot.modules.system",
+    # "litebot.modules.core"
 )
 
 class LiteBot(commands.Bot):
@@ -25,8 +29,9 @@ class LiteBot(commands.Bot):
     def __init__(self):
         self.config = MainConfig()
         self.module_config = ModuleConfig()
+        self.settings_manager = SettingsManager()
         self.server_commands: dict[str, ServerCommand] = {}
-        self.server_events: dict[str, list[ServerEvent]] = {k: [] for k in ServerEvent.VALID_EVENTS}
+        self.server_events: dict[str, list[Callable]] = {k: [] for k in ServerEvent.VALID_EVENTS}
 
         super().__init__(
             command_prefix=commands.when_mentioned_or(*self.config["prefixes"]),
@@ -74,12 +79,12 @@ class LiteBot(commands.Bot):
             self.logger.warning(f"Tried to load cog: {cog.__cog_name__} for invalid module: {self._cur_module}")
 
     def init_modules(self):
-        for module in REQUIRED_MODULES:
-            self.logger.info(MODULE_LOADING.format("Loading", module))
-            super().load_extension(module)
-            self.logger.info(MODULE_LOADING.format("Loaded", module))
+        # for module in REQUIRED_MODULES:
+        #     self.logger.info(MODULE_LOADING.format("Loading", module))
+        #     super().load_extension(module)
+        #     self.logger.info(MODULE_LOADING.format("Loaded", module))
 
-        from litebot.modules import modules
+        modules = ["test_module"]
 
         for module in modules:
             spec = importlib.util.find_spec(MODULE_PATH.format(module))
@@ -90,33 +95,61 @@ class LiteBot(commands.Bot):
             except Exception as e:
                 self.logger.exception(e, exc_info=e)
 
-            if hasattr(lib, "config"):
-                config = getattr(lib, "config")(self)
-                self.module_config.match_module(module, config)
+            if hasattr(lib, "PLUGIN_INFO"):
+                info = getattr(lib, "PLUGIN_INFO")
+                data = {
+                    "name": info.get("name", module),
+                    "id": module,
+                    "authors": info.get("authors", []),
+                    "version": info.get("version", "1.0.0"),
+                    "description": info.get("description", "This plugin does not have a description!")
+                }
             else:
-                if module not in self.module_config:
-                    self.module_config.register_module(module)
+                data = {
+                    "name": module,
+                    "id": module,
+                    "authors": [],
+                    "version": "1.0.0",
+                    "description": "This plugin does not have a description!"
+                }
 
-            self._cur_module = module
-            enabled = self.module_config[module]["enabled"]
-            if not enabled and not self.module_config[module].get("cogs"):
-                with self._initialising:
-                    super().load_extension(MODULE_PATH.format(module))
-                return
+            self.settings_manager.add_plugin(data)
 
             if hasattr(lib, "requirements"):
-                requirements = getattr(lib, "requirements")
-                if requirements(self) and enabled:
-                    self.logger.info(MODULE_LOADING.format("Loading", module))
-                    super().load_extension(MODULE_PATH.format(module))
-                    self.logger.info(MODULE_LOADING.format("Loaded", module))
+                reqs = getattr(lib, "requirements")
+                if reqs(self):
+                    self.load_extension(MODULE_PATH.format(module))
             else:
-                if enabled:
-                    self.logger.info(MODULE_LOADING.format("Loading", module))
-                    super().load_extension(MODULE_PATH.format(module))
-                    self.logger.info(MODULE_LOADING.format("Loaded", module))
+                self.load_extension(MODULE_PATH.format(module))
 
-            self.module_config.save()
+
+            # if hasattr(lib, "config"):
+            #     config = getattr(lib, "config")(self)
+            #     self.module_config.match_module(module, config)
+            # else:
+            #     if module not in self.module_config:
+            #         self.module_config.register_module(module)
+            #
+            # self._cur_module = module
+            # enabled = self.module_config[module]["enabled"]
+            # if not enabled and not self.module_config[module].get("cogs"):
+            #     with self._initialising:
+            #         super().load_extension(MODULE_PATH.format(module))
+            #     return
+            #
+            # if hasattr(lib, "requirements"):
+            #     requirements = getattr(lib, "requirements")
+            #     if requirements(self) and enabled:
+            #         self.logger.info(MODULE_LOADING.format("Loading", module))
+            #         super().load_extension(MODULE_PATH.format(module))
+            #         self.logger.info(MODULE_LOADING.format("Loaded", module))
+            # else:
+            #     if enabled:
+            #         self.logger.info(MODULE_LOADING.format("Loading", module))
+            #         super().load_extension(MODULE_PATH.format(module))
+            #         self.logger.info(MODULE_LOADING.format("Loaded", module))
+
+            # self.module_config.save()
 
     def load_extension(self, name, *, package=None):
         if "." not in name:
@@ -126,7 +159,7 @@ class LiteBot(commands.Bot):
 
         super().load_extension(name)
 
-    def add_command(self, command):
+    def add_command(self, command: Union[ServerCommand, Command]):
         if not isinstance(command, ServerCommand):
             return super().add_command(command)
 
@@ -138,11 +171,11 @@ class LiteBot(commands.Bot):
 
         self.server_commands.pop(name)
 
-    def add_event(self, event):
-        self.server_events[event.name].append(event)
+    def add_server_listener(self, event, name):
+        self.server_events[name].append(event)
 
-    def remove_event(self, name, cog):
-        self.server_events[name] = list(filter(lambda e: e.cog is not cog, self.server_events[name]))
+    def remove_server_listener(self, func, name):
+        self.server_events[name] = list(filter(lambda e: e is not func, self.server_events[name]))
 
     async def on_ready(self):
         self.logger.info(f"{self.user.name} is now online!")

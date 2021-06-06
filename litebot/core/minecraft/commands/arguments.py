@@ -2,8 +2,8 @@ import abc
 import json
 
 from litebot.errors import ArgumentError
-from litebot.core.minecraft import ServerCommandContext
-from litebot.core.minecraft import Player
+from litebot.core.minecraft.commands.context import ServerCommandContext
+from litebot.core.minecraft.player import Player
 
 
 class ArgumentType(abc.ABC):

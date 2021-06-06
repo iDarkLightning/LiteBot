@@ -48,6 +48,7 @@ class ArgumentError(LiteBotException):
     """
     Exception produced when the argument type for a server command does not inherit ArgumentType
     """
+    pass
 
 class MinecraftServerException(LiteBotException):
     """

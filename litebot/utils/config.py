@@ -185,3 +185,7 @@ class ModuleConfig(BaseConfig):
 
         self[module]["cogs"][cog_name] = val
         self.save()
+
+class SettingsConfig(BaseConfig):
+    def __init__(self, file_name: str = "settings.json") -> None:
+        super().__init__(file_name, False)

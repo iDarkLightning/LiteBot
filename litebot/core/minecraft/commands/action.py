@@ -3,8 +3,8 @@ import asyncio
 import inspect
 from typing import List, Callable, Any, Optional, get_type_hints, get_args, Union, Type
 from litebot.errors import InvalidEvent, ArgumentError
-from litebot.core.minecraft import ArgumentType, Suggester
-from litebot.core.minecraft import ServerCommandContext
+from litebot.core.minecraft.commands.arguments import ArgumentType, Suggester
+from litebot.core.minecraft.commands.context import ServerCommandContext
 
 def _build_args(func: Callable) -> Union[
     tuple[list, dict], tuple[list[dict[str, Union[bool, Any]]], dict[Any, Type[Suggester]], list[Type[ArgumentType]]]]:
@@ -76,6 +76,15 @@ class ServerCommand(ServerAction):
     def full_name(self):
         return ".".join(self._get_full_path()[::-1])
 
+    @property
+    def root_parent(self):
+        cmd = self
+
+        while cmd.parent is not None:
+            cmd = cmd.parent
+
+        return cmd
+
     def build(self):
         if not self.register:
             return
@@ -89,6 +98,13 @@ class ServerCommand(ServerAction):
         data["subs"] = subs
 
         return data
+
+    def update_cog_ref(self, cog):
+        self.cog = cog
+
+        if self.subs:
+            for sub in self.subs.values():
+                sub.cog = cog
 
     def sub(self, **kwargs):
         """

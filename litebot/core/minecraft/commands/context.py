@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
-from litebot.core.minecraft import Player
+from litebot.core.minecraft.player import Player
 from litebot.core.minecraft.text import Text
 
 if TYPE_CHECKING:

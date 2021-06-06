@@ -257,7 +257,7 @@ class MinecraftServer:
         payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("vargs"))
 
         for event in events:
-            await event.invoke(payload)
+            await asyncio.create_task(event(payload), name=f"{self.name}-event: {data['name']}")
 
     async def fetch_suggester(self, data: dict):
         """
