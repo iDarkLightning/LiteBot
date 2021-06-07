@@ -1,6 +1,7 @@
 from .litebot import LiteBot
 from .server import get_server_coro
 
+
 def main():
     bot_instance = LiteBot()
 

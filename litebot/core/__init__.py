@@ -1,1 +1,1 @@
-from .cog import *
+from litebot.core.cog import *

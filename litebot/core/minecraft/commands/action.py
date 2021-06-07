@@ -89,7 +89,6 @@ class ServerCommand(ServerAction):
         if not self.register:
             return
 
-        print(self.op_level)
         data = {"name": self.name, "OPLevel": self.op_level, "arguments": self.arguments}
         subs = []
 

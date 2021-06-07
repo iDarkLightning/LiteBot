@@ -76,9 +76,8 @@ class MainConfig(BaseConfig):
         "token": "BOT TOKEN",
         "prefixes": [],
         "main_guild_id": 0,
-        "members_role": [],
-        "operators_role": [],
         "log_channel_id": 0,
+        "plugins": [],
         "api_secret": "API SECRET",
         "servers": {
             "name": {

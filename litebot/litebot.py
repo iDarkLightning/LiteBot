@@ -9,6 +9,7 @@ from discord.ext.commands import Command
 
 from .core import Cog
 from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
+from .core.plugins import PluginManager
 from .core.settings import SettingsManager
 from .utils.config import MainConfig, ModuleConfig
 from .utils.logging import get_logger
@@ -29,6 +30,7 @@ class LiteBot(commands.Bot):
     def __init__(self):
         self.config = MainConfig()
         self.module_config = ModuleConfig()
+        self.plugin_manager = PluginManager(self)
         self.settings_manager = SettingsManager()
         self.server_commands: dict[str, ServerCommand] = {}
         self.server_events: dict[str, list[Callable]] = {k: [] for k in ServerEvent.VALID_EVENTS}
@@ -79,10 +81,10 @@ class LiteBot(commands.Bot):
             self.logger.warning(f"Tried to load cog: {cog.__cog_name__} for invalid module: {self._cur_module}")
 
     def init_modules(self):
-        # for module in REQUIRED_MODULES:
-        #     self.logger.info(MODULE_LOADING.format("Loading", module))
-        #     super().load_extension(module)
-        #     self.logger.info(MODULE_LOADING.format("Loaded", module))
+        for module in REQUIRED_MODULES:
+            self.logger.info(MODULE_LOADING.format("Loading", module))
+            super().load_extension(module)
+            self.logger.info(MODULE_LOADING.format("Loaded", module))
 
         modules = ["test_module"]
 
@@ -122,34 +124,6 @@ class LiteBot(commands.Bot):
             else:
                 self.load_extension(MODULE_PATH.format(module))
 
-
-            # if hasattr(lib, "config"):
-            #     config = getattr(lib, "config")(self)
-            #     self.module_config.match_module(module, config)
-            # else:
-            #     if module not in self.module_config:
-            #         self.module_config.register_module(module)
-            #
-            # self._cur_module = module
-            # enabled = self.module_config[module]["enabled"]
-            # if not enabled and not self.module_config[module].get("cogs"):
-            #     with self._initialising:
-            #         super().load_extension(MODULE_PATH.format(module))
-            #     return
-            #
-            # if hasattr(lib, "requirements"):
-            #     requirements = getattr(lib, "requirements")
-            #     if requirements(self) and enabled:
-            #         self.logger.info(MODULE_LOADING.format("Loading", module))
-            #         super().load_extension(MODULE_PATH.format(module))
-            #         self.logger.info(MODULE_LOADING.format("Loaded", module))
-            # else:
-            #     if enabled:
-            #         self.logger.info(MODULE_LOADING.format("Loading", module))
-            #         super().load_extension(MODULE_PATH.format(module))
-            #         self.logger.info(MODULE_LOADING.format("Loaded", module))
-
-            # self.module_config.save()
 
     def load_extension(self, name, *, package=None):
         if "." not in name:

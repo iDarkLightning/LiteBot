@@ -5,7 +5,7 @@ services:
     volumes:
     - "./logs:/bot/logs"
     - "./config:/bot/config"
-    - "C:/Users/nirjh/Java Projects/litebot-mod/run:/bot/servers/smp"
+    - "./plugins:/bot/plugins"
     environment:
       PYTHONUNBUFFERED: 1
     env_file:
