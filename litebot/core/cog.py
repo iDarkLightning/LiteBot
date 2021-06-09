@@ -182,11 +182,13 @@ class Cog(DPYCog, metaclass=CogMeta):
     def _inject(self, bot: LiteBot):
         cls = self.__class__
         self._bot = bot
+        self._plugin = bot.processing_plugin
 
-        bot.settings_manager.add_settings(bot._cur_module, self.__settings__)
+        bot.settings_manager.add_settings(bot.processing_plugin.meta.repr_name, self.__settings__)
 
         for index, command in enumerate(self.__discord_commands__):
             command.cog = self
+            command.plugin = self._plugin
             if command.parent is None:
                 try:
                     setting = command.callback.__setting__

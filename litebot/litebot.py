@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 from typing import Callable, Union
 
@@ -7,7 +8,7 @@ import mongoengine
 from discord.ext import commands
 from discord.ext.commands import Command
 
-from .core import Cog
+from litebot.core import context
 from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
 from .core.plugins import PluginManager
 from .core.settings import SettingsManager
@@ -45,7 +46,7 @@ class LiteBot(commands.Bot):
         self.db = mongoengine.connect("bot", host="mongo", port=27017)
         self.logger.info("Connected to Mongo Database")
 
-        self._cur_module = None
+        self.processing_plugin = None
         self._initialising = Toggleable()
         self.servers = ServerContainer()
 
@@ -64,74 +65,22 @@ class LiteBot(commands.Bot):
         await self.wait_until_ready()
         return self.get_guild(self.config["main_guild_id"])
 
-    def add_cog(self, cog: Cog, required: bool = False) -> None:
-        if self._initialising and not required:
-            self.module_config.register_cog(self._cur_module, cog.__cog_name__)
+    async def get_context(self, message, *, cls=context.Context):
+        return await super().get_context(message, cls=cls)
 
-        if required:
-            super().add_cog(cog)
-            self.logger.info(f"Loaded cog: {cog.__cog_name__}")
-            return
+    def _schedule_event(self, coro, event_name, *args, **kwargs):
+        if hasattr(coro, "__setting__"):
+            args = (coro.__setting__, *args)
+        wrapped = self._run_event(coro, event_name, *args, **kwargs)
+        return asyncio.create_task(wrapped, name=f"discord.py: {event_name}")
 
-        try:
-            if self.module_config.cog_enabled(self._cur_module, cog.__cog_name__):
-                self.logger.info(f"Loaded cog: {cog.__cog_name__}")
-                super().add_cog(cog)
-        except ModuleNotFoundError:
-            self.logger.warning(f"Tried to load cog: {cog.__cog_name__} for invalid module: {self._cur_module}")
+    def load_plugin(self, plugin):
+        self.processing_plugin = plugin
+        super().load_extension(plugin.path)
 
-    def init_modules(self):
-        for module in REQUIRED_MODULES:
-            self.logger.info(MODULE_LOADING.format("Loading", module))
-            super().load_extension(module)
-            self.logger.info(MODULE_LOADING.format("Loaded", module))
-
-        modules = ["test_module"]
-
-        for module in modules:
-            spec = importlib.util.find_spec(MODULE_PATH.format(module))
-            lib = importlib.util.module_from_spec(spec)
-
-            try:
-                spec.loader.exec_module(lib)
-            except Exception as e:
-                self.logger.exception(e, exc_info=e)
-
-            if hasattr(lib, "PLUGIN_INFO"):
-                info = getattr(lib, "PLUGIN_INFO")
-                data = {
-                    "name": info.get("name", module),
-                    "id": module,
-                    "authors": info.get("authors", []),
-                    "version": info.get("version", "1.0.0"),
-                    "description": info.get("description", "This plugin does not have a description!")
-                }
-            else:
-                data = {
-                    "name": module,
-                    "id": module,
-                    "authors": [],
-                    "version": "1.0.0",
-                    "description": "This plugin does not have a description!"
-                }
-
-            self.settings_manager.add_plugin(data)
-
-            if hasattr(lib, "requirements"):
-                reqs = getattr(lib, "requirements")
-                if reqs(self):
-                    self.load_extension(MODULE_PATH.format(module))
-            else:
-                self.load_extension(MODULE_PATH.format(module))
-
-
-    def load_extension(self, name, *, package=None):
-        if "." not in name:
-            self._cur_module = name
-        else:
-            self._cur_module = name.split(".")[-1]
-
-        super().load_extension(name)
+    def unload_plugin(self, plugin):
+        self.processing_plugin = plugin
+        super().unload_extension(plugin.path)
 
     def add_command(self, command: Union[ServerCommand, Command]):
         if not isinstance(command, ServerCommand):

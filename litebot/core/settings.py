@@ -114,30 +114,30 @@ class SettingsManager:
             self._settings[setting.name] = setting
             setting.plugin = plugin_name
 
-            setting.enabled = self.__settings_file[plugin_name]["settings"][setting.name]["enabled"]
-
-            if checks := self.__settings_file[plugin_name]["settings"][setting.name].get("id_checks"):
-                setting.id_checks = checks
-            elif level := self.__settings_file[plugin_name]["settings"][setting.name].get("op_level"):
-                setting.op_level = level
-
             if setting.name not in self.__settings_file[plugin_name]["settings"].keys():
                 self.__settings_file[plugin_name]["settings"][setting.name] = setting.serialize()
             else:
+                setting.enabled = self.__settings_file[plugin_name]["settings"][setting.name]["enabled"]
+
+                if checks := self.__settings_file[plugin_name]["settings"][setting.name].get("id_checks"):
+                    setting.id_checks = checks
+                elif level := self.__settings_file[plugin_name]["settings"][setting.name].get("op_level"):
+                    setting.op_level = level
+
                 if not setting.config:
                     continue
 
-                conf = self.__settings_file[plugin_name]["settings"][setting.name]["config"]
+                conf = self.__settings_file[plugin_name]["settings"][setting.name].get("config", {})
                 if conf.keys() != setting.config.keys():
-                    self.__settings_file[plugin_name]["settings"][setting.name] = conf | {k: v for k, v in setting.
-                        config.keys() if k not in conf.keys()}
+                    self.__settings_file[plugin_name]["settings"][setting.name]["config"] = conf | {k: v for k, v in setting.
+                        config.items() if k not in conf.keys()}
 
                 setting.config = self.__settings_file[plugin_name]["settings"][setting.name]["config"]
 
         self.__settings_file.save()
 
     def add_plugin(self, data):
-        settings = self.__settings_file.get(data["id"], {"settings": {}}).get("settings", {})
+        settings = self.__settings_file.get(data.repr_name, {"settings": {}}).get("settings", {})
 
-        self.__settings_file[data["id"]] = data | {"settings": settings}
+        self.__settings_file[data.repr_name] = data.serialize() | {"settings": settings}
         self.__settings_file.save()

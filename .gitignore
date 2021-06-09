@@ -8,6 +8,6 @@ config.json
 env
 /logs
 /config
-/minecraft_server
-/minecraft_server_two
 creds.json
+/plugins/*
+!/plugins/standard
