@@ -1,13 +1,18 @@
 from __future__ import annotations
 import asyncio
 import inspect
-from typing import List, Callable, Any, Optional, get_type_hints, get_args, Union, Type
+from typing import List, Callable, Any, Optional, get_type_hints, get_args, Union, Type, TYPE_CHECKING
+
 from litebot.errors import InvalidEvent, ArgumentError
 from litebot.core.minecraft.commands.arguments import ArgumentType, Suggester
 from litebot.core.minecraft.commands.context import ServerCommandContext
 
-def _build_args(func: Callable) -> Union[
-    tuple[list, dict], tuple[list[dict[str, Union[bool, Any]]], dict[Any, Type[Suggester]], list[Type[ArgumentType]]]]:
+if TYPE_CHECKING:
+    from litebot.core import Setting
+
+
+def _build_args(func: Callable) -> Union[tuple[list, dict, list], tuple[
+    list[dict[str, Union[bool, Any]]], dict[Any, Type[Suggester]], dict[Any, Type[ArgumentType]]]]:
     arg_hints = {k: v for k, v in get_type_hints(func).items() if k != "return" and v is not ServerCommandContext}
     if not arg_hints:
         return [], {}, []
@@ -49,6 +54,7 @@ class ServerAction:
         self.cog = cog # Will be set manually when adding the cog
 
 class ServerCommand(ServerAction):
+    __setting__: Setting
     def __init__(self, func, cog=None, **kwargs):
         super().__init__(func, cog, **kwargs)
 

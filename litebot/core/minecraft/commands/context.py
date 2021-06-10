@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from litebot.core.minecraft.player import Player
 from litebot.core.minecraft.text import Text
@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from litebot.core.minecraft.commands.action import ServerCommand
     from litebot.litebot import LiteBot
     from litebot.core.minecraft import MinecraftServer
+    from litebot.core import Setting
 
 class ServerCommandContext:
     """
@@ -33,6 +34,22 @@ class ServerCommandContext:
         self.args = kwargs["args"]
         self.full_args = kwargs["full_args"]
         self.player = Player(**json.loads(player_data))
+
+    @property
+    def setting(self) -> Optional[Setting]:
+        if self.command is None:
+            return None
+
+        try:
+            return self.command.__setting__
+        except AttributeError:
+            return self.command.root_parent.__setting__
+
+    @property
+    def config(self) -> Optional[dict]:
+        if self.setting is None:
+            return None
+        return self.setting.config
 
     def __setitem__(self, key, value):
         self.after_invoke_args[key] = value
