@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command, Context
 from discord.ext.commands._types import _BaseCommand
+from sanic import Blueprint
 
 from litebot.core.minecraft.commands.action import ServerAction, ServerCommand
 from litebot.core.settings import Setting, SettingsManager, SettingTypes
@@ -27,6 +28,7 @@ class CogMeta(DPYCogMeta):
         mc_commands = {}
         listeners = {}
         settings = set()
+        blueprint = Blueprint(name)
         no_bot_cog = "Commands or listeners must not start with cog_ or bot_ (in method {0.__name__}.{1})"
 
         new_cls = super().__new__(cls, name, bases, attrs, **kwargs)
@@ -65,24 +67,19 @@ class CogMeta(DPYCogMeta):
                     else:
                         raise TypeError("Command in method {0}.{1!r} must be a setting!".format(base, elem))
                 elif inspect.iscoroutinefunction(value):
-                    try:
-                        getattr(value, "__cog_listener__")
-                    except AttributeError:
-                        continue
-                    else:
-                        if hasattr(value, "__setting__"):
-                            if elem.startswith(('cog_', 'bot_')):
-                                raise TypeError(no_bot_cog.format(base, elem))
+                    if hasattr(value, "__cog_listener__"):
+                        if elem.startswith(('cog_', 'bot_')):
+                            raise TypeError(no_bot_cog.format(base, elem))
 
-                            listeners[elem] = value
+                        listeners[elem] = value
+                        if hasattr(value, "__setting__"):
                             settings.add(value.__setting__)
-                        else:
-                            raise TypeError("Listener in method {0}.{1!r} must be a setting!".format(base, elem))
 
         new_cls.__settings__ = list(settings)
         new_cls.__discord_commands__ = list(discord_commands.values())
         new_cls.__mc_commands__ = list(mc_commands.values())
         new_cls.__cog_commands__ = list({**discord_commands, **mc_commands}.values())
+        new_cls.__sanic_blueprint__ = blueprint
 
         listeners_list = []
         for listener in listeners.values():
@@ -106,7 +103,6 @@ class Cog(DPYCog, metaclass=CogMeta):
         cmd_attrs = cls.__cog_settings__
 
         self.__discord_commands__ = tuple(c._update_copy(cmd_attrs) for c in cls.__discord_commands__)
-
         lookup = {
             cmd.qualified_name: cmd
             for cmd in self.__discord_commands__
@@ -184,6 +180,8 @@ class Cog(DPYCog, metaclass=CogMeta):
         self._bot = bot
         self._plugin = bot.processing_plugin
 
+        self._plugin.blueprint_group.blueprints.append(self.__sanic_blueprint__)
+
         bot.settings_manager.add_settings(bot.processing_plugin.meta.repr_name, self.__settings__)
 
         for index, command in enumerate(self.__discord_commands__):
@@ -223,7 +221,13 @@ class Cog(DPYCog, metaclass=CogMeta):
             bot.add_check(self.bot_check_once, call_once=True)
 
         for name, type_, method_name in self.__cog_listeners__:
-            if getattr(self, method_name).__setting__.enabled:
+            try:
+                if getattr(self, method_name).__setting__.enabled:
+                    if type_ == Cog.ListenerTypes.DISCORD:
+                        bot.add_listener(getattr(self, method_name), name)
+                    else:
+                        bot.add_server_listener(getattr(self, method_name), name)
+            except AttributeError:
                 if type_ == Cog.ListenerTypes.DISCORD:
                     bot.add_listener(getattr(self, method_name), name)
                 else:

@@ -33,7 +33,7 @@ class Plugin:
         self.meta = _PluginMeta(self.path, **getattr(self.module, "__plugin_meta__"))
         self.authors = self.meta.authors
         self.description = self.meta.description
-        self.blueprint = Blueprint(name=self.meta.name, url_prefix=f"/{self.meta.name}")
+        self.blueprint_group: Blueprint.group = Blueprint.group(url_prefix=f"/{self.meta.repr_name}")
 
 class PluginManager:
     def __init__(self, bot: LiteBot):
