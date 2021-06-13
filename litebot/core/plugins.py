@@ -27,9 +27,9 @@ class _PluginMeta:
         }
 
 class Plugin:
-    def __init__(self, module):
+    def __init__(self, path, module):
         self.module = module
-        self.path = module.__package__
+        self.path = path
         self.meta = _PluginMeta(self.path, **getattr(self.module, "__plugin_meta__"))
         self.authors = self.meta.authors
         self.description = self.meta.description
@@ -38,7 +38,6 @@ class Plugin:
 class PluginManager:
     def __init__(self, bot: LiteBot):
         self._bot = bot
-        self._plugin_paths = self._bot.config["plugins"]
         self._all_plugins = self._init_plugins()
 
     def _init_plugins(self):
@@ -50,15 +49,17 @@ class PluginManager:
                 if re.match(".*__.*__", path):
                     continue
 
+
                 try:
                     module = importlib.import_module(f"plugins.{path}")
                 except ModuleNotFoundError:
                     continue
 
                 if hasattr(module, "__plugin_meta__") and hasattr(module, "setup"):
-                    plugin = Plugin(module)
+                    plugin = Plugin(f"plugins.{path}",module)
                     plugins[plugin.meta.id] = plugin
 
+        print(plugins)
         return plugins
 
     def load_plugins(self):

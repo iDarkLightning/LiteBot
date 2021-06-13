@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from discord import Embed
-
 from litebot.utils.enums import ModeratorActions
 
 RED = 0xFF0000
@@ -11,35 +10,35 @@ INFO_COLOR = 0x9696FA
 
 class ErrorEmbed(Embed):
     """
-    An embed preset for errors
+    An _embed preset for errors
     """
     def __init__(self, msg: str, traceback = None, **kwargs) -> None:
         super().__init__(title=msg, color=RED, **kwargs)
 
 class WarningEmbed(Embed):
     """
-    An embed preset for warnings
+    An _embed preset for warnings
     """
     def __init__(self, msg: str, **kwargs) -> None:
         super().__init__(title=msg, color=YELLOW, **kwargs)
 
 class SuccessEmbed(Embed):
     """
-    An embed preset for success messages
+    An _embed preset for success messages
     """
     def __init__(self, msg: str, **kwargs) -> None:
         super().__init__(title=msg, color=GREEN, **kwargs)
 
 class InfoEmbed(Embed):
     """
-    An embed preset for information
+    An _embed preset for information
     """
     def __init__(self, msg: str, **kwargs) -> None:
         super().__init__(title=msg, color=INFO_COLOR, **kwargs)
 
 class ModeratorLogEmbed(InfoEmbed):
     """
-    An embed preset for moderator actions
+    An _embed preset for moderator actions
     """
     def __init__(self, action: ModeratorActions, reason, executer, victim, **kwargs):
         if action == ModeratorActions.KICK:

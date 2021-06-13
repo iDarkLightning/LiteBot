@@ -14,6 +14,7 @@ class SettingTypes(Enum):
 
 class Setting:
     def __init__(self, callback: Callable, **kwargs):
+        self.cog = None
         self.plugin = None
         self.__callback = callback
         
@@ -22,8 +23,8 @@ class Setting:
         except KeyError:
             raise KeyError("Setting must provide a name!")
 
-        self._type = kwargs.get("type", SettingTypes.MISC)
-        self.__description = kwargs.get("description", "This setting does not have a description!")
+        self.type = kwargs.get("type", SettingTypes.MISC)
+        self.__description = kwargs.get("description", "This _setting does not have a description!")
         self.__config = kwargs.get("config", {})
         self.__enabled = False
         self.__id_checks = []
@@ -39,7 +40,7 @@ class Setting:
 
     @property
     def id_checks(self):
-        if self._type != SettingTypes.DISC_COMMAND:
+        if self.type != SettingTypes.DISC_COMMAND:
             raise TypeError("ID Checks are only available for discord commands!")
         return self.__id_checks
 
@@ -49,7 +50,7 @@ class Setting:
 
     @property
     def op_level(self):
-        if self._type != SettingTypes.MC_COMMAND:
+        if self.type != SettingTypes.MC_COMMAND:
             raise TypeError("OP Level is only available for minecraft commands!")
         return self.__op_level
 
@@ -87,9 +88,9 @@ class Setting:
         if self.__config:
             serialized["config"] = self.__config
 
-        if self._type == SettingTypes.DISC_COMMAND:
+        if self.type == SettingTypes.DISC_COMMAND:
             serialized["id_checks"] = []
-        elif self._type == SettingTypes.MC_COMMAND:
+        elif self.type == SettingTypes.MC_COMMAND:
             serialized["op_level"] = 0
 
         return serialized
@@ -97,22 +98,39 @@ class Setting:
 class SettingsManager:
     def __init__(self):
         self.__settings_file = SettingsConfig()
-        self._settings = {}
+        self.settings = {}
 
     def setting_enabled(self, name):
-        setting_: Setting = self._settings[name]
+        setting_: Setting = self.settings[name]
         return self.__settings_file[setting_.plugin]["settings"][setting_.name]["enabled"]
 
     def setting_enabled_(self, setting_: Setting):
         return self.__settings_file[setting_.plugin]["settings"][setting_.name]["enabled"]
 
     def disabled_settings(self):
-        return [s for s in list(set(self._settings.values())) if not self.setting_enabled(s.name)]
+        return [s for s in list(set(self.settings.values())) if not self.setting_enabled(s.name)]
 
-    def add_settings(self, plugin_name: str, settings: list[Setting]):
+    def update_setting(self, setting):
+        file_vals = self.__settings_file[setting.plugin.meta.repr_name]["settings"][setting.name]
+        file_vals["enabled"] = setting.enabled
+
+        if "id_checks" in file_vals:
+            file_vals["id_checks"] = setting.id_checks
+        elif "op_level" in file_vals:
+            file_vals["op_level"] = setting.op_level
+
+        if setting.config:
+            file_vals["config"] = setting.config
+
+        self.__settings_file.save()
+
+    def add_settings(self, cog, plugin, settings: list[Setting]):
         for setting in settings:
-            self._settings[setting.name] = setting
-            setting.plugin = plugin_name
+            self.settings[setting.name] = setting
+            setting.cog = cog
+            setting.plugin = plugin
+
+            plugin_name = plugin.meta.repr_name
 
             if setting.name not in self.__settings_file[plugin_name]["settings"].keys():
                 self.__settings_file[plugin_name]["settings"][setting.name] = setting.serialize()

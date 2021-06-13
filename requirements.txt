@@ -77,6 +77,10 @@ chardet==4.0.0 \
     # via
     #   aiohttp
     #   requests
+discord-components==0.5.3 \
+    --hash=sha256:3c8ef54b0de6519e593b260f03e8032586a2226d69721a9004fb2ebacd41fb73 \
+    --hash=sha256:96171cb1956988bdd50d89ca9ec0135ecb3340b5f5255251141e7d28c14860ec
+    # via -r requirements.in
 https://github.com/Rapptz/discord-ext-menus/archive/309c70222eec33acacb8c21bbb0fbe9bc57de661.tar.gz#egg=discord-ext-menus \
     --hash=sha256:a91444776e05cabe91425a058554571a6393f1b8ecaf34b7fc44a7712bcf931e
     # via -r requirements.in
@@ -85,6 +89,7 @@ discord.py==1.7.2 \
     --hash=sha256:f179db299c949a8cf0a12c1b1b94d0da9a18e088857154d93ae5ab1d807ec61d
     # via
     #   -r requirements.in
+    #   discord-components
     #   discord-ext-menus
 httptools==0.2.0 \
     --hash=sha256:01b392a166adcc8bc2f526a939a8aabf89fe079243e1543fd0e7dc1b58d737cb \

@@ -6,7 +6,7 @@ class Application(Document):
     Used by the application module.
     `name` The name of the applicant
     `confirmation_message` The message that was used to verify the applicant's creation
-    `application_embeds` The embeds for the application
+    `application_embeds` The _embeds for the application
     `ticket_id` The ID for the created ticket channel
     """
     name = StringField()

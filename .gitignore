@@ -10,4 +10,5 @@ env
 /config
 creds.json
 /plugins/*
+!/plugins/system
 !/plugins/standard

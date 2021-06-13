@@ -30,7 +30,7 @@ def _message_to_dict(message: Message):
         "content": message.content,
         "created_at": message.created_at,
         "created_at_str": message.created_at.strftime("%d/%m/%y"),
-        "embeds": [e.to_dict() for e in message.embeds],
+        "_embeds": [e.to_dict() for e in message.embeds],
         "id": message.id,
         "jump_url": message.jump_url
     }

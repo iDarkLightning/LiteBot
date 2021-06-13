@@ -12,7 +12,7 @@ class JSONConverter(commands.Converter):
     '{"key": "value"}' -> {key: value}
     '[1, 2, 3]' -> [1, 2]
     """
-    async def convert(self, ctx: commands.Cog, argument: str) -> Union[int, bool, str]:
+    async def convert(self, ctx: commands.Context, argument: str) -> Union[int, bool, str]:
         if argument.isnumeric():
             return int(argument)
         elif argument.lower() == "true":
@@ -22,5 +22,5 @@ class JSONConverter(commands.Converter):
 
         try:
             return literal_eval(argument)
-        except SyntaxError:
+        except (SyntaxError, ValueError):
             return argument

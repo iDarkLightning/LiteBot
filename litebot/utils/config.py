@@ -77,7 +77,6 @@ class MainConfig(BaseConfig):
         "prefixes": [],
         "main_guild_id": 0,
         "log_channel_id": 0,
-        "plugins": [],
         "api_secret": "API SECRET",
         "servers": {
             "name": {

@@ -17,7 +17,7 @@ async def _validate_jwt(request: Request) -> None:
     """
     Middleware to validate JWT in user's query params
     Tries to get the server provided in the token payload,
-    and sets it in request.ctx.server.
+    and sets it in request._ctx.server.
 
     Example Token Payload
     ----------------------

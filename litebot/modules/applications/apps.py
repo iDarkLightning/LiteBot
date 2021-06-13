@@ -169,13 +169,13 @@ class Applications(Cog):
 
     def _generate_embeds(self, name: str, application: dict[str, str]) -> List[embeds.InfoEmbed]:
         """
-        Generates a list of embeds for the application.
-        Creates the amount of embeds necessary in order to ensure that EMBED_FIELD_MAX isn't surpassed
+        Generates a list of _embeds for the application.
+        Creates the amount of _embeds necessary in order to ensure that EMBED_FIELD_MAX isn't surpassed
         :param name: The name of the applicant
         :type name: str
         :param application: The application
         :type application: dict[str, str]
-        :return: A list of embeds
+        :return: A list of _embeds
         :rtype: List[embeds.InfoEmbed]
         """
         embed_list = []
@@ -191,12 +191,12 @@ class Applications(Cog):
 
     def _generate_embed(self, name: str, application: dict[str, str]) -> embeds.InfoEmbed:
         """
-        Generates a singular embed, and ensures that FIELD_CHAR_MAX isn't surpassed for any field.
+        Generates a singular _embed, and ensures that FIELD_CHAR_MAX isn't surpassed for any field.
         :param name: The applicant's name
         :type name: str
         :param application: The user's application
         :type application: dict[str, str]
-        :return: The generated embed
+        :return: The generated _embed
         :rtype: embeds.InfoEmbed
         """
         new_embed = embeds.InfoEmbed(f"{name.split('#')[0]} Application")

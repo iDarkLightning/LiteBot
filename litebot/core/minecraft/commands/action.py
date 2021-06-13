@@ -121,11 +121,11 @@ class ServerCommand(ServerAction):
         Example
         --------
             @command(name="command")
-            async def _command(ctx):
+            async def _command(_ctx):
                 pass
 
             @_command.sub(name="sub)
-            async def _command_sub(ctx):
+            async def _command_sub(_ctx):
                 pass
 
         :param kwargs: The additional arguments when registering the command
@@ -212,13 +212,13 @@ def command(**kwargs) -> Callable:
     .. code-block :: python3
         # Note that if `name` overrides the function name, which will be the default name
         @command(name="test")
-        async def command(ctx, arg1):
+        async def command(_ctx, arg1):
             ``` (docstring)
             This will be the help message for the command
             ```
             print("Hi There!!!")
 
-            await ctx.send("We executed the command!")
+            await _ctx.send("We executed the command!")
 
     :param kwargs: The additional arguments when registering the command
     :type kwargs: str
@@ -245,7 +245,7 @@ def event(**kwargs) -> Callable:
     .. code-block :: python3
         # Note that if `name` overrides the function name, which will be the default name
         @event(name="test")
-        async def command(ctx, arg1):
+        async def command(_ctx, arg1):
             print("Hi There!!!")
 
 

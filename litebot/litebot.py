@@ -17,11 +17,10 @@ from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
 from litebot.core.plugins import PluginManager, Plugin
 from litebot.core.settings import SettingsManager
 from litebot.server import APP_NAME, SERVER_HOST, SERVER_PORT, add_routes
-from litebot.utils.config import MainConfig, ModuleConfig
+from litebot.utils.config import MainConfig
 from litebot.utils.logging import get_logger, set_logger, set_access_logger
 from litebot.core.minecraft.server import MinecraftServer, ServerContainer
 from litebot.modules.system.help_command import HelpCommand
-from litebot.utils.misc import Toggleable
 
 class GroupMixin(commands.GroupMixin):
     def __init__(self):
@@ -51,7 +50,6 @@ class LiteBot(GroupMixin, commands.Bot):
 
     def __init__(self):
         self.config = MainConfig()
-        self.module_config = ModuleConfig()
         self.plugin_manager = PluginManager(self)
         self.settings_manager = SettingsManager()
 
@@ -68,16 +66,17 @@ class LiteBot(GroupMixin, commands.Bot):
         self.logger.info("Connected to Mongo Database")
 
         self.processing_plugin = None
-        self._initialising = Toggleable()
-        self.servers = ServerContainer()
 
         self.using_lta = bool(os.environ.get("USING_LTA"))
         self._server = Sanic(APP_NAME)
-        self._init_servers()
+        self.servers = self._init_servers()
+
 
     def _init_servers(self):
+        container = ServerContainer()
         for server in self.config["servers"]:
-            self.servers.append(MinecraftServer(server, self, **self.config["servers"][server]))
+            container.append(MinecraftServer(server, self, **self.config["servers"][server]))
+        return container
 
     def start_server(self):
         CORS(self._server)

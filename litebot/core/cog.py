@@ -18,6 +18,7 @@ class CogMeta(DPYCogMeta):
         name, bases, attrs = args
         attrs["__cog_name__"] = kwargs.pop("name", name)
         attrs["__cog_settings__"] = kwargs.pop("command_attrs", {})
+        attrs["__cog_required__"] = kwargs.pop("required", False)
 
         description = kwargs.pop("description", None)
         if description is None:
@@ -46,15 +47,16 @@ class CogMeta(DPYCogMeta):
                     value = value.__func__
                 if isinstance(value, Command):
                     command = value.root_parent if value.root_parent else value
-                    if hasattr(command.callback, "__setting__"):
+                    if hasattr(command.callback, "__setting__") or new_cls.__cog_required__:
                         if is_static_meth:
                             raise TypeError("Command in method {0}.{1!r} must not be staticmethod.".format(base, elem))
                         if elem.startswith(("cog_", "bot_")):
                             raise TypeError(no_bot_cog.format(base, elem))
                         discord_commands[elem] = value
-                        settings.add(command.callback.__setting__)
+                        if hasattr(command.callback, "__setting__"):
+                            settings.add(command.callback.__setting__)
                     else:
-                        raise TypeError("Command in method {0}.{1!r} must be a setting!".format(base, elem))
+                        raise TypeError("Command in method {0}.{1!r} must be a _setting!".format(base, elem))
                 elif isinstance(value, ServerCommand):
                     command = value.root_parent
                     if hasattr(command, "__setting__"):
@@ -65,7 +67,7 @@ class CogMeta(DPYCogMeta):
                         mc_commands[elem] = value
                         settings.add(command.__setting__)
                     else:
-                        raise TypeError("Command in method {0}.{1!r} must be a setting!".format(base, elem))
+                        raise TypeError("Command in method {0}.{1!r} must be a _setting!".format(base, elem))
                 elif inspect.iscoroutinefunction(value):
                     if hasattr(value, "__cog_listener__"):
                         if elem.startswith(('cog_', 'bot_')):
@@ -92,6 +94,10 @@ class CogMeta(DPYCogMeta):
 class Cog(DPYCog, metaclass=CogMeta):
     # This method is pretty much word for word copy pasted from `DPYCog.__new__` but changed to reflect the change
     # between __discord_commands__ and __mc_commands__
+
+    __cog_name__: str
+    __cog_description__: str
+    __cog_required__: bool
 
     class ListenerTypes:
         DISCORD = "discord"
@@ -175,6 +181,10 @@ class Cog(DPYCog, metaclass=CogMeta):
             return func
         return decorator
 
+    def reload(self, bot):
+        self._eject(bot)
+        self._inject(bot)
+
     def _inject(self, bot: LiteBot):
         cls = self.__class__
         self._bot = bot
@@ -182,7 +192,8 @@ class Cog(DPYCog, metaclass=CogMeta):
 
         self._plugin.blueprint_group.blueprints.append(self.__sanic_blueprint__)
 
-        bot.settings_manager.add_settings(bot.processing_plugin.meta.repr_name, self.__settings__)
+        if not self.__cog_required__:
+            bot.settings_manager.add_settings(self, bot.processing_plugin, self.__settings__)
 
         for index, command in enumerate(self.__discord_commands__):
             command.cog = self
@@ -203,6 +214,8 @@ class Cog(DPYCog, metaclass=CogMeta):
 
                         command.add_check(id_checks)
                         bot.add_command(command)
+                except AttributeError:
+                    bot.add_command(command)
                 except Exception as e:
                     for to_undo in self.__discord_commands__[:index]:
                         if to_undo.parent is None:
@@ -262,3 +275,5 @@ class Cog(DPYCog, metaclass=CogMeta):
                 self.cog_unload()
             except Exception:
                 pass
+
+        return self

@@ -116,7 +116,7 @@ class ModuleCommand(Cog):
     async def _config_set(self, ctx: commands.Context, module: str, key: str, *, value: JSONConverter) -> None:
         """
         This command allows you to set a specific key to a value in the module's config.
-        `module` The module that you are setting the config for
+        `module` The module that you are _setting the config for
         `key` The key to set in the config
         `value` The value to set the key to
         """

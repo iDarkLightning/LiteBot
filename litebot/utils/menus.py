@@ -86,9 +86,9 @@ class CodeBlockMenu(menus.Menu):
 
 class DescriptionMenu(menus.Menu):
     """
-    A reaction based menu to ask for switch between the given strings in the embed description.
+    A reaction based menu to ask for switch between the given strings in the _embed description.
     Do not manually call any of the methods.
-    All the given strings will be inserted into the embed description text.
+    All the given strings will be inserted into the _embed description text.
     """
     def __init__(self, msgs: List[str], title: str) -> None:
         super().__init__(timeout=MENU_TIMEOUT, clear_reactions_after=True)
