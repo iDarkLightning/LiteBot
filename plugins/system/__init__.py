@@ -5,7 +5,8 @@ __plugin_meta__ = {
 }
 
 from plugins.system.settings.settings import Settings
-
+from plugins.system.admin import AdminCommands
 
 def setup(bot):
     bot.add_cog(Settings())
+    bot.add_cog(AdminCommands())

@@ -56,4 +56,4 @@ def pretty_json_code(dict_: dict) -> str:
     :rtype: dict
     """
 
-    return CODE_BLOCK.format("json", {json.dumps(dict_, indent=4)})
+    return CODE_BLOCK.format("json", json.dumps(dict_, indent=4))

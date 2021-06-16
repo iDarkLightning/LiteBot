@@ -20,7 +20,8 @@ from litebot.server import APP_NAME, SERVER_HOST, SERVER_PORT, add_routes
 from litebot.utils.config import MainConfig
 from litebot.utils.logging import get_logger, set_logger, set_access_logger
 from litebot.core.minecraft.server import MinecraftServer, ServerContainer
-from litebot.modules.system.help_command import HelpCommand
+from plugins.system.help_command import HelpCommand
+
 
 class GroupMixin(commands.GroupMixin):
     def __init__(self):
@@ -135,3 +136,4 @@ class LiteBot(GroupMixin, commands.Bot):
 
     def __repr__(self):
         return f"LiteBot: Version: {LiteBot.VERSION}"
+

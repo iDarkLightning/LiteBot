@@ -19,7 +19,7 @@ class QueryResponse:
             return len(self.names)
 
         def __repr__(self):
-            return str(self.names)
+            return ", ".join(self.names)
 
     def __init__(self, **data):
         if not data["status"]:

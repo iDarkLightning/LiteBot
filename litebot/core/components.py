@@ -55,7 +55,7 @@ class DiscordComponents(DCDiscordComponents):
         rescomponent = []
 
         if data["message"]:
-            for component in data["message"]._components:
+            for component in data["message"].components:
                 if isinstance(component, Select):
                     for option in component.options:
                         if option.value in data["values"]:

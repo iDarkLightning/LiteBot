@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from functools import cached_property
 
 from typing import Optional, Tuple, TYPE_CHECKING
 from discord import TextChannel
 from discord.errors import NotFound
 from pathlib import Path
-from socket import timeout, gethostbyaddr, gaierror
+from socket import timeout, gethostbyaddr, gaierror, herror, gethostbyname
 
 from websockets import WebSocketCommonProtocol
 
@@ -35,7 +36,7 @@ class ServerContainer:
         self._list = []
 
     @property
-    def all(self):
+    def all(self) -> list[MinecraftServer]:
         return self._list
 
     def append(self, item):
@@ -69,10 +70,15 @@ class MinecraftServer:
         self.bridge_channel_id = info["bridge_channel_id"]
         self._addr = info["numerical_server_ip"]
         self._port = info["server_port"]
-        self._rcon = ServerRcon(self._addr, info["rcon_password"], info["rcon_port"])
+        self._rcon = ServerRcon(self.bot_instance.loop, self._addr, info["rcon_password"], info["rcon_port"])
 
         if self.bot_instance.using_lta:
             self._connection: Optional[WebSocketCommonProtocol] = None
+
+        try:
+            self._has_valid_addr = bool(gethostbyname(self._addr))
+        except gaierror:
+            self._has_valid_addr = False
 
     @property
     def server_dir(self) -> Optional[str]:
@@ -124,13 +130,6 @@ class MinecraftServer:
     def connected(self):
         return bool(self._connection) and self._connection.open
 
-    @property
-    def _has_valid_addr(self) -> bool:
-        try:
-            return bool(gethostbyaddr(self._addr))
-        except gaierror:
-            return False
-
     async def connect(self, socket: WebSocketCommonProtocol):
         """
         Connects to the server via a websocket connection
@@ -162,14 +161,14 @@ class MinecraftServer:
         except Exception:
             return QueryResponse(status=False)
 
-    def tps(self) -> Tuple[float, float]:
+    async def tps(self) -> Tuple[float, float]:
         """
         Get's the server's TPS and MSPT.
         The result is the average of the past 100 ticks
         :return: The server's TPS and MSPT
         :rtype: Tuple[float, float]
         """
-        res = self.send_command(TPS_COMMAND)
+        res = await self.send_command(TPS_COMMAND)
         try:
             float(res.split()[1])
         except ValueError:
@@ -189,7 +188,7 @@ class MinecraftServer:
 
         while server_online:
             try:
-                self.send_command("stop")
+                await self.send_command("stop")
                 server_online= self.status().online
                 await asyncio.sleep(2)
             except ServerConnectionFailed:
@@ -238,7 +237,6 @@ class MinecraftServer:
         """
         command = self.bot_instance.server_commands[data["name"]]
         ctx = command.create_context(self, self.bot_instance, data)
-
 
         try:
             await ctx.invoke()
@@ -293,7 +291,7 @@ class MinecraftServer:
             "commandData": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent]
         }))
 
-    def send_command(self, command: str) -> Optional[str]:
+    async def send_command(self, command: str) -> Optional[str]:
         """
         Executes a command on the server
         :param command: The command to send to the server
@@ -306,14 +304,36 @@ class MinecraftServer:
             raise ServerConnectionFailed
 
         try:
-            self._rcon.connect()
+            await self._rcon.connect()
         except Exception:
             raise ServerConnectionFailed
 
-        resp = self._rcon.command(command)
-
+        resp = await self._rcon.command(command)
         if resp:
             return resp
+
+    def send_sync_command(self, command: str) -> Optional[str]:
+        """
+        Synchronously executes a command on the server
+        This should not be used in 99% of situations, see `meth:send_command()`
+        :param command: The command to send to the server
+        :type command: str
+        :return: The server's response to the command
+        :rtype: str
+        :raises: ServerConnectionFailed
+        """
+        if not self._has_valid_addr:
+            raise ServerConnectionFailed
+
+        try:
+            self._rcon.sync_connect()
+        except:
+            raise ServerConnectionFailed
+
+        resp = self._rcon.sync_command(command)
+        if resp:
+            return resp
+
 
     async def send_message(self, text, op_only: bool = False, player: Player = None) -> None:
         """

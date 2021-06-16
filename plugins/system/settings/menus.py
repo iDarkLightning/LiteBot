@@ -93,6 +93,7 @@ class SettingsMenu:
     async def _next(self):
         self._idx += 1
         self._cur = self._embeds[self._idx]
+        self._ctx.bot.processing_plugin = self._cur.setting.plugin
         components = self._get_buttons()
 
         await self._message.edit(embed=self._cur, components=[components])
@@ -101,6 +102,7 @@ class SettingsMenu:
         self._idx -= 1
         self._cur = self._embeds[self._idx]
         components = self._get_buttons()
+        self._ctx.bot.processing_plugin = self._cur.setting.plugin
 
         await self._message.edit(embed=self._cur, components=[components])
 
@@ -186,9 +188,8 @@ class ConfigMenu:
                 await interaction.respond(type=InteractionType.DeferredUpdateMessage)
                 break
 
-            await self._timer.pause()
-            await getattr(self, f"_{interaction_type}", lambda i: None)(interaction)
-            await self._timer.resume()
+            with self._timer:
+                await getattr(self, f"_{interaction_type}", lambda i: None)(interaction)
 
     async def _add_id_check(self, interaction: Interaction):
         await interaction.respond(content="Enter the Role/Member ID you would like to add: ")

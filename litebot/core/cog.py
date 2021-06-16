@@ -4,6 +4,7 @@ import inspect
 from typing import TYPE_CHECKING
 
 from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command, Context
+from discord.ext.commands.cog import _cog_special_method
 from discord.ext.commands._types import _BaseCommand
 from sanic import Blueprint
 
@@ -131,6 +132,10 @@ class Cog(DPYCog, metaclass=CogMeta):
     def get_listeners(self):
         return [(name, getattr(self, method_name), type_) for name, type_, method_name in self.__cog_listeners__]
 
+    @_cog_special_method
+    def cog_requirements(self, bot):
+        pass
+
     @classmethod
     def listener(cls, type, name=None):
         if name is not None and not isinstance(name, str):
@@ -189,6 +194,9 @@ class Cog(DPYCog, metaclass=CogMeta):
         cls = self.__class__
         self._bot = bot
         self._plugin = bot.processing_plugin
+
+        if not self.cog_requirements(bot):
+            return self
 
         self._plugin.blueprint_group.blueprints.append(self.__sanic_blueprint__)
 
@@ -261,7 +269,7 @@ class Cog(DPYCog, metaclass=CogMeta):
 
             for name, type_, meth_name in self.__cog_listeners__:
                 if type_ == Cog.ListenerTypes.DISCORD:
-                    bot.remove_listener(getattr(self, meth_name))
+                    bot.remove_listener(getattr(self, meth_name), name)
                 else:
                     bot.remove_server_listener(getattr(self, meth_name), name)
 

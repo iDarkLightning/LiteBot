@@ -59,7 +59,6 @@ class PluginManager:
                     plugin = Plugin(f"plugins.{path}",module)
                     plugins[plugin.meta.id] = plugin
 
-        print(plugins)
         return plugins
 
     def load_plugins(self):
