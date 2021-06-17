@@ -7,6 +7,7 @@ from sanic.response import BaseHTTPResponse
 from litebot.server.middlewares.jwt import validate_jwt_query
 from litebot.errors import ServerNotFound
 from litebot.core.minecraft import MinecraftServer
+from plugins.standard.backups.utils import convert_backup_path
 
 blueprint = Blueprint("backups", url_prefix="/backups")
 
@@ -57,13 +58,7 @@ async def download_backup(request: Request, backup_name: str) -> BaseHTTPRespons
     """
 
     server: MinecraftServer = request.ctx.server
-
-    backup_path = None
-
-    for root, dirs, files in os.walk(server.backup_dir):
-        for file in files:
-            if file == backup_name:
-                backup_path = os.path.join(root, file)
+    backup_path = convert_backup_path(backup_name, server)
 
     if os.path.exists(backup_path):
         return await response.file(backup_path)

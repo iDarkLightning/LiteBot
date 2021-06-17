@@ -75,6 +75,10 @@ class SettingsMenu:
         components = self._get_buttons()
 
         self._cur.set_field_at(0, name="Enabled", value="True", inline=False)
+
+        for server in self._ctx.bot.servers:
+            await server.send_command_tree()
+
         await self._message.edit(embed=self._cur, components=[components])
 
     async def _disable(self):
@@ -88,6 +92,10 @@ class SettingsMenu:
         components = self._get_buttons()
 
         self._cur.set_field_at(0, name="Enabled", value="False", inline=False)
+
+        for server in self._ctx.bot.servers:
+            await server.send_command_tree()
+
         await self._message.edit(embed=self._cur, components=[components])
 
     async def _next(self):

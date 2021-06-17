@@ -42,6 +42,12 @@ class ServerContainer:
     def append(self, item):
         self._list.append(item)
 
+    def get_server(self, ctx, name):
+        if name:
+            return self[name]
+        else:
+            return self[ctx.channel.id]
+
     def __getitem__(self, item):
         if isinstance(item, str):
             server = list(filter(lambda s: s.name == item, self._list))

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command, Context
 from discord.ext.commands.cog import _cog_special_method
 from discord.ext.commands._types import _BaseCommand
+from discord.ext.tasks import Loop
 from sanic import Blueprint
 
 from litebot.core.minecraft.commands.action import ServerAction, ServerCommand
@@ -65,6 +66,7 @@ class CogMeta(DPYCogMeta):
                             raise TypeError("Command in method {0}.{1!r} must not be staticmethod.".format(base, elem))
                         if elem.startswith(("cog_", "bot_")):
                             raise TypeError(no_bot_cog.format(base, elem))
+                        value.__setting__ = command.__setting__
                         mc_commands[elem] = value
                         settings.add(command.__setting__)
                     else:
@@ -134,7 +136,7 @@ class Cog(DPYCog, metaclass=CogMeta):
 
     @_cog_special_method
     def cog_requirements(self, bot):
-        pass
+        return True
 
     @classmethod
     def listener(cls, type, name=None):

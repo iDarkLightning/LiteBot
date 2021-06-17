@@ -69,7 +69,7 @@ class LiteBot(GroupMixin, commands.Bot):
         self.processing_plugin = None
 
         self.using_lta = bool(os.environ.get("USING_LTA"))
-        self._server = Sanic(APP_NAME)
+        self.__server = Sanic(APP_NAME)
         self.servers = self._init_servers()
 
 
@@ -80,7 +80,7 @@ class LiteBot(GroupMixin, commands.Bot):
         return container
 
     def start_server(self):
-        CORS(self._server)
+        CORS(self.__server)
 
         # A stupid hackfix that I have to do to make the logging work appropriately
         # I don't like it, but I don't see a better way to achieve this
@@ -88,26 +88,24 @@ class LiteBot(GroupMixin, commands.Bot):
         set_logger(logger)
         set_access_logger(access_logger)
 
-        self._server.config.FALLBACK_ERROR_FORMAT = "json"
-        self._server.config.BOT_INSTANCE = self
+        self.__server.config.FALLBACK_ERROR_FORMAT = "json"
+        self.__server.config.BOT_INSTANCE = self
         # This is set so that we can properly generate URLs to our server
         self.config.SERVER_NAME = os.environ.get("SERVER_NAME")
 
-        add_routes(self._server)
+        add_routes(self.__server)
 
-        coro = self._server.create_server(host=SERVER_HOST, port=SERVER_PORT, return_asyncio_server=True,
+        coro = self.__server.create_server(host=SERVER_HOST, port=SERVER_PORT, return_asyncio_server=True,
                                           access_log=False)
         self.loop.create_task(coro)
-
-    def add_blueprint(self, blueprint: Blueprint):
-        blueprint.url_prefix = f"/{self.processing_plugin.meta.repr_name}/{blueprint.url_prefix}" if blueprint\
-            .url_prefix else f"/{self.processing_plugin.meta.repr_name}"
-
-        self._server.blueprint(blueprint)
 
     @property
     def log_channel(self) -> discord.TextChannel:
         return self.get_channel(self.config["log_channel_id"])
+
+    @property
+    def server(self):
+        return self.__server
 
     async def guild(self) -> discord.Guild:
         await self.wait_until_ready()

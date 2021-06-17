@@ -22,24 +22,6 @@ def check_role(member: discord.Member, role_ids: List[int]) -> bool:
     """
     return any(role in [get(member.guild.roles, id=role) for role in role_ids] for role in member.roles)
 
-
-def creation_time(path: str) -> Union[float, int]:
-    """
-    Get's the creation time of a file from its path
-    :param path: The path to the file
-    :type path: str
-    :return: The creation time
-    :rtype: Union[float, int]
-    """
-    if platform.system() == "Windows":
-        return os.path.getctime(path)
-    else:
-        stat = os.stat(path)
-        try:
-            return stat.st_birthtime
-        except AttributeError:
-            return stat.st_mtime
-
 async def is_image(url: str) -> bool:
     """
     Check's if a url is to an image

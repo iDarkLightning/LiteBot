@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import os
+
 from sanic import Sanic
 from .routes import ROUTES
 
 APP_NAME = "LiteBot-API"
 SERVER_HOST = "0.0.0.0"
-SERVER_PORT = 8080
+SERVER_PORT = os.environ.get("SERVER_PORT")
+SERVER_DOMAIN = os.environ.get("SERVER_DOMAIN")
 
 def add_routes(app: Sanic) -> None:
     """

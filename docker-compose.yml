@@ -11,7 +11,7 @@ services:
     env_file:
       - .env
     ports:
-      - ${SERVER_PORT}:8080
+    - ${SERVER_PORT}:${SERVER_PORT}
   mongo:
     image: mongo
     volumes:
@@ -36,6 +36,5 @@ services:
       - mongo
     logging:
       driver: none
-
 volumes:
   mongo_data:

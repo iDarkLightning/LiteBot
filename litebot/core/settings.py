@@ -10,6 +10,7 @@ class SettingTypes(Enum):
     DISC_COMMAND = "DISC_COMMAND_SETTING"
     MC_COMMAND = "MC_COMMAND_SETTING"
     EVENT = "EVENT_SETTING"
+    TASK = "TASK"
     MISC = "MISC_SETTING"
 
 class Setting:

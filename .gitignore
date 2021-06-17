@@ -12,3 +12,4 @@ creds.json
 /plugins/*
 !/plugins/system
 !/plugins/standard
+volume-config.yml
