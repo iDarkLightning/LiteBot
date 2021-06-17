@@ -7,4 +7,3 @@ https://github.com/Rapptz/discord-ext-menus/archive/309c70222eec33acacb8c21bbb0f
 pillow~=8.0.1
 pytz~=2020.4
 mongoengine~=0.23.0
-asyncpraw~=7.2.0

@@ -6,11 +6,10 @@ from typing import TYPE_CHECKING
 from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command, Context
 from discord.ext.commands.cog import _cog_special_method
 from discord.ext.commands._types import _BaseCommand
-from discord.ext.tasks import Loop
 from sanic import Blueprint
 
-from litebot.core.minecraft.commands.action import ServerAction, ServerCommand
-from litebot.core.settings import Setting, SettingsManager, SettingTypes
+from litebot.core.minecraft.commands.action import ServerCommand
+from litebot.core.settings import Setting, SettingTypes
 
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
@@ -184,7 +183,7 @@ class Cog(DPYCog, metaclass=CogMeta):
                 kwargs["type"] = SettingTypes.EVENT
                 func.__setting__ = Setting(func, **kwargs)
             else:
-                raise TypeError("Setting must be a discord/mc command or a listener!")
+                raise TypeError("Setting must be a discord/mc command, a listener, or a Loop!")
             return func
         return decorator
 

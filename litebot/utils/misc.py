@@ -22,16 +22,7 @@ def check_role(member: discord.Member, role_ids: List[int]) -> bool:
     """
     return any(role in [get(member.guild.roles, id=role) for role in role_ids] for role in member.roles)
 
-async def is_image(url: str) -> bool:
-    """
-    Check's if a url is to an image
-    :param url: The url to check
-    :type url: str
-    :return: Whether or not the URL is an image
-    :rtype: bool
-    """
-    res = await requests.fetch(url)
-    return "image" in res.headers.get("Content-Type")
+
 
 def calculate_2d_distance(points1, points2):
     return math.sqrt(pow(points2[0] - points1[0], 2) + pow(points2[1] - points1[2], 2))
