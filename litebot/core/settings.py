@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import inspect
 from typing import Callable
 from enum import Enum
 
@@ -27,6 +29,7 @@ class Setting:
         self.type = kwargs.get("type", SettingTypes.MISC)
         self.__description = kwargs.get("description", "This _setting does not have a description!")
         self.__config = kwargs.get("config", {})
+
         self.__enabled = False
         self.__id_checks = []
         self.__op_level = 0
@@ -125,13 +128,16 @@ class SettingsManager:
 
         self.__settings_file.save()
 
-    def add_settings(self, cog, plugin, settings: list[Setting]):
+    def add_settings(self, cog, bot, plugin, settings: list[Setting]):
         for setting in settings:
             self.settings[setting.name] = setting
             setting.cog = cog
             setting.plugin = plugin
 
             plugin_name = plugin.meta.repr_name
+
+            if inspect.isfunction(setting.config):
+                setting.config = setting.config(bot)
 
             if setting.name not in self.__settings_file[plugin_name]["settings"].keys():
                 self.__settings_file[plugin_name]["settings"][setting.name] = setting.serialize()

@@ -127,7 +127,7 @@ class SettingsMenu:
 
     def _get_buttons(self):
         components = copy.copy(self._buttons)
-        if self._cur.setting.type in (SettingTypes.DISC_COMMAND, SettingTypes.MC_COMMAND):
+        if self._cur.setting.type in (SettingTypes.DISC_COMMAND, SettingTypes.MC_COMMAND) or self._cur.setting.config:
             components.insert(3, Button(style=ButtonStyle.blue, label="Configure", id=SettingsMenu.InteractionTypes.CONFIGURE))
 
         if self._idx == 0:

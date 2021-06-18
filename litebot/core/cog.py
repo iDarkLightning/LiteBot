@@ -202,7 +202,7 @@ class Cog(DPYCog, metaclass=CogMeta):
         self._plugin.blueprint_group.blueprints.append(self.__sanic_blueprint__)
 
         if not self.__cog_required__:
-            bot.settings_manager.add_settings(self, bot.processing_plugin, self.__settings__)
+            bot.settings_manager.add_settings(self, bot, bot.processing_plugin, self.__settings__)
 
         for index, command in enumerate(self.__discord_commands__):
             command.cog = self
