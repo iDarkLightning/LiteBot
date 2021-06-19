@@ -5,7 +5,7 @@ from typing import Optional
 
 import jwt
 from discord import Message
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from litebot.core import Cog, Context
 from litebot.core.minecraft import ServerCommandContext, Text, Colors, commands as mc_commands
@@ -20,7 +20,7 @@ from plugins.standard.backups.utils import BACKUP_INFO, BackupTypes, create_back
 
 class BackupsCommand(Cog):
     def __init__(self):
-        pass
+        self._routine_backups.start()
 
     @Cog.setting(
         name="Backup",
@@ -147,6 +147,33 @@ class BackupsCommand(Cog):
         backup_name, _ = await asyncio.to_thread(create_backup, ctx.server, BackupTypes.MANUAL, info)
         await ctx.send(
             text=Text().add_component(text=f"Backup {backup_name} created successfully", color="#32CD32"))
+
+    @Cog.setting(name="Routine Backups",
+                 description="Automatically takes backups every 24 hours. These backups are considered daily backups, and are replaced by the next days backups. However, backups taken on a sunday are considered to be a weekly backup, and will never be deleted.")
+    @tasks.loop(hours=24.0)
+    async def _routine_backups(self):
+        self._bot.logger.info("Starting Routine Backups...")
+        current_daily_backups = []
+
+        for server in [s for s in self._bot.servers.all if s.backup_dir]:
+            backup_type = BackupTypes.WEEKLY if datetime.today().weekday() == 6 else BackupTypes.DAILY
+            info = BACKUP_INFO.format(server.name, datetime.utcnow(), backup_type.value, author=self._bot.user)
+
+            backup_name, _ = await asyncio.to_thread(create_backup, server, backup_type, info)
+
+            if backup_type == BackupTypes.DAILY:
+                current_daily_backups.append(f"{backup_name}.zip")
+                for file in os.listdir(server.backup_dir):
+                    if os.path.isfile(os.path.join(server.backup_dir, file)) and file not in current_daily_backups:
+                        os.remove(os.path.join(server.backup_dir, file))
+
+            self._bot.logger.info(f"Finished Routine Backups For {server.name.upper()}")
+
+        self._bot.logger.info("Finished Routine Backups!")
+
+    @_routine_backups.before_loop
+    async def _before_routine_backups(self):
+        await self._bot.wait_until_ready()
 
     def cog_requirements(self, bot):
         for server in bot.servers.all:

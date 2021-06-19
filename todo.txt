@@ -1,0 +1,14 @@
+-> Migrate poll commands
+-> Migrate archives (archivecord?)
+
+-> tracked_event API with listeners (on_event_expire)...maybe migrate to async mongodb ODM
+-> Migrate moderator commands
+
+-> cog_config
+-> Command to configure cog_config
+-> Migrate Twitch Intergration
+
+-> Migrate location command
+
+-> Migrate applications, finish ticket commands
+

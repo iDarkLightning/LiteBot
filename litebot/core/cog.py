@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command, Context
 from discord.ext.commands.cog import _cog_special_method
 from discord.ext.commands._types import _BaseCommand
+from discord.ext.tasks import Loop
 from sanic import Blueprint
 
 from litebot.core.minecraft.commands.action import ServerCommand
@@ -71,6 +72,9 @@ class CogMeta(DPYCogMeta):
                         settings.add(command.__setting__)
                     else:
                         raise TypeError("Command in method {0}.{1!r} must be a _setting!".format(base, elem))
+                elif isinstance(value, Loop):
+                    if hasattr(value, "__setting__"):
+                        settings.add(value.__setting__)
                 elif inspect.iscoroutinefunction(value):
                     if hasattr(value, "__cog_listener__"):
                         if elem.startswith(('cog_', 'bot_')):
@@ -183,6 +187,19 @@ class Cog(DPYCog, metaclass=CogMeta):
             elif isinstance(func, ServerCommand):
                 kwargs["type"] = SettingTypes.MC_COMMAND
                 func.__setting__ = Setting(func, **kwargs)
+            elif isinstance(func, Loop):
+                kwargs["type"] = SettingTypes.EVENT
+                func.__setting__ = Setting(func, **kwargs)
+                func.original_coro = func.coro
+
+                async def coro(*args, **ckwargs):
+                    if func.__setting__.enabled:
+                        try:
+                            await func.original_coro(*(*args, func.__setting__), **ckwargs)
+                        except TypeError:
+                            await func.original_coro(*args, **ckwargs)
+
+                func.coro = coro
             elif hasattr(func, "__cog_listener__"):
                 kwargs["type"] = SettingTypes.EVENT
                 func.__setting__ = Setting(func, **kwargs)
