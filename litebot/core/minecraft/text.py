@@ -38,11 +38,8 @@ class Text:
         return instance
 
     @classmethod
-    def bridge_message(cls, src_server_name: str, str_: str) -> Text:
-        instance = Text()
-        instance.add_component(text=f"[From {src_server_name}] {str_}", color=Colors.GRAY)
-
-        return instance
+    def error_message(cls, str_: str) -> Text:
+        return Text().add_component(text=str_, color=Colors.RED)
 
     def add_line(self):
         self._repr.append(TextComponent(text="\n"))

@@ -129,6 +129,7 @@ class SettingsManager:
         self.__settings_file.save()
 
     def add_settings(self, cog, bot, plugin, settings: list[Setting]):
+        global_configs = {}
         for setting in settings:
             self.settings[setting.name] = setting
             setting.cog = cog
@@ -158,8 +159,10 @@ class SettingsManager:
                         config.items() if k not in conf.keys()}
 
                 setting.config = self.__settings_file[plugin_name]["settings"][setting.name]["config"]
+                global_configs = global_configs | setting.config
 
         self.__settings_file.save()
+        return global_configs
 
     def add_plugin(self, data):
         settings = self.__settings_file.get(data.repr_name, {"settings": {}}).get("settings", {})

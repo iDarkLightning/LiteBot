@@ -9,6 +9,7 @@ from discord.ext.commands._types import _BaseCommand
 from sanic import Blueprint
 
 from litebot.core.minecraft.commands.action import ServerCommand
+from litebot.core.plugins import Plugin
 from litebot.core.settings import Setting, SettingTypes
 
 if TYPE_CHECKING:
@@ -100,6 +101,9 @@ class Cog(DPYCog, metaclass=CogMeta):
     __cog_name__: str
     __cog_description__: str
     __cog_required__: bool
+    _plugin : Plugin
+    _bot : LiteBot
+    _cog_config : dict
 
     class ListenerTypes:
         DISCORD = "discord"
@@ -202,7 +206,7 @@ class Cog(DPYCog, metaclass=CogMeta):
         self._plugin.blueprint_group.blueprints.append(self.__sanic_blueprint__)
 
         if not self.__cog_required__:
-            bot.settings_manager.add_settings(self, bot, bot.processing_plugin, self.__settings__)
+            self._cog_config = bot.settings_manager.add_settings(self, bot, bot.processing_plugin, self.__settings__)
 
         for index, command in enumerate(self.__discord_commands__):
             command.cog = self
