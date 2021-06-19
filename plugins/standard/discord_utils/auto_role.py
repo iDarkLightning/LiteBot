@@ -1,9 +1,3 @@
-__plugin_meta__ = {
-    "name": "Auto Role",
-    "description": "Automatically give a member a role upon join!",
-    "authors": ["iDarkLightning"]
-}
-
 import discord
 
 from discord.utils import get
@@ -23,6 +17,3 @@ class AutoRole(Cog):
         """
         role = get(member.guild.roles, id=setting.config["role_id"])
         await member.add_roles(role)
-
-def setup(bot):
-    bot.add_cog(AutoRole())

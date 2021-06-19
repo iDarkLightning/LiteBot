@@ -1,9 +1,3 @@
-__plugin_meta__ = {
-    "name": "Timezones",
-    "description": "Lets you view the timezone for different members on discord",
-    "authors": ["iDarkLightning"]
-}
-
 from typing import Optional
 
 import discord
@@ -80,5 +74,3 @@ class TimezoneCommand(Cog):
         await ctx.author.add_roles(cur_role)
         await ctx.send(embed=embeds.SuccessEmbed(f"Your timezone has been set to {zone}"))
 
-def setup(bot):
-    bot.add_cog(TimezoneCommand())

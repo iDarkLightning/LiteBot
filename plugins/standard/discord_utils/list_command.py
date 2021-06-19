@@ -1,19 +1,19 @@
-from typing import List, Optional
+import re
+from typing import Optional
+
 import discord
 from discord.ext import commands
 
 from litebot.core import Cog
-from litebot.modules.discord_utils.converters import RoleConverter
 from litebot.utils.data_manip import split_string
 from litebot.utils.embeds import InfoEmbed
 from litebot.utils.menus import DescriptionMenu
+from plugins.standard.discord_utils.utils import RoleConverter
 
 CHAR_LIMIT = 250
 
 class ListCommand(Cog):
-    def __init__(self, bot, module):
-        self.bot = bot
-
+    @Cog.setting(name="List Command", description="List all the members with a role on discord")
     @commands.command(name="list")
     async def _list(self, ctx: commands.Context, *, role: Optional[RoleConverter] = None) -> None:
         """
@@ -37,7 +37,7 @@ class ListCommand(Cog):
         await ctx.send(embed=InfoEmbed(
             f"There are {len(ctx.guild.members)} members on this server", description="\n".join(res_str)))
 
-    async def _display_role_members(self, ctx: commands.Context, roles: List[discord.Role]):
+    async def _display_role_members(self, ctx: commands.Context, roles: list[discord.Role]):
         """
         Displays all the members in a role.
         :param ctx: The context that the comand is executed in
