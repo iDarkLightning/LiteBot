@@ -110,12 +110,6 @@ class ConfirmationDenied(BaseCommandError):
     """
     pass
 
-class PollCommandError(BaseCommandError):
-    """
-    Exception produced when an error occurs with the poll command
-    """
-    pass
-
 class ChannelNotWhitelisted(BaseCommandError):
     """
     Exception produced when a command which is whitelisted is performed on a unwhitelisted channel.

@@ -10,6 +10,6 @@ class TrackedEvent(Document):
     expire_time: An optional time at which the event will expire
     """
     tracking_id = IntField(required=True, unique=True)
-    event_tag = StringField(required=True, choices=("poll","application","archive"))
+    event_tag = StringField(required=True)
     expire_time = DateTimeField()
     extra_info = DictField()

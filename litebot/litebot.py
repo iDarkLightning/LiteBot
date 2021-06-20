@@ -1,10 +1,10 @@
 import asyncio
-import importlib
-import sys
+from datetime import datetime
 from typing import Callable, Union
 
 import discord
 import os
+
 import mongoengine
 from discord.ext import commands
 from discord.ext.commands import Command, errors
@@ -16,6 +16,7 @@ from litebot.core import context
 from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
 from litebot.core.plugins import PluginManager, Plugin
 from litebot.core.settings import SettingsManager
+from litebot.models import TrackedEvent
 from litebot.server import APP_NAME, SERVER_HOST, SERVER_PORT, add_routes
 from litebot.utils.config import MainConfig
 from litebot.utils.logging import get_logger, set_logger, set_access_logger
@@ -71,7 +72,7 @@ class LiteBot(GroupMixin, commands.Bot):
         self.using_lta = bool(os.environ.get("USING_LTA"))
         self.__server = Sanic(APP_NAME)
         self.servers = self._init_servers()
-
+        self.loop.create_task(asyncio.to_thread(self._dispatch_timers))
 
     def _init_servers(self):
         container = ServerContainer()
@@ -118,7 +119,20 @@ class LiteBot(GroupMixin, commands.Bot):
         if hasattr(coro, "__setting__"):
             args = (coro.__setting__, *args)
         wrapped = self._run_event(coro, event_name, *args, **kwargs)
-        return asyncio.create_task(wrapped, name=f"discord.py: {event_name}")
+        return self.loop.create_task(wrapped, name=f"discord.py: {event_name}")
+
+    def _dispatch_timers(self):
+        while True:
+            events = TrackedEvent.objects()
+            for event in events:
+                if not event.expire_time:
+                    continue
+
+                if datetime.utcnow() >= event.expire_time:
+                    name = f"{event.event_tag}_expire"
+                    self.dispatch(name, event)
+
+                    event.delete()
 
     def load_plugin(self, plugin: Plugin):
         self.processing_plugin = plugin

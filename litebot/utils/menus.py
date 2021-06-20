@@ -17,13 +17,16 @@ class ConfirmMenu(menus.Menu):
     Do not manually call any of the methods.
     Instantiate with the prompt and then call the prompt method
     """
-    def __init__(self, msg):
+    def __init__(self, msg, use_embed=True):
         super().__init__(timeout=MENU_TIMEOUT, delete_message_after=True)
+        self.use_embed = use_embed
         self.msg = msg
         self.result = None
 
     async def send_initial_message(self, ctx, channel):
-        return await channel.send(embed=embeds.WarningEmbed(self.msg))
+        if self.use_embed:
+            return await channel.send(embed=embeds.WarningEmbed(self.msg))
+        return await channel.send(self.msg)
 
     @menus.button(CONFIRM_YES)
     async def do_confirm(self, payload):
