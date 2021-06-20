@@ -3,7 +3,7 @@ from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import BaseHTTPResponse, json as json_response
 
-from litebot.models.archived_channel_model import ArchivedChannel
+from plugins.standard.archives.archived_channel_model import ArchivedChannel
 from litebot.server.middlewares.jwt import validate_jwt_headers
 
 blueprint = Blueprint("archives", url_prefix="/archives")
@@ -18,5 +18,4 @@ async def _get_archives(request: Request) -> BaseHTTPResponse:
     :rtype: BaseHTTPResponse
     """
     await validate_jwt_headers(request, request.app.config.BOT_INSTANCE.config["api_secret"])
-
     return json_response([json.loads(o.to_json()) for o in ArchivedChannel.objects()])

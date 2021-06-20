@@ -8,7 +8,7 @@ from litebot.core import Cog
 from litebot.errors import ConfirmationDenied
 from litebot.litebot import LiteBot
 from litebot.models import TrackedEvent
-from litebot.models.archived_channel_model import ArchivedChannel
+from plugins.standard.archives.archived_channel_model import ArchivedChannel
 from litebot.utils import embeds
 from litebot.utils.menus import ConfirmMenu, CONFIRM_YES
 
