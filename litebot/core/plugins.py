@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import os
-from typing import TYPE_CHECKING
-import re
 import importlib
-
-from sanic import Blueprint
+import os
+import re
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
+
 
 class _PluginMeta:
     def __init__(self, id_: str, **kwargs):
@@ -23,22 +22,37 @@ class _PluginMeta:
             "name": self.name,
             "id": self.id,
             "authors": self.authors,
-            "description": self.description
+            "description": self.description,
+            "id_checks": [],
+            "op_level": 0
         }
+
 
 class Plugin:
     def __init__(self, path, module):
+        self.config: Optional[dict] = None
+        self.id_checks = []
+        self.op_level = 0
         self.module = module
         self.path = path
         self.meta = _PluginMeta(self.path, **getattr(self.module, "__plugin_meta__"))
         self.authors = self.meta.authors
         self.description = self.meta.description
-        self.blueprint_group: Blueprint.group = Blueprint.group(url_prefix=f"/{self.meta.repr_name}")
+
+    def serialize(self):
+        return {
+            "name": self.meta.name,
+            "id": self.meta.id,
+            "authors": self.authors,
+            "description": self.description,
+            "id_checks": self.id_checks,
+            "op_level": self.op_level
+        }
 
 class PluginManager:
     def __init__(self, bot: LiteBot):
         self._bot = bot
-        self._all_plugins = self._init_plugins()
+        self.all_plugins = self._init_plugins()
 
     def _init_plugins(self):
         plugins = {}
@@ -49,21 +63,32 @@ class PluginManager:
                 if re.match(".*__.*__", path):
                     continue
 
-
                 try:
                     module = importlib.import_module(f"plugins.{path}")
                 except ModuleNotFoundError:
                     continue
 
                 if hasattr(module, "__plugin_meta__") and hasattr(module, "setup"):
-                    plugin = Plugin(f"plugins.{path}",module)
+                    plugin = Plugin(f"plugins.{path}", module)
+
+                    if hasattr(module, "config"):
+                        conf = self._bot.settings_manager.settings_file[plugin.meta.repr_name].get("config", {})
+                        if conf.keys() != (config := getattr(module, "config")(self._bot)):
+                            self._bot.settings_manager.settings_file[plugin.meta.repr_name]["config"] = conf | {k: v for k, v in config.items() if k not in conf.keys()}
+
+                        plugin.config = self._bot.settings_manager.settings_file[plugin.meta.repr_name]["config"]
+
+                    plugin.id_checks = self._bot.settings_manager.settings_file[plugin.meta.repr_name].get("id_checks", [])
+                    plugin.op_level = self._bot.settings_manager.settings_file[plugin.meta.repr_name].get("op_level", 0)
+
+                    self._bot.settings_manager.settings_file.save()
                     plugins[plugin.meta.id] = plugin
 
         return plugins
 
     def load_plugins(self):
-        for plugin in self._all_plugins.values():
-            self._bot.settings_manager.add_plugin(plugin.meta)
+        for plugin in self.all_plugins.values():
+            self._bot.settings_manager.add_plugin(plugin)
 
             if hasattr(plugin.module, "requirements"):
                 reqs = getattr(plugin.module, "requirements")
@@ -74,8 +99,8 @@ class PluginManager:
 
     def __getitem__(self, item):
         try:
-            return self._all_plugins[item]
+            return self.all_plugins[item]
         except KeyError:
-            for key in self._all_plugins.keys():
+            for key in self.all_plugins.keys():
                 if key.endswith(item):
-                    return self._all_plugins[key]
+                    return self.all_plugins[key]

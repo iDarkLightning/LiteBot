@@ -7,6 +7,10 @@ from discord_components import Interaction as DCInteraction, Component, FlagsTyp
 
 
 class Interaction(DCInteraction):
+    @property
+    def id(self):
+        return int(self.raw_data["d"]["message"]["id"])
+
     async def edit(self, *, content: str = None, embed: Embed = None, embeds: list[Embed] = None,
                    allowed_mentions: AllowedMentions = None, tts: bool = False, ephemeral: bool = True,
                    components: list[Union[Component, list[Component]]] = None, **options) -> None:

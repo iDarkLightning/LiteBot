@@ -32,7 +32,6 @@ class CogMeta(DPYCogMeta):
         mc_commands = {}
         listeners = {}
         settings = set()
-        blueprint = Blueprint(name)
         no_bot_cog = "Commands or listeners must not start with cog_ or bot_ (in method {0.__name__}.{1})"
 
         new_cls = super().__new__(cls, name, bases, attrs, **kwargs)
@@ -88,7 +87,6 @@ class CogMeta(DPYCogMeta):
         new_cls.__discord_commands__ = list(discord_commands.values())
         new_cls.__mc_commands__ = list(mc_commands.values())
         new_cls.__cog_commands__ = list({**discord_commands, **mc_commands}.values())
-        new_cls.__sanic_blueprint__ = blueprint
 
         listeners_list = []
         for listener in listeners.values():
@@ -220,10 +218,8 @@ class Cog(DPYCog, metaclass=CogMeta):
         if not self.cog_requirements(bot):
             return self
 
-        self._plugin.blueprint_group.blueprints.append(self.__sanic_blueprint__)
-
         if not self.__cog_required__:
-            self._cog_config = bot.settings_manager.add_settings(self, bot, bot.processing_plugin, self.__settings__)
+            bot.settings_manager.add_settings(self, bot, bot.processing_plugin, self.__settings__)
 
         for index, command in enumerate(self.__discord_commands__):
             command.cog = self

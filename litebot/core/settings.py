@@ -4,8 +4,6 @@ import inspect
 from typing import Callable
 from enum import Enum
 
-from discord.ext.commands._types import _BaseCommand
-
 from litebot.utils.config import SettingsConfig
 
 class SettingTypes(Enum):
@@ -44,8 +42,6 @@ class Setting:
 
     @property
     def id_checks(self):
-        if self.type != SettingTypes.DISC_COMMAND:
-            raise TypeError("ID Checks are only available for discord commands!")
         return self.__id_checks
 
     @id_checks.setter
@@ -54,8 +50,6 @@ class Setting:
 
     @property
     def op_level(self):
-        if self.type != SettingTypes.MC_COMMAND:
-            raise TypeError("OP Level is only available for minecraft commands!")
         return self.__op_level
 
     @op_level.setter
@@ -104,6 +98,10 @@ class SettingsManager:
         self.__settings_file = SettingsConfig()
         self.settings = {}
 
+    @property
+    def settings_file(self):
+        return self.__settings_file
+
     def setting_enabled(self, name):
         setting_: Setting = self.settings[name]
         return self.__settings_file[setting_.plugin]["settings"][setting_.name]["enabled"]
@@ -128,8 +126,23 @@ class SettingsManager:
 
         self.__settings_file.save()
 
+    def update_plugin(self, plugin):
+        file_vals = self.__settings_file[plugin.meta.repr_name]
+        file_vals["id_checks"] = plugin.id_checks
+        file_vals["op_level"] = plugin.op_level
+
+        file_vals["config"] = plugin.config
+
+        for setting in self.settings.values():
+            if setting.id_checks is not None:
+                setting.id_checks = [*setting.id_checks, *setting.plugin.id_checks]
+
+            if setting.op_level is not None:
+                setting.op_level = setting.op_level or setting.plugin.op_level
+
+        self.__settings_file.save()
+
     def add_settings(self, cog, bot, plugin, settings: list[Setting]):
-        global_configs = {}
         for setting in settings:
             self.settings[setting.name] = setting
             setting.cog = cog
@@ -145,10 +158,10 @@ class SettingsManager:
             else:
                 setting.enabled = self.__settings_file[plugin_name]["settings"][setting.name]["enabled"]
 
-                if checks := self.__settings_file[plugin_name]["settings"][setting.name].get("id_checks"):
-                    setting.id_checks = checks
-                elif level := self.__settings_file[plugin_name]["settings"][setting.name].get("op_level"):
-                    setting.op_level = level
+                if (checks := self.__settings_file[plugin_name]["settings"][setting.name].get("id_checks")) is not None:
+                    setting.id_checks = [*checks, *plugin.id_checks]
+                elif (level := self.__settings_file[plugin_name]["settings"][setting.name].get("op_level", 0)) is not None:
+                    setting.op_level = level or plugin.op_level
 
                 if not setting.config:
                     continue
@@ -159,13 +172,11 @@ class SettingsManager:
                         config.items() if k not in conf.keys()}
 
                 setting.config = self.__settings_file[plugin_name]["settings"][setting.name]["config"]
-                global_configs = global_configs | setting.config
 
         self.__settings_file.save()
-        return global_configs
 
     def add_plugin(self, data):
-        settings = self.__settings_file.get(data.repr_name, {"settings": {}}).get("settings", {})
+        settings = self.__settings_file.get(data.meta.repr_name, {"settings": {}}).get("settings", {})
 
-        self.__settings_file[data.repr_name] = data.serialize() | {"settings": settings}
+        self.__settings_file[data.meta.repr_name] = data.serialize() | {"settings": settings}
         self.__settings_file.save()

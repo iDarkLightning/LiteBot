@@ -52,8 +52,8 @@ class LiteBot(GroupMixin, commands.Bot):
 
     def __init__(self):
         self.config = MainConfig()
-        self.plugin_manager = PluginManager(self)
         self.settings_manager = SettingsManager()
+        self.plugin_manager = PluginManager(self)
 
         commands.Bot.__init__(
             self,
@@ -137,7 +137,6 @@ class LiteBot(GroupMixin, commands.Bot):
     def load_plugin(self, plugin: Plugin):
         self.processing_plugin = plugin
         super().load_extension(plugin.path)
-        Sanic.get_app(APP_NAME).blueprint(plugin.blueprint_group)
 
     def unload_plugin(self, plugin):
         self.processing_plugin = plugin
