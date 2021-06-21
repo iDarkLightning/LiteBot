@@ -103,9 +103,7 @@ class Cog(DPYCog, metaclass=CogMeta):
     __cog_name__: str
     __cog_description__: str
     __cog_required__: bool
-    _plugin : Plugin
-    _bot : LiteBot
-    _cog_config : dict
+    _bot: LiteBot
 
     class ListenerTypes:
         DISCORD = "discord"
@@ -113,7 +111,6 @@ class Cog(DPYCog, metaclass=CogMeta):
 
     def __new__(cls, *args, **kwargs):
         self = object.__new__(cls)
-
         cmd_attrs = cls.__cog_settings__
 
         self.__discord_commands__ = tuple(c._update_copy(cmd_attrs) for c in cls.__discord_commands__)
@@ -213,7 +210,6 @@ class Cog(DPYCog, metaclass=CogMeta):
     def _inject(self, bot: LiteBot):
         cls = self.__class__
         self._bot = bot
-        self._plugin = bot.processing_plugin
 
         if not self.cog_requirements(bot):
             return self
@@ -223,7 +219,7 @@ class Cog(DPYCog, metaclass=CogMeta):
 
         for index, command in enumerate(self.__discord_commands__):
             command.cog = self
-            command.plugin = self._plugin
+            command.plugin = bot.processing_plugin
             if command.parent is None:
                 try:
                     setting = command.callback.__setting__
@@ -299,7 +295,7 @@ class Cog(DPYCog, metaclass=CogMeta):
         finally:
             try:
                 self.cog_unload()
-            except Exception:
+            except:
                 pass
 
         return self

@@ -11,7 +11,7 @@ from plugins.standard.discord_utils.timezones import TimezoneCommand
 
 
 def setup(bot):
-    bot.add_cog(TimezoneCommand())
-    bot.add_cog(AutoRole())
-    bot.add_cog(ListCommand())
-    bot.add_cog(PollCommand())
+    bot.add_cog(TimezoneCommand)
+    bot.add_cog(AutoRole)
+    bot.add_cog(ListCommand)
+    bot.add_cog(PollCommand)

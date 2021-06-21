@@ -3,7 +3,7 @@ from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import BaseHTTPResponse, json as json_response
 
-from plugins.standard.archives.archived_channel_model import ArchivedChannel
+from plugins.standard.discord_utils.archives.archived_channel_model import ArchivedChannel
 from litebot.server.middlewares.jwt import validate_jwt_headers
 
 blueprint = Blueprint("archives", url_prefix="/archives")

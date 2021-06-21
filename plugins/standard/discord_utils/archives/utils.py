@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Type
 import discord
 
-from plugins.standard.archives.archived_channel_model import ArchivedChannel
+from plugins.standard.discord_utils.archives.archived_channel_model import ArchivedChannel
 
 
 async def archive_channel(archiver: discord.Member, channel: discord.TextChannel) -> tuple[Any, Type[ArchivedChannel]]:

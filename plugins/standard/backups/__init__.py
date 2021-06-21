@@ -9,5 +9,5 @@ from plugins.standard.backups.backups import BackupsCommand
 
 
 def setup(bot):
-    bot.add_cog(BackupsCommand())
+    bot.add_cog(BackupsCommand)
     bot.server.blueprint(blueprint)

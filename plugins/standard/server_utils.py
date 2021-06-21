@@ -164,4 +164,4 @@ class ServerUtils(Cog):
                 await channel.send(CODE_BLOCK.format("", res))
 
 def setup(bot):
-    bot.add_cog(ServerUtils())
+    bot.add_cog(ServerUtils)

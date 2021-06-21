@@ -61,4 +61,4 @@ class MemesCommand(Cog):
         await ctx.send(embed=embeds.InfoEmbed(meme.title).set_image(url=meme.url))
 
 def setup(bot):
-    bot.add_cog(MemesCommand())
+    bot.add_cog(MemesCommand)

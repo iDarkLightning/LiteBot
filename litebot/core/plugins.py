@@ -30,7 +30,7 @@ class _PluginMeta:
 
 class Plugin:
     def __init__(self, path, module):
-        self.config: Optional[dict] = None
+        self.config: dict = {}
         self.id_checks = []
         self.op_level = 0
         self.module = module
@@ -46,7 +46,8 @@ class Plugin:
             "authors": self.authors,
             "description": self.description,
             "id_checks": self.id_checks,
-            "op_level": self.op_level
+            "op_level": self.op_level,
+            "config": self.config
         }
 
 class PluginManager:
@@ -70,6 +71,9 @@ class PluginManager:
 
                 if hasattr(module, "__plugin_meta__") and hasattr(module, "setup"):
                     plugin = Plugin(f"plugins.{path}", module)
+
+                    if plugin.meta.repr_name not in self._bot.settings_manager.settings_file:
+                        self._bot.settings_manager.settings_file[plugin.meta.repr_name] = plugin.serialize()
 
                     if hasattr(module, "config"):
                         conf = self._bot.settings_manager.settings_file[plugin.meta.repr_name].get("config", {})

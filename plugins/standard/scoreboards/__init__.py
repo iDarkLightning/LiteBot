@@ -8,4 +8,4 @@ from plugins.standard.scoreboards.scoreboard import Scoreboard
 
 
 def setup(bot):
-    bot.add_cog(Scoreboard(bot))
+    bot.add_cog(Scoreboard, bot)

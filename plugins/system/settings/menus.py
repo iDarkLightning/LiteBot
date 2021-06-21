@@ -462,7 +462,7 @@ class PluginsConfigMenu:
 
         flattened_dict[key] = value
         self._plugin.config.update(unflatten_dict(flattened_dict))
-        self._ctx.bot.settings_manager.update_setting(self._plugin)
+        self._ctx.bot.settings_manager.update_plugin(self._plugin)
 
         self._embed.set_field_at(0, name="Configuration", value=CODE_BLOCK.format("json",
                                                                                   json.dumps(

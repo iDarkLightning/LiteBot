@@ -7,8 +7,8 @@ from litebot.core import Cog, Context
 from litebot.models import TrackedEvent
 from litebot.utils import embeds
 from litebot.utils.menus import ConfirmMenu, CONFIRM_YES
-from plugins.standard.archives.archived_channel_model import ArchivedChannel
-from plugins.standard.archives.utils import archive_channel
+from plugins.standard.discord_utils.archives.archived_channel_model import ArchivedChannel
+from plugins.standard.discord_utils.archives.utils import archive_channel
 
 
 

@@ -1,4 +1,5 @@
 import asyncio
+import types
 from datetime import datetime
 from typing import Callable, Union
 
@@ -12,7 +13,7 @@ from sanic import Sanic, Blueprint
 from sanic.log import logger, access_logger
 from sanic_cors import CORS
 
-from litebot.core import context
+from litebot.core import context, Cog
 from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
 from litebot.core.plugins import PluginManager, Plugin
 from litebot.core.settings import SettingsManager
@@ -73,6 +74,7 @@ class LiteBot(GroupMixin, commands.Bot):
         self.__server = Sanic(APP_NAME)
         self.servers = self._init_servers()
         self.loop.create_task(asyncio.to_thread(self._dispatch_timers))
+        self.__cogs = {}
 
     def _init_servers(self):
         container = ServerContainer()
@@ -120,6 +122,21 @@ class LiteBot(GroupMixin, commands.Bot):
             args = (coro.__setting__, *args)
         wrapped = self._run_event(coro, event_name, *args, **kwargs)
         return self.loop.create_task(wrapped, name=f"discord.py: {event_name}")
+
+    def add_cog(self, cog, *args, **kwargs):
+        if not issubclass(cog, Cog):
+            raise TypeError("cogs must be a subclass of Cog!")
+
+        try:
+            cog = cog(*(*args, self, self.processing_plugin), **kwargs)
+        except TypeError:
+            cog = cog(*args, **kwargs)
+
+        super().add_cog(cog)
+
+    @property
+    def cogs(self):
+        return types.MappingProxyType(self.__cogs)
 
     def _dispatch_timers(self):
         while True:

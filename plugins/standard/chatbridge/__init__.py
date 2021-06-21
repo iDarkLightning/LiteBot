@@ -137,5 +137,5 @@ class ChatBridge(Cog):
         await server.send_message(text=text)
 
 def setup(bot):
-    bot.add_cog(ChatBridge())
+    bot.add_cog(ChatBridge)
 

@@ -4,10 +4,10 @@ __plugin_meta__ = {
     "authors": ["iDarkLightning"]
 }
 
-from plugins.standard.archives.archive_command import ArchiveCommand
-from plugins.standard.archives.archive_route import blueprint
+from plugins.standard.discord_utils.archives.archive_command import ArchiveCommand
+from plugins.standard.discord_utils.archives.archive_route import blueprint
 
 
 def setup(bot):
-    bot.add_cog(ArchiveCommand())
+    bot.add_cog(ArchiveCommand)
     bot.server.blueprint(blueprint)
