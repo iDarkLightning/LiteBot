@@ -55,7 +55,7 @@ class ServerCommandContext:
         self.after_invoke_args[key] = value
 
     async def invoke(self):
-        args = [self.command.arg_types[name](arg).val for name, arg in self.args.items()]
+        args = [self.command.arg_types[name](arg).val for name, arg in self.args.items() if arg is not None]
 
         await self.command.invoke(self, args)
 

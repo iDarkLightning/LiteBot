@@ -5,5 +5,5 @@ class Location(Document):
     name = StringField(required=True, unique=True)
     dimension = StringField(required=True)
     coordinates = ListField(IntField(), max_length=3)
-    tolerance = IntField(max_value=200)
+    tolerance = IntField(max_value=1000)
 
