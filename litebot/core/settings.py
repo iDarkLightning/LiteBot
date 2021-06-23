@@ -135,7 +135,7 @@ class SettingsManager:
 
         for setting in self.settings.values():
             if setting.id_checks is not None:
-                setting.id_checks = [*setting.id_checks, *setting.plugin.id_checks]
+                setting.id_checks = setting.id_checks or setting.plugin.id_checks
 
             if setting.op_level is not None:
                 setting.op_level = setting.op_level or setting.plugin.op_level
@@ -159,7 +159,7 @@ class SettingsManager:
                 setting.enabled = self.__settings_file[plugin_name]["settings"][setting.name]["enabled"]
 
                 if (checks := self.__settings_file[plugin_name]["settings"][setting.name].get("id_checks")) is not None:
-                    setting.id_checks = [*checks, *plugin.id_checks]
+                    setting.id_checks = checks or plugin.id_checks
                 elif (level := self.__settings_file[plugin_name]["settings"][setting.name].get("op_level", 0)) is not None:
                     setting.op_level = level or plugin.op_level
 
