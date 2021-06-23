@@ -116,7 +116,7 @@ class LocationCommand(Cog):
         distances = {l.name: calculate_3d_distance(l.coordinates, player.get_block_pos()) for l in locations}
 
         t = self._add_distances(distances, t)
-        await ctx.send(text=t)
+        await ctx.server.send_message(text=t)
 
     @_pos.sub(name="convert")
     async def _pos_convert(self, ctx: ServerCommandContext) -> None:
@@ -148,7 +148,7 @@ class LocationCommand(Cog):
         distances = {l.name: calculate_2d_distance(l.coordinates, (pos_x, pos_z)) for l in locations}
 
         t = self._add_distances(distances, t)
-        await ctx.send(text=t)
+        await ctx.server.send_message(text=t)
 
     def _add_distances(self, distances: dict[str, int], text: Text) -> Text:
         for name, distance in distances.items():
