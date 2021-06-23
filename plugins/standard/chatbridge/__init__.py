@@ -26,13 +26,13 @@ class ChatBridge(Cog):
     SKIN_AVATAR = "https://crafatar.com/avatars/"
     MOJANG_API = "https://sessionserver.mojang.com/session/minecraft/profile/"
 
-    def __init__(self):
+    def __init__(self, bot, plugin):
         self._uuid_name = {}
         self._connections = {}
+        self._config = plugin.config
 
     @Cog.setting(name="Discord -> Server Bridge",
-                 description="Forwards messages from the discord bridge channel to the server",
-                 config={"message_format": "$player_name: "})
+                 description="Forwards messages from the discord bridge channel to the server")
     @Cog.listener(type=Cog.ListenerTypes.DISCORD, name="on_message")
     async def _discord_server(self, setting, message: Message):
         try:
@@ -41,7 +41,7 @@ class ChatBridge(Cog):
             return
 
         if not message.author.bot:
-            await self._process_message(server, message, setting.config["message_format"])
+            await self._process_message(server, message, self._config["message_format"])
 
     @Cog.setting(name="Server -> Discord Bridge",
                  description="Forwards messages from a server to its respective bridgee channel",
@@ -52,7 +52,7 @@ class ChatBridge(Cog):
         name = payload.player_name if payload.player_name else await self._get_name(payload)
 
         for connection in self._connections.values():
-            await connection.send_bridge_message(name, payload, self._cog_config["message_format"])
+            await connection.send_bridge_message(name, payload, self._config["message_format"])
 
         servers = list(chain.from_iterable([*(s.connected_servers for s in self._connections.values())])) or [payload.server]
 
@@ -138,4 +138,9 @@ class ChatBridge(Cog):
 
 def setup(bot):
     bot.add_cog(ChatBridge)
+
+def config(bot):
+    return {
+        "message_format": "$player_name: "
+    }
 
