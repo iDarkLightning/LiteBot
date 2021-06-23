@@ -27,6 +27,9 @@ class WhitelistActions:
     REMOVE = "```Unwhitelisted {player} on {} servers. DEOPed {player} on {} servers.```"
 
 class ServerUtils(Cog):
+    def __init__(self, bot, plugin):
+        self._config = plugin.config
+
     @Cog.setting(name="Status Command", description="View the status of a server!")
     @commands.command(name="status", aliases=["s", "online", "o"])
     async def _status(self, ctx: Context, server: str = None) -> None:
@@ -152,7 +155,7 @@ class ServerUtils(Cog):
     async def _handle_server_command(self, channel: discord.TextChannel, author: discord.Member,
                                      server: MinecraftServer, command: str) -> None:
         if server.operator:
-            if check_role(author, self._bot.config["operators_role"]):
+            if check_role(author, self._config["operators_role"]):
                 res = await server.send_command(command)
                 if res:
                     await channel.send(CODE_BLOCK.format("", res))
@@ -165,3 +168,8 @@ class ServerUtils(Cog):
 
 def setup(bot):
     bot.add_cog(ServerUtils)
+
+def config(bot):
+    return {
+        "operators_role": []
+    }

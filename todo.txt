@@ -1,12 +1,8 @@
--> Migrate archives (archivecord?)
 
--> Migrate moderator commands
-
--> cog_config
--> Command to configure cog_config
--> Migrate Twitch Intergration
-
--> Migrate location command
+-> twitch integration follows/subs/
 
 -> Migrate applications, finish ticket commands
+-> Migrate moderator commands
 
+
+-> litehost, archivecord
