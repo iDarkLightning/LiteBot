@@ -11,7 +11,7 @@ class AdminCommands(Cog, required=True):
 
     @commands.command(name="sudo", hidden=True)
     @commands.has_permissions(administrator=True)
-    async def _sudo(self, ctx: Context, who: Union[Member, User], * command: str):
+    async def _sudo(self, ctx: Context, who: Union[Member, User], *, command: str):
         msg = copy.copy(ctx.message)
         msg.author = who
         msg.content = ctx.prefix + command

@@ -1,16 +1,23 @@
+import copy
 import json
 from datetime import datetime, timedelta
+from io import BytesIO
 
-from discord import TextChannel, Embed, RawReactionActionEvent, RawMessageDeleteEvent, NotFound
-from discord.ext import tasks
+import discord
+from discord import TextChannel, Embed, RawReactionActionEvent, RawMessageDeleteEvent, NotFound, File
+from discord.ext import tasks, commands
 from gspread import service_account
 from gspread.exceptions import APIError
 
 from litebot.core import Cog
+from litebot.core.context import Context
+from litebot.errors import TicketNotFound
 from litebot.models import TrackedEvent
 from litebot.utils import embeds
 from litebot.utils.misc import Toggleable
 from plugins.standard.applications.application_model import Application
+from plugins.standard.applications.embeds import VoteResultsEmbed
+from plugins.standard.applications.utils import TicketActions, TicketAcceptInfo
 
 EMB_FLD_MAX = 25
 FIELD_CHAR_MAX = 1024
@@ -49,6 +56,120 @@ class Applications(Cog):
                 await self._process_application(questions, answers)
         except APIError:
             self._bot.logger.error("Applications encountered an API error!")
+
+    @Cog.setting(name="Ticket Commands",
+                 description="Manage tickets created from applications!",
+                 config={"auto_vote": False, "auto_vote_preset": "", "auto_vote_mention_role": 0})
+    @commands.group(name="ticket")
+    async def _ticket(self, ctx: Context):
+        if not ctx.invoked_subcommand:
+            await ctx.send_help("ticket")
+
+    @_ticket.command(name="create")
+    async def _ticket_create(self, ctx: Context, num: int):
+        try:
+            questions = self._worksheet.row_values(1)
+            answers = self._worksheet.row_values(num + 1)
+            await self._process_application(questions, answers)
+        except APIError:
+            await ctx.send(embed=embeds.ErrorEmbed("Sorry, the process encountered an API error, please try again!"))
+
+    @_ticket.command(name="deny")
+    async def _ticket_deny(self, ctx: Context, *, reason):
+        ticket: Application = Application.objects(ticket_id=ctx.channel.id).first()
+
+        if not ticket:
+            raise TicketNotFound
+
+        for member, overwrite in ctx.channel.overwrites.items():
+            if bool(overwrite.view_channel) is True:
+                if member.id == self._bot.user.id or member in ctx.guild.me.roles:
+                    continue
+
+                overwrite.send_messages = False
+                await ctx.channel.set_permissions(member, overwrite=overwrite)
+
+        embed = embeds.ErrorEmbed("Unfortunately, your application has been denied!", description=reason,
+                                  timestamp=datetime.utcnow())
+
+        # try to disable the votes for the voting message
+        try:
+            voting_message = await self._voting_channel.fetch_message(ticket.voting_message_id)
+            reactions = {r.emoji: (r.count - 1) for r in voting_message.reactions if r.me}
+            await voting_message.edit(embed=VoteResultsEmbed(TicketActions.DENY, ticket, self._config, reactions))
+            await voting_message.clear_reactions()
+        except:
+            pass # well, we tried
+
+        if not self._bot.get_cog("ArchiveCommand"):
+            return await ctx.send(embed=embed)
+
+        #TODO: Make this not require imports
+        from plugins.standard.discord_utils.archives.utils import archive_channel
+
+        messages, *_ = await archive_channel(ctx.author, ctx.channel)
+        transcript = "".join((f"{message.author}: {message.clean_content}\n" for message in messages))
+
+        embed.set_footer(text="Attached to this message is a transcript of your application. "
+                              "Please download this if you'd like to keep the transcript, "
+                              "as this channel will be deleted.")
+
+        await ctx.send(embed=embed, file=File(fp=BytesIO(transcript.encode("utf8")),
+                                              filename=f"{ctx.channel.name}-transcript.txt"))
+
+    @_ticket.command(name="accept")
+    async def _ticket_accept(self, ctx: Context, member: discord.Member, *, accept: TicketAcceptInfo):
+        ticket: Application = Application.objects(ticket_id=ctx.channel.id).first()
+
+        if not ticket:
+            raise TicketNotFound
+
+        for member_, overwrite in ctx.channel.overwrites.items():
+            if bool(overwrite.view_channel) is True:
+                if member_.id == self._bot.user.id or member_ in ctx.guild.me.roles:
+                    continue
+
+                overwrite.send_messages = False
+                await ctx.channel.set_permissions(member_, overwrite=overwrite)
+
+        #TODO: Better way for dynamic command functionality
+        if accept.whitelist and ctx.bot.get_command("whitelist add"):
+            await ctx.bot.get_command("whitelist add")(ctx, accept.whitelist)
+
+        if accept.timezone and ctx.bot.get_command("timezone set"):
+            msg = copy.copy(ctx.message)
+            msg.author = member
+            msg.content = ctx.prefix + f"timezone set {accept.timezone}"
+
+            new_ctx = await self._bot.get_context(msg, cls=type(ctx))
+            await ctx.bot.get_command("timezone set")(new_ctx, "US/Eastern")
+
+        # try to disable the votes for the voting message
+        try:
+            voting_message = await self._voting_channel.fetch_message(ticket.voting_message_id)
+            reactions = {r.emoji: (r.count - 1) for r in voting_message.reactions if r.me}
+            await voting_message.edit(embed=VoteResultsEmbed(TicketActions.ACCEPT, ticket, self._config, reactions))
+            await voting_message.clear_reactions()
+        except:
+            pass # well, we tried
+
+        embed = embeds.SuccessEmbed("Congratulations on your acceptance!", timestamp=datetime.utcnow())
+
+        if not self._bot.get_cog("ArchiveCommand"):
+            return await ctx.send(embed=embed)
+
+        from plugins.standard.discord_utils.archives.utils import archive_channel
+
+        messages, *_ = await archive_channel(ctx.author, ctx.channel)
+        transcript = "".join((f"{message.author}: {message.clean_content}\n" for message in messages))
+
+        buffer = BytesIO(transcript.encode("utf8"))
+        file = File(fp=buffer, filename=f"{ctx.channel.name}-transcript.txt")
+
+        embed.set_footer(text="Attached to this message is a transcript of your application. "
+                              "Please download this if you'd like to keep the transcript, "
+                              "as this channel will be deleted.")
+        await ctx.send(embed=embed, file=file)
 
     async def _process_application(self, questions: tuple[str], answers: tuple[str]) -> None:
         application = {k : v for k, v in dict(zip(questions, answers)).items() if v}
