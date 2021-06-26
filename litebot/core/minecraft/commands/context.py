@@ -12,7 +12,12 @@ if TYPE_CHECKING:
     from litebot.core.minecraft import MinecraftServer
     from litebot.core import Setting
 
-class ServerCommandContext:
+class ServerContext:
+    def __init__(self, server: MinecraftServer, bot: LiteBot) -> None:
+        self.server = server
+        self.bot = bot
+
+class ServerCommandContext(ServerContext):
     """
     A context object for a ServerCommand.
     Lets us easily interact with both the server and the bot
@@ -26,10 +31,9 @@ class ServerCommandContext:
     :type player_data: str
     """
     def __init__(self, command: ServerCommand, server: MinecraftServer, bot: LiteBot, player_data: str, **kwargs) -> None:
+        super().__init__(server, bot)
         self.command = command
         self.cog = command.cog
-        self.server = server
-        self.bot = bot
         self.after_invoke_args = {}
         self.args = kwargs["args"]
         self.full_args = kwargs["full_args"]
@@ -73,38 +77,13 @@ class ServerCommandContext:
 
         await self.server.send_message(text=text, player=self.player)
 
-class ServerEventPayload:
-    """
-    The payload for a server event.
-    Lets us access all the data for our event, as well as access the server and bot objects.
+class ServerEventContext(ServerContext):
+    def __init__(self, server, bot, player_data=Optional[str]):
+        super().__init__(server, bot)
+        self.player = Player(**json.loads(player_data)) if player_data else None
+        self.setting: Optional[Setting] = None
 
-    :param server: The server that the command is being executed to
-    :type server: MinecraftServer
-    :param bot: The bot that the command is registered to
-    :type bot: LiteBot
-    :param event_name: The name of the event being registered
-    :type event_name: Str
-    :param args: The arguments for the event
-    :type args: list[Any]
-    """
-
-    PAYLOAD_MAPPINGS = {
-        "on_message": ("message", "player_uuid", "player_name")
-    }
-
-    # This is so that we have type hinting for our dynamically set arguments
-    message: str
-    player_name: str
-    player_uuid: str
-
-    def __init__(self, server: MinecraftServer, bot: LiteBot, event_name: str, args: list[Any]) -> None:
-        self.bot = bot
-        self.server = server
-
-        for i, v in enumerate(args):
-            setattr(self, ServerEventPayload.PAYLOAD_MAPPINGS[event_name][i], v)
-
-        for attr in ServerEventPayload.PAYLOAD_MAPPINGS[event_name]:
-            if not hasattr(self, attr):
-                setattr(self, attr, None)
+    def with_setting(self, event):
+        self.setting = event.__setting__
+        return self
 

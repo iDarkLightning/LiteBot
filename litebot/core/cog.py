@@ -7,17 +7,15 @@ from discord.ext.commands import Cog as DPYCog, CogMeta as DPYCogMeta, Command, 
 from discord.ext.commands.cog import _cog_special_method
 from discord.ext.commands._types import _BaseCommand
 from discord.ext.tasks import Loop
-from sanic import Blueprint
 
 from litebot.core.minecraft.commands.action import ServerCommand
-from litebot.core.plugins import Plugin
 from litebot.core.settings import Setting, SettingTypes
 
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
 
 class CogMeta(DPYCogMeta):
-    def __new__(cls, *args, **kwargs):
+    def __new__(mcs, *args, **kwargs):
         name, bases, attrs = args
         attrs["__cog_name__"] = kwargs.pop("name", name)
         attrs["__cog_settings__"] = kwargs.pop("command_attrs", {})
@@ -34,7 +32,7 @@ class CogMeta(DPYCogMeta):
         settings = set()
         no_bot_cog = "Commands or listeners must not start with cog_ or bot_ (in method {0.__name__}.{1})"
 
-        new_cls = super().__new__(cls, name, bases, attrs, **kwargs)
+        new_cls = super().__new__(mcs, name, bases, attrs, **kwargs)
         for base in reversed(new_cls.__mro__):
             for elem, value in base.__dict__.items():
                 if elem in discord_commands:

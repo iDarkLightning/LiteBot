@@ -28,7 +28,7 @@ from plugins.system.help_command import HelpCommand
 class GroupMixin(commands.GroupMixin):
     def __init__(self):
         self.server_commands: dict[str, ServerCommand] = {}
-        self.server_events: dict[str, list[Callable]] = {k: [] for k in ServerEvent.VALID_EVENTS}
+        self.server_events: dict[str, list[Callable]] = {}
 
     def add_command(self, command: Union[ServerCommand, Command]):
         if not isinstance(command, ServerCommand):
@@ -43,7 +43,10 @@ class GroupMixin(commands.GroupMixin):
         self.server_commands.pop(name)
 
     def add_server_listener(self, event, name):
-        self.server_events[name].append(event)
+        if name in self.server_events:
+            return self.server_events[name].append(event)
+
+        self.server_events[name] = [event]
 
     def remove_server_listener(self, func, name):
         self.server_events[name] = list(filter(lambda e: e is not func, self.server_events[name]))

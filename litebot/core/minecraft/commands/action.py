@@ -176,30 +176,6 @@ class ServerCommand(ServerAction):
         else:
             await self.callback(ctx, *args)
 
-class ServerEvent(ServerAction):
-    VALID_EVENTS = (
-        "on_message",
-    )
-
-    def __init__(self, func, cog=None, **kwargs):
-        name = kwargs.get("name") or func.__name__
-
-        if name not in ServerEvent.VALID_EVENTS:
-            raise InvalidEvent
-
-        super().__init__(func, cog, **kwargs)
-
-    async def invoke(self, payload) -> None:
-        """
-        Invokes the event
-        :param payload: The payload for the event
-        :type payload: ServerEventPayload
-        """
-        if self.cog:
-            await self.callback(self.cog, payload)
-        else:
-            await self.callback(payload)
-
 def command(**kwargs) -> Callable:
     """
     A decorator that will convert a function into
@@ -227,34 +203,5 @@ def command(**kwargs) -> Callable:
     """
     def decorator(func):
         return ServerCommand(func, **kwargs)
-
-    return decorator
-
-def event(**kwargs) -> Callable:
-    """
-    A decorator that will convert a function into
-    a ServerEvent object, and effectively
-    register the event. This can only be used inside of a cog!
-    For registering an event without a cog, see `LiteBot.server_event`
-
-    Unlike a command, you can register multiple events with the same name.
-    They will all be executed when the event is invoked.
-
-    Example
-    --------
-    .. code-block :: python3
-        # Note that if `name` overrides the function name, which will be the default name
-        @event(name="test")
-        async def command(_ctx, arg1):
-            print("Hi There!!!")
-
-
-    :param kwargs: The additional arguments when registering the event
-    :type kwargs: str
-    :return: A decorator that registers the event
-    :rtype: Callable
-    """
-    def decorator(func):
-        return ServerEvent(func, **kwargs)
 
     return decorator

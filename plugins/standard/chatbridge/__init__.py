@@ -12,8 +12,9 @@ import aiohttp
 from discord import Message, Webhook, AsyncWebhookAdapter
 
 from litebot.core import Cog
-from litebot.core.minecraft import MinecraftServer, Text, Colors, commands, ServerCommandContext
+from litebot.core.minecraft import MinecraftServer, Text, Colors, commands, ServerCommandContext, ServerEventContext
 from litebot.core.minecraft.commands.arguments import MessageArgumentType
+from litebot.core.minecraft.commands.payload import MessagePayload
 from litebot.errors import ServerNotFound
 from litebot.utils.requests import fetch
 from plugins.standard.chatbridge.utils import ServerSuggester, BridgeConnection
@@ -47,18 +48,18 @@ class ChatBridge(Cog):
                  description="Forwards messages from a server to its respective bridgee channel",
                  config=_gen_config)
     @Cog.listener(type=Cog.ListenerTypes.MINECRAFT, name="on_message")
-    async def _server_discord(self, setting, payload):
-        pfp = ChatBridge.SKIN_AVATAR + payload.player_uuid
-        name = payload.player_name if payload.player_name else await self._get_name(payload)
+    async def _server_discord(self, ctx: ServerEventContext, payload: MessagePayload):
+        pfp = ChatBridge.SKIN_AVATAR + ctx.player.uuid
+        name = ctx.player.name
 
         for connection in self._connections.values():
             await connection.send_bridge_message(name, payload, self._config["message_format"])
 
-        servers = list(chain.from_iterable([*(s.connected_servers for s in self._connections.values())])) or [payload.server]
+        servers = list(chain.from_iterable([*(s.connected_servers for s in self._connections.values())])) or [ctx.server]
 
         for server in servers:
             async with aiohttp.ClientSession() as session:
-                webhook = Webhook.from_url(setting.config["webhook_urls"][server.name], adapter=AsyncWebhookAdapter(session))
+                webhook = Webhook.from_url(ctx.setting.config["webhook_urls"][server.name], adapter=AsyncWebhookAdapter(session))
                 await webhook.send(
                     payload.message,
                     username=name,
@@ -102,14 +103,6 @@ class ChatBridge(Cog):
             await ctx.send(text=Text().add_component(text="Disconnected from bridge connections", color=Colors.GREEN))
         except KeyError:
             await ctx.send(text=Text.error_message("You do not have any active bridge connections!"))
-
-    async def _get_name(self, payload):
-        if name := self._uuid_name.get(payload.player_uuid):
-            return name
-
-        res = await fetch(ChatBridge.MOJANG_API + payload.player_uuid)
-        self._uuid_name[payload.player_uuid] = res["name"]
-        return res["name"]
 
     async def _process_message(self, server: MinecraftServer, message: Message, msg_format: str):
         prefix, suffix = re.split("\\$player_name", msg_format, 2)

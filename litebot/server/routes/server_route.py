@@ -37,13 +37,14 @@ async def _websocket(request: Request, socket: WebSocketCommonProtocol):
         try:
             data: dict = json.loads(message)
             payload = validate_jwt(data["auth"], request.app.config.BOT_INSTANCE.config["api_secret"])
-            data.pop("auth")
             server = request.app.config.BOT_INSTANCE.servers[payload["server_name"]]
 
             if not server.connected:
                 await server.connect(socket)
             else:
-                await server.dispatch(payload["action"], data)
+                res = await server.dispatch(payload["action"], data)
+                if res is not None:
+                    await socket.send(json.dumps({"id": data["auth"], "res": res}))
         except AuthFailure:
             await socket.close(reason="Invalid Authorization Token!")
         except (KeyError, json.JSONDecodeError, ServerNotFound):

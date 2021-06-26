@@ -13,11 +13,12 @@ from socket import timeout, gethostbyaddr, gaierror, herror, gethostbyname
 
 from websockets import WebSocketCommonProtocol
 
+from .commands.payload import Payload
 from .player import Player
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
-from .commands.context import ServerCommandContext, ServerEventPayload
+from .commands.context import ServerCommandContext, ServerEventPayload, ServerEventContext
 from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
 from litebot.utils.data_manip import parse_emoji
 from litebot.utils.enums import BackupTypes
@@ -212,7 +213,10 @@ class MinecraftServer:
         :type data: dict
         """
         meth = getattr(self, "dispatch_" + action, None)
+        if meth:
+            return await meth(data)
 
+        meth = getattr(self, "fetch_" + action, None)
         if meth:
             return await meth(data)
 
@@ -246,7 +250,10 @@ class MinecraftServer:
 
         try:
             await ctx.invoke()
-            await self._connection.send(json.dumps({"afterInvoke": data["name"], "args": ctx.after_invoke_args}))
+            await self._connection.send(json.dumps({
+                "name": "server_command_after_invoke",
+                "data": {"name": data["name"], "args": ctx.after_invoke_args}
+            }))
         except TypeError as e:
             print(e)
             pass
@@ -257,12 +264,13 @@ class MinecraftServer:
         :param data: The data being used to dispatch the event
         :type data: dict
         """
-        events = self.bot_instance.server_events[data["name"]]
-        payload = ServerEventPayload(self, self.bot_instance, data["name"], args=data.get("vargs"))
+        events = self.bot_instance.server_events.get(data["name"], [])
+        ctx = ServerEventContext(self, self.bot_instance, data.get("player", ""))
+        payload = Payload.get_event_payload(data["name"])(ctx, data.get("args"))
 
         for event in events:
-            args = (event.__setting__, payload) if hasattr(event, "__setting__") else (payload,)
-            await asyncio.create_task(event(*args), name=f"{self.name}-event: {data['name']}")
+            args = (ctx.with_setting(event), payload) if hasattr(event, "__setting__") else (ctx, payload)
+            asyncio.create_task(event(*args), name=f"{self.name}-event: {data['name']}")
 
     async def fetch_suggester(self, data: dict):
         """
@@ -273,9 +281,9 @@ class MinecraftServer:
         command = self.bot_instance.server_commands[data["name"]]
         ctx = command.create_context(self, self.bot_instance, data)
 
-        suggestor = command.suggestors[data["arg"]]()
+        suggestor = command.suggestors[data["args"]["current_arg"]]()
 
-        return await suggestor.suggest(ctx, data["arg"], data["args"])
+        return await suggestor.suggest(ctx, data["args"]["current_arg"], data["args"]["args"])
 
     async def recv_message(self, message: str) -> None:
         """
@@ -295,7 +303,8 @@ class MinecraftServer:
             return
 
         await self._connection.send(json.dumps({
-            "commandData": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent]
+            "name": "server_command_registers",
+            "data": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent]
         }))
 
     async def send_command(self, command: str) -> Optional[str]:
@@ -371,5 +380,5 @@ class MinecraftServer:
         if player:
             payload["player"] = player.uuid
 
-        await self._connection.send(json.dumps({"messageData": payload}))
+        await self._connection.send(json.dumps({"name": "message", "data": payload}))
 
