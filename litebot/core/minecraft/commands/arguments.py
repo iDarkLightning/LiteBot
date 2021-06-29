@@ -60,7 +60,7 @@ class Suggester(StringArgumentType, abc.ABC):
     REPR = "SuggesterArgument"
 
     @abc.abstractmethod
-    async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
+    async def suggest(self, ctx: ServerCommandContext) -> list:
         pass
 
 class StrictSuggester(Suggester, abc.ABC):

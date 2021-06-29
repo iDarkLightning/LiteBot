@@ -9,12 +9,14 @@ from itertools import chain
 from typing import Optional
 
 import aiohttp
-from discord import Message, Webhook, AsyncWebhookAdapter
+from discord import Message, Webhook, AsyncWebhookAdapter, AllowedMentions
 
 from litebot.core import Cog
-from litebot.core.minecraft import MinecraftServer, Text, Colors, commands, ServerCommandContext, ServerEventContext
+from litebot.core.minecraft import MinecraftServer, Text, Colors, commands, ServerCommandContext, ServerEventContext, \
+    RPCContext
 from litebot.core.minecraft.commands.arguments import MessageArgumentType
 from litebot.core.minecraft.commands.payload import MessagePayload
+from litebot.core.minecraft.rpc import rpc
 from litebot.errors import ServerNotFound
 from litebot.utils.requests import fetch
 from plugins.standard.chatbridge.utils import ServerSuggester, BridgeConnection
@@ -57,13 +59,24 @@ class ChatBridge(Cog):
 
         servers = list(chain.from_iterable([*(s.connected_servers for s in self._connections.values())])) or [ctx.server]
 
+        mentions = re.findall("@([^ ]+)", payload.message)
+        members = []
+        for mention in mentions:
+            member = self._fetch_member(ctx, mention)
+            if isinstance(member, str):
+                continue
+
+            members.append(member)
+            payload.message = payload.message.replace(f"@{mention}", self._fetch_member(ctx, mention).mention)
+
         for server in servers:
             async with aiohttp.ClientSession() as session:
                 webhook = Webhook.from_url(ctx.setting.config["webhook_urls"][server.name], adapter=AsyncWebhookAdapter(session))
                 await webhook.send(
                     payload.message,
                     username=name,
-                    avatar_url=pfp
+                    avatar_url=pfp,
+                    allowed_mentions=AllowedMentions(users=members, roles=False)
                 )
 
     @Cog.setting(name="Server <-> Server",
@@ -104,6 +117,10 @@ class ChatBridge(Cog):
         except KeyError:
             await ctx.send(text=Text.error_message("You do not have any active bridge connections!"))
 
+    @rpc(name="mentions")
+    async def _fetch_mentions(self, ctx: RPCContext):
+        return [f"@{m.name}" for m in ctx.server.bridge_channel.members]
+
     async def _process_message(self, server: MinecraftServer, message: Message, msg_format: str):
         prefix, suffix = re.split("\\$player_name", msg_format, 2)
         text = Text().add_component(text=prefix)
@@ -128,6 +145,14 @@ class ChatBridge(Cog):
                 )
 
         await server.send_message(text=text)
+
+    def _fetch_member(self, ctx, str_: str):
+        members = ctx.server.bridge_channel.members
+        for member in members:
+            if member.display_name == str_ or member.name == str_:
+                return member
+
+        return "@" + str_
 
 def setup(bot):
     bot.add_cog(ChatBridge)

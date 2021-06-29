@@ -29,6 +29,7 @@ class CogMeta(DPYCogMeta):
         discord_commands = {}
         mc_commands = {}
         listeners = {}
+        rpc = []
         settings = set()
         no_bot_cog = "Commands or listeners must not start with cog_ or bot_ (in method {0.__name__}.{1})"
 
@@ -80,11 +81,17 @@ class CogMeta(DPYCogMeta):
                         listeners[elem] = value
                         if hasattr(value, "__setting__"):
                             settings.add(value.__setting__)
+                    elif hasattr(value, "__rpc_handler__"):
+                        if elem.startswith(("cog_", "bot_")):
+                            raise TypeError(no_bot_cog.format(base, elem))
+
+                        rpc.append((elem, value.__name__))
 
         new_cls.__settings__ = list(settings)
         new_cls.__discord_commands__ = list(discord_commands.values())
         new_cls.__mc_commands__ = list(mc_commands.values())
         new_cls.__cog_commands__ = list({**discord_commands, **mc_commands}.values())
+        new_cls.__rpc_handlers__ = rpc
 
         listeners_list = []
         for listener in listeners.values():
@@ -266,6 +273,9 @@ class Cog(DPYCog, metaclass=CogMeta):
                 else:
                     bot.add_server_listener(getattr(self, method_name), name)
 
+        for method_name, name in self.__rpc_handlers__:
+            bot.add_rpc_handler(getattr(self, method_name), name)
+
         return self
 
     def _eject(self, bot: LiteBot):
@@ -285,11 +295,15 @@ class Cog(DPYCog, metaclass=CogMeta):
                 else:
                     bot.remove_server_listener(getattr(self, meth_name), name)
 
-                if cls.bot_check is not Cog.bot_check:
-                    bot.remove_check(self.bot_check)
+            for meth_name, name in self.__rpc_handlers__:
+                bot.remove_rpc_handler(name)
 
-                if cls.bot_check_once is not Cog.bot_check_once:
-                    bot.remove_check(self.bot_check_once, call_once=True)
+            if cls.bot_check is not Cog.bot_check:
+                bot.remove_check(self.bot_check)
+
+            if cls.bot_check_once is not Cog.bot_check_once:
+                bot.remove_check(self.bot_check_once, call_once=True)
+
         finally:
             try:
                 self.cog_unload()

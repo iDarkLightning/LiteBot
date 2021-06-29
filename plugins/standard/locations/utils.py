@@ -6,7 +6,7 @@ from plugins.standard.locations.location_model import Location
 
 
 class LocationSuggester(StrictSuggester):
-    async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
+    async def suggest(self, ctx: ServerCommandContext) -> list:
         return [l.location_id.replace(f"{ctx.server.name}_", "") for l in Location.objects() if
                 ctx.server.name in l.location_id]
 

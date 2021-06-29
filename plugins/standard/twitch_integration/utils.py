@@ -10,7 +10,7 @@ class ConnectedChannelSuggester(StrictSuggester):
     Suggests the channels that the player is currently connected to, and ensures that they do not attempt to
     disconnect from a channel that they aren't connected to.
     """
-    async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
+    async def suggest(self, ctx: ServerCommandContext) -> list:
         chat_cog = ctx.bot.get_cog("TwitchChat")
         to_suggest = []
 
@@ -28,7 +28,7 @@ class ChannelSuggester(Suggester):
     Suggests channels that other members on the server are currently connected to, or the channel of any members who
     might be currently streaming on twitch.
     """
-    async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
+    async def suggest(self, ctx: ServerCommandContext) -> list:
         chat_cog = ctx.bot.get_cog("TwitchChat")
         guild = await ctx.bot.guild()
         streams = list(filter(lambda n: n is not None,map(

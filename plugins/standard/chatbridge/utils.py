@@ -28,5 +28,5 @@ class BridgeConnection:
                 await server.send_message(text=msg)
 
 class ServerSuggester(StrictSuggester):
-    async def suggest(self, ctx: ServerCommandContext, arg: str, prior_args: dict) -> list:
+    async def suggest(self, ctx: ServerCommandContext) -> list:
         return [s.name for s in ctx.bot.servers if s is not ctx.server and s.connected]

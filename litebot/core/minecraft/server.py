@@ -18,7 +18,7 @@ from .player import Player
 from .protocol.connection import UDPSocketConnection
 from .protocol.query import ServerQuerier, QueryResponse
 from .protocol.rcon import ServerRcon
-from .commands.context import ServerCommandContext, ServerEventPayload, ServerEventContext
+from .commands.context import ServerEventContext, RPCContext
 from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
 from litebot.utils.data_manip import parse_emoji
 from litebot.utils.enums import BackupTypes
@@ -216,28 +216,7 @@ class MinecraftServer:
         if meth:
             return await meth(data)
 
-        meth = getattr(self, "fetch_" + action, None)
-        if meth:
-            return await meth(data)
-
         return await self.send_message(Text.op_message("LiteBot: Sent invalid action!"), op_only=True)
-
-    async def fetch(self, obj, data):
-        """
-        Fetches data from the bot for the server
-        See methods starting with `fetch_` to see the data that can be fetched
-        :param obj: The data to fetch
-        :type obj: str
-        :param data: The data that is being used to fetch the data
-        :type data: dict
-        :return: The data being fetched
-        """
-        meth = getattr(self, "fetch_" + obj, None)
-
-        if meth:
-            return await meth(data)
-
-        return []
 
     async def dispatch_command(self, data: dict):
         """
@@ -271,6 +250,11 @@ class MinecraftServer:
         for event in events:
             args = (ctx.with_setting(event), payload) if hasattr(event, "__setting__") else (ctx, payload)
             asyncio.create_task(event(*args), name=f"{self.name}-event: {data['name']}")
+
+    async def dispatch_rpc(self, data: dict):
+        handler = self.bot_instance.rpc_handlers[data["name"]]
+        ctx = RPCContext(self, self.bot_instance, data)
+        return await handler(ctx)
 
     async def fetch_suggester(self, data: dict):
         """

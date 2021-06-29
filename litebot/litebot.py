@@ -14,7 +14,7 @@ from sanic.log import logger, access_logger
 from sanic_cors import CORS
 
 from litebot.core import context, Cog
-from litebot.core.minecraft.commands.action import ServerCommand, ServerEvent
+from litebot.core.minecraft.commands.action import ServerCommand
 from litebot.core.plugins import PluginManager, Plugin
 from litebot.core.settings import SettingsManager
 from litebot.models import TrackedEvent
@@ -29,6 +29,7 @@ class GroupMixin(commands.GroupMixin):
     def __init__(self):
         self.server_commands: dict[str, ServerCommand] = {}
         self.server_events: dict[str, list[Callable]] = {}
+        self.rpc_handlers: dict[str, Callable] = {}
 
     def add_command(self, command: Union[ServerCommand, Command]):
         if not isinstance(command, ServerCommand):
@@ -41,6 +42,12 @@ class GroupMixin(commands.GroupMixin):
             return super().remove_command(name)
 
         self.server_commands.pop(name)
+
+    def add_rpc_handler(self, handler, name):
+        self.rpc_handlers[name] = handler
+
+    def remove_rpc_handler(self, name):
+        del self.rpc_handlers[name]
 
     def add_server_listener(self, event, name):
         if name in self.server_events:

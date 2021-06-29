@@ -87,3 +87,7 @@ class ServerEventContext(ServerContext):
         self.setting = event.__setting__
         return self
 
+class RPCContext(ServerContext):
+    def __init__(self, server: MinecraftServer, bot: LiteBot, data: dict):
+        super().__init__(server, bot)
+        self.data = data
