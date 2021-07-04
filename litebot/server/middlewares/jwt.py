@@ -7,11 +7,11 @@ from litebot.errors import AuthFailure
 from litebot.utils.logging import get_logger
 
 logger = get_logger("bot")
-ALGORITHM = "HS256"
+ALGORITHMS = ["HS256", "HS512"]
 
 def validate_jwt(token: str, secret: str) -> Optional[dict]:
     try:
-        return jwt.decode(token, secret, algorithms=ALGORITHM)
+        return jwt.decode(token, secret, algorithms=ALGORITHMS)
     except jwt.InvalidTokenError as e:
         raise AuthFailure(e)
 
@@ -40,7 +40,7 @@ async def validate_jwt_headers(request: Request, secret: str, auth_scheme: Optio
 
     if token:
         try:
-            decoded = jwt.decode(token, secret, algorithms=ALGORITHM)
+            decoded = jwt.decode(token.removesuffix("\n").removesuffix("\r"), secret, algorithms=ALGORITHMS)
         except jwt.InvalidTokenError as jet:
             logger.exception(jet, exc_info=jet)
             raise exceptions.Unauthorized(message=f"Invalid Authorization token, {jet}")
@@ -64,7 +64,7 @@ async def validate_jwt_query(request: Request, secret: str) -> Union[NoReturn, d
         raise exceptions.Forbidden("Missing token in request arguments!")
 
     try:
-        decoded = jwt.decode(token, secret, algorithms=ALGORITHM)
+        decoded = jwt.decode(token, secret, algorithms=ALGORITHMS)
     except jwt.InvalidTokenError as jet:
         logger.exception(jet, exc_info=jet)
         raise exceptions.Unauthorized(message=f"Invalid Authorization token, {jet}")

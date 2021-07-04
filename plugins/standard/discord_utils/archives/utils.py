@@ -24,6 +24,13 @@ def _attachment_to_dict(attachment: discord.Attachment):
         "proxy_url": attachment.proxy_url
     }
 
+def _reaction_to_dict(reaction: discord.Reaction):
+    return {
+        "count": reaction.count,
+        "custom_emoji": reaction.custom_emoji,
+        "emoji": reaction.emoji,
+    }
+
 def _message_to_dict(message: discord.Message):
     return {
         "attachments": [_attachment_to_dict(a) for a in message.attachments],
@@ -33,9 +40,11 @@ def _message_to_dict(message: discord.Message):
         "content": message.content,
         "created_at": message.created_at,
         "created_at_str": message.created_at.strftime("%d/%m/%y"),
-        "_embeds": [e.to_dict() for e in message.embeds],
+        "embeds": [e.to_dict() for e in message.embeds],
         "id": message.id,
-        "jump_url": message.jump_url
+        "jump_url": message.jump_url,
+        "is_pinned": message.pinned,
+        "reactions": [_reaction_to_dict(r) for r in message.reactions]
     }
 
 def _member_to_dict(member: discord.Member):
