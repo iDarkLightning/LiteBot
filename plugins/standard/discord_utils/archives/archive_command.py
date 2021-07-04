@@ -28,13 +28,13 @@ class ArchiveCommand(Cog):
         if not await ConfirmMenu("Are you sure you would like to archive this channel?").prompt(ctx):
             return await ctx.send(embed=embeds.ErrorEmbed("Aborted"))
 
-        for member, overwrite in channel.overwrites.items():
-            if bool(overwrite.view_channel) is True:
-                if member.id == self._bot.user.id or member in ctx.guild.me.roles:
-                    continue
-
-                overwrite.send_messages = False
-                await channel.set_permissions(member, overwrite=overwrite)
+        # for member, overwrite in channel.overwrites.items():
+        #     if bool(overwrite.view_channel) is True:
+        #         if member.id == self._bot.user.id or member in ctx.guild.me.roles:
+        #             continue
+        #
+        #         overwrite.send_messages = False
+        #         await channel.set_permissions(member, overwrite=overwrite)
 
         async with channel.typing():
             message = await channel.send(embed=embeds.InfoEmbed("Archiving Channel..."))
