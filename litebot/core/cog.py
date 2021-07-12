@@ -215,6 +215,7 @@ class Cog(DPYCog, metaclass=CogMeta):
     def _inject(self, bot: LiteBot):
         cls = self.__class__
         self._bot = bot
+        bot.processing_plugin.cogs.append(self)
 
         if not self.cog_requirements(bot):
             return self

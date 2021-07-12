@@ -1,94 +1,97 @@
-from collections import Mapping
-from typing import Optional, List
+from typing import Union
+
 from discord.ext import commands
-from litebot.utils import embeds
-from litebot.utils.fmt_strings import COMMAND_PATH, INLINE_CODE_BLOCK
+from discord.ext.commands import Group, Command
+
+from litebot.core import Cog, Context, Plugin, ServerCommand
+from litebot.utils.embeds import InfoEmbed, ErrorEmbed
 
 
-class HelpCommand(commands.HelpCommand):
-    def get_command_signature(self, command: commands.Command) -> str:
-        """
-        Get's the command's signature
-        :param command: The command to get the signature for
-        :type command: commands.Command
-        :return: The command's signature
-        :rtype: str
-        """
-        return INLINE_CODE_BLOCK.format(f"{command.qualified_name} {command.signature}")
+class HelpCommand(Cog, required=True):
 
-    def get_command_path(self, command: commands.Command) -> str:
+    @commands.command(name="help")
+    async def _help(self, ctx: Context, specifier=None):
         """
-        Get's the full path to a command
-        :param command: The command to get the path to
-        :type command: commands.Command
-        :return: The full path to the command including the prefix
-        :rtype: str
-        """
-        return COMMAND_PATH.format(self.clean_prefix, command.full_parent_name, command.name)
+        View help messages for all the various commands:
 
-    def get_help_brief(self, command: commands.Command) -> str:
+        Args:
+            `specifier`: The plugin/cog/command to specifiy the help message for
         """
-        Get's the command's signature and the command's brief
-        :param command: The command to get the brief for
-        :type command: commands.Command
-        :return: The command's brief help statement
-        :rtype: str
-        """
-        return f"{self.get_command_signature(command)}: {command.short_doc}"
+        if not specifier:
+            return await self._base(ctx)
 
-    async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command]]) -> None:
-        """
-        Handles response for the plain help command `help`
-        :param mapping: A mapping of the registered cogs and commands
-        :type mapping: Mapping[Optional[commands.Cog], List[commands.Command]]
-        """
-        embed = embeds.InfoEmbed("LiteBot Help Panel")
-        for command in [y for x in mapping.values() for y in x]:
-            try:
-                await command.can_run(self.context)
-            except commands.CheckFailure:
+        if plugin := self._bot.plugin_manager[specifier]:
+            return await self._plugin(ctx, plugin)
+
+        if cog := self._bot.cogs.get(specifier):
+            return await self._cog(ctx, cog)
+
+        if command := self._bot.get_command(specifier):
+            return await self._command(ctx, command)
+
+        return await ctx.send(embed=ErrorEmbed(f"Nothing found with the specifier: {specifier}"))
+
+    async def _base(self, ctx: Context):
+        plugins = self._bot.plugin_manager.all_plugins.values()
+
+        embed = InfoEmbed("Help")
+
+        for plugin in plugins:
+            embed.add_field(
+                name=plugin.meta.name,
+                value=plugin.description + f"\n`help {plugin.meta.repr_name}`",
+                inline=False
+            )
+
+        await ctx.send(embed=embed)
+
+    async def _plugin(self, ctx: Context, plugin: Plugin):
+        embed = InfoEmbed(f"Help for {plugin.meta.name}")
+
+        for cog in plugin.cogs:
+            embed.add_field(
+                name=cog.__cog_name__,
+                value=cog.__cog_description__ + f"\n`help {cog.__cog_name__}`",
+                inline=False
+            )
+
+        await ctx.send(embed=embed)
+
+    async def _cog(self, ctx: Context, cog: Cog):
+        embed = InfoEmbed(f"Help for {cog.__cog_name__}")
+
+        for cmd in cog.walk_commands():
+            if isinstance(cmd, ServerCommand) or cmd.root_parent:
                 continue
-            if isinstance(command, commands.Group):
-                sigs = [self.get_help_brief(c) for c in command.walk_commands()]
-                embed.add_field(name=f"{command.name.capitalize()} Command:", value="\n".join(sigs), inline=False)
-            else:
-                embed.add_field(name=f"{command.name.capitalize()} Command:", value=self.get_help_brief(command), inline=False)
 
-        await self.get_destination().send(embed=embed)
+            msg = cmd.short_doc + f"\n`help {cmd.name}`" if isinstance(cmd, Group) else cmd.help
 
-    async def send_command_help(self, command: commands.Command) -> None:
-        """
-        Handles response for help command for individual commands `help command`
-        :param command: The command to provide help for
-        :type command: commands.Command
-        """
-        await command.can_run(self.context)
-        embed = embeds.InfoEmbed(f"Help for command: {command.name}", description=self.get_command_signature(command))
-        embed.add_field(name="Command Usage:", value=command.help)
+            if await cmd.can_run(ctx):
+                embed.add_field(
+                    name=f"{cmd.name.capitalize()} Command:",
+                    value=msg,
+                    inline=False
+                )
 
-        await self.get_destination().send(embed=embed)
+        await ctx.send(embed=embed)
 
-    async def send_group_help(self, group: commands.Group) -> None:
-        """
-        Handles response for help command for command groups `help group`
-        :param group: The group to provide help for
-        :type group: commands.Group
-        """
-        await group.can_run(self.context)
-        sigs = [self.get_command_signature(c) for c in group.walk_commands()]
-        embed = embeds.InfoEmbed(f"Help for group: {group.name}", description="\n".join(sigs))
-        for command in group.walk_commands():
-            embed.add_field(name=self.get_command_path(command), value=command.help, inline=False)
+    async def _command(self, ctx: Context, command: Union[Command, Group]):
+        embed = InfoEmbed(f"Help for {command.name}")
 
-        await self.get_destination().send(embed=embed)
+        embed.add_field(
+            name=f"{command.name.capitalize()} Command:",
+            value=f"`{command.qualified_name} {command.signature}`\n" + command.help,
+            inline=False
+        )
 
-    async def on_help_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        """
-        Handles all errors that occur as a result of the help command
-        :param ctx: The context in which the command was executed
-        :type ctx: commands.Context
-        :param error: The error that was raised
-        :type error: Exception
-        """
-        if isinstance(error, commands.CheckFailure):
-            await ctx.send(embed=embeds.ErrorEmbed("You do not have permission to perform this command"))
+        if isinstance(command, Group):
+            for sub in command.walk_commands():
+                embed.add_field(
+                    name=f"{' '.join([c.capitalize() for c in sub.qualified_name.split(' ')])}:",
+                    value=f"`{sub.qualified_name} {sub.signature}`\n" + sub.help,
+                    inline=False
+                )
+
+        await ctx.send(embed=embed)
+
+

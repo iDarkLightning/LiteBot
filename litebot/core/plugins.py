@@ -5,6 +5,8 @@ import os
 import re
 from typing import TYPE_CHECKING, Optional
 
+from litebot.core import Cog
+
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
 
@@ -31,6 +33,7 @@ class _PluginMeta:
 class Plugin:
     def __init__(self, path, module):
         self.config: dict = {}
+        self.cogs: list[Cog] = []
         self.id_checks = []
         self.op_level = 0
         self.module = module

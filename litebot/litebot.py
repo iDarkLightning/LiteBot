@@ -22,8 +22,6 @@ from litebot.server import APP_NAME, SERVER_HOST, SERVER_PORT, add_routes
 from litebot.utils.config import MainConfig
 from litebot.utils.logging import get_logger, set_logger, set_access_logger
 from litebot.core.minecraft.server import MinecraftServer, ServerContainer
-from plugins.system.help_command import HelpCommand
-
 
 class GroupMixin(commands.GroupMixin):
     def __init__(self):
@@ -69,7 +67,7 @@ class LiteBot(GroupMixin, commands.Bot):
         commands.Bot.__init__(
             self,
             command_prefix=commands.when_mentioned_or(*self.config["prefixes"]),
-            help_command=HelpCommand(),
+            help_command=None,
             intents=discord.Intents.all(),
             case_insensitive=True)
         GroupMixin.__init__(self)
@@ -84,7 +82,6 @@ class LiteBot(GroupMixin, commands.Bot):
         self.__server = Sanic(APP_NAME)
         self.servers = self._init_servers()
         self.loop.create_task(asyncio.to_thread(self._dispatch_timers))
-        self.__cogs = {}
 
     def _init_servers(self):
         container = ServerContainer()
@@ -143,10 +140,6 @@ class LiteBot(GroupMixin, commands.Bot):
             cog = cog(*args, **kwargs)
 
         super().add_cog(cog)
-
-    @property
-    def cogs(self):
-        return types.MappingProxyType(self.__cogs)
 
     def _dispatch_timers(self):
         while True:
