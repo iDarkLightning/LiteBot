@@ -1,6 +1,7 @@
-import jwt
-import discord
 from typing import Optional
+
+import discord
+import jwt
 from discord.ext import commands
 
 from litebot.core import Cog
@@ -8,10 +9,7 @@ from litebot.utils import embeds
 from litebot.utils.fmt_strings import CODE_BLOCK
 
 
-class TokenCommand(Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
+class TokenCommand(Cog, required=True):
     @commands.command(name="token")
     @commands.has_permissions(manage_guild=True)
     async def _token(self, ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
@@ -24,7 +22,7 @@ class TokenCommand(Cog):
             {
                 "user": user.id
             },
-            self.bot.config["api_secret"],
+            self._bot.config["api_secret"],
             algorithm="HS256"
         )
 

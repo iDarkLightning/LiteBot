@@ -7,9 +7,11 @@ __plugin_meta__ = {
 from plugins.system.settings.settings import Settings
 from plugins.system.admin import AdminCommands
 from plugins.system.suggester import Suggester
+from plugins.system.token_command import TokenCommand
 
 
 def setup(bot):
     bot.add_cog(Settings)
     bot.add_cog(AdminCommands)
     bot.add_cog(Suggester)
+    bot.add_cog(TokenCommand)

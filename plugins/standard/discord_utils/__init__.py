@@ -6,6 +6,7 @@ __plugin_meta__ = {
 
 from plugins.standard.discord_utils.auto_role import AutoRole
 from plugins.standard.discord_utils.list_command import ListCommand
+from plugins.standard.discord_utils.moderator_commands import ModeratorCommands
 from plugins.standard.discord_utils.polls import PollCommand
 from plugins.standard.discord_utils.timezones import TimezoneCommand
 
@@ -15,3 +16,4 @@ def setup(bot):
     bot.add_cog(AutoRole)
     bot.add_cog(ListCommand)
     bot.add_cog(PollCommand)
+    bot.add_cog(ModeratorCommands)

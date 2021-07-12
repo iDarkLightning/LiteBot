@@ -9,10 +9,10 @@ from discord_components import Button, ButtonStyle, InteractionType
 from litebot.core import SettingTypes
 from litebot.core.components import Interaction
 from litebot.core.context import Context
-from litebot.modules.system.converters import JSONConverter
 from litebot.utils.data_manip import flatten_dict, unflatten_dict
 from litebot.utils.fmt_strings import CODE_BLOCK
 from plugins.shared.utils.timer import Timer
+from plugins.system.settings.utils import JSONConverter
 from plugins.system.settings.embeds import SettingEmbed, PluginEmbed
 
 

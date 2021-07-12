@@ -17,7 +17,7 @@ from litebot.core import context, Cog
 from litebot.core.minecraft.commands.action import ServerCommand
 from litebot.core.plugins import PluginManager, Plugin
 from litebot.core.settings import SettingsManager
-from litebot.models import TrackedEvent
+from litebot.utils.tracking_model import TrackedEvent
 from litebot.server import APP_NAME, SERVER_HOST, SERVER_PORT, add_routes
 from litebot.utils.config import MainConfig
 from litebot.utils.logging import get_logger, set_logger, set_access_logger
