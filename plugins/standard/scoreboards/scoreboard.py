@@ -28,6 +28,17 @@ class Scoreboard(Cog):
     @Cog.setting(name="Scoreboard Command", description="View the scores for an in game objective from discord")
     @commands.command(name="scoreboard", aliases=["sb"])
     async def _scoreboard(self, ctx: Context, objective_name: str, flag: Optional[ScoreboardFlag]):
+        """
+        Generate a scoreboard image for the given objective
+        By default, this only includes whitelisted players.
+
+        **Args**:
+            `objective_name`: The name of the objective to generate the scoreboard for
+        **Flags**:
+            `--board | -b`: Show only the players that appear on the ingame sidebar
+            `--all | -a`: Show all scoreboard entities instead of just whitelisted players
+
+        """
         cmd = Scoreboard.ALL_CMD if flag else Scoreboard.WHITELIST_ONLY_CMD
 
         try:
@@ -43,7 +54,7 @@ class Scoreboard(Cog):
         if not scores:
             matches = '\n'.join(difflib.get_close_matches(objective_name, self._objectives, n=3))
             return await ctx.send(
-                f"There are no scoreboards named `{objective_name}`! Perhaps you meant {CODE_BLOCK.format('', matches)}")
+                f"There are no scoreboards named `{objective_name}`! Perhaps you meant {CODE_BLOCK.format('', matches)}") if matches else None
 
         image = scoreboard_image(scores, objective_name)
         await ctx.send(file=image)

@@ -6,7 +6,7 @@ This plugin creates tickets on discord based on responses to a google form
 
 In order to use this plugin, you firstly need to link your google form to a spreadsheet.
 
-![create-spreadhseet](assets/create-spreadsheet.png)
+![create-spreadhseet](../../shared/assets/create-spreadsheet.png)
 
 Next, follow [these instructions](https://docs.gspread.org/en/latest/oauth2.html#for-bots-using-service-account) to create a google service account.
 

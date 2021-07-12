@@ -43,7 +43,6 @@ class TwitchClient:
         self._loop = event_loop
         self._nick = config["nick"].lower()
         self._token = config["token"]
-        self._client_id = config["client_id"]
 
     async def connect(self, channel: str) -> Optional[socket.socket]:
         """

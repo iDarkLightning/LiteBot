@@ -2,10 +2,10 @@
 
 This plugin lets you easily manage backups for all your servers.
 
-## Usage
-
+## Requirements
 **YOU MUST BE RUNNING THE BOT ON THE SAME MACHINE AS YOUR SERVERS IF YOU WISH TO USE THIS PLUGIN**
 
+## Usage
 Firstly, you must mount your server directories to the docker container.
 
 Rename `volume-config.template.yml` to `volume-config.yml`.

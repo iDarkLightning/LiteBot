@@ -2,7 +2,7 @@
 
 This plugin implements a bidirectional chatbridge between the server and discord as well as a bidrectional chatbridge between servers
 
-## Usage
+## Requirements
 
 You must be using [litebot-mod](https://github.com/iDarkLightning/litebot-mod) server-side for this plugin to work. In order for the best experience it is reccomended that you also run [litetech-additions](https://github.com/LiteTechMC/litetech-additions) on both the server and the client.
 

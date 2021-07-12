@@ -10,8 +10,7 @@ from plugins.standard.twitch_integration.chat import TwitchChat
 def config(bot):
     return {
         "token": "",
-        "nick": "THIS NEEDS TO BE YOUR ACCOUNT NAME",
-        "client_id": ""
+        "nick": "THIS NEEDS TO BE YOUR ACCOUNT NAME"
     }
 
 def setup(bot):
