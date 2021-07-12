@@ -28,10 +28,7 @@ class BackupsCommand(Cog):
     @commands.group(name="backup")
     async def _backup(self, ctx: Context) -> None:
         """
-        This is the root command for the backup group.
-        This command serves no function without
-        a subcommand, but will send the help message for this group.
-        Essentially invokes `help backup`
+        Root command for the backup group.
         """
         if not ctx.invoked_subcommand:
             await ctx.send_help("backup")
@@ -39,8 +36,9 @@ class BackupsCommand(Cog):
     @_backup.command(name="create")
     async def _backup_create(self, ctx: Context, server_name: Optional[str]) -> Message:
         """
-        This commands lets you create a backup for a server.
-        `server_name` The name of the server that you are creating a backup for
+        Create a backup for a server.
+        **Args**:
+            `server_name` The name of the server that you are creating a backup for
         """
         server = self._bot.servers.get_server(ctx, server_name)
 
@@ -57,8 +55,9 @@ class BackupsCommand(Cog):
     @_backup.command(name="view", aliases=["list"])
     async def _backup_view(self, ctx: Context, server_name: Optional[str]) -> Message:
         """
-        This command lets you view all the backups for a server
-        `server_name` The name of the server that you are creating a backup for
+        View all the backups for a server
+        **Args**:
+            `server_name` The name of the server that you are creating a backup for
         """
         server = self._bot.servers.get_server(ctx, server_name)
 
@@ -78,10 +77,12 @@ class BackupsCommand(Cog):
     @_backup.command(name="load", aliases=["restore"])
     async def _backup_load(self, ctx: Context, backup_name: str, server_name: Optional[str]) -> Message:
         """
-        This command lets you load a backup for a server.
-        The server will be stopped automatically, but you will have to start it after.
-        `backup_name` The name of the backup you are restoring
-        `server_name` The name of the server that you are creating a backup for
+        Restore a backup for a server.
+        If you are not running LiteHost, you will have to manually start the server after the backup has been restored.
+
+        **Args**:
+            `server_name` The name of the server that you are creating a backup for
+            `backup_name` The name of the backup you are restoring
         """
         server = self._bot.servers.get_server(ctx, server_name)
         backup_path = convert_backup_path(backup_name, server)
@@ -110,9 +111,10 @@ class BackupsCommand(Cog):
     @_backup.command(name="download")
     async def _backup_download(self, ctx: Context, backup_name: str, server_name: Optional[str]) -> Message:
         """
-        This command lets you download a backup for a server.
-        `backup_name` The name of the backup you are restoring
-        `server_name` The name of the server that you are creating a backup for
+        Download a backup for a server.
+        **Args**:
+            `server_name` The name of the server that you are creating a backup for
+            `backup_name` The name of the backup you are restoring
         """
         server = self._bot.servers.get_server(ctx, server_name)
         backup_path = convert_backup_path(backup_name, server)
@@ -134,9 +136,7 @@ class BackupsCommand(Cog):
     @mc_commands.command(name="backup")
     async def _server_backup(self, ctx: ServerCommandContext):
         """
-        This is a server command. It lets you create a command directly from the Minecraft server using /backup.
-        :param ctx: The context in which the command is being invoked
-        :type ctx: ServerCommandContext
+        Create a backup of the server world
         """
         info = BACKUP_INFO.format(ctx.server.name, datetime.utcnow(), BackupTypes.MANUAL.value, author=ctx.player)
         if not ctx.server.world_dir:
