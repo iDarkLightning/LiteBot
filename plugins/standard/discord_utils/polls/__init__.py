@@ -20,10 +20,7 @@ class PollCommand(Cog):
     @commands.group(name="poll")
     async def _poll(self, ctx: Context) -> None:
         """
-        This is the root command for the poll group.
-        This command serves no function without
-        a subcommand, but will send the help message for this group.
-        Essentially invokes `help poll`
+        Root command for the poll group.
         """
         if not ctx.invoked_subcommand:
             await ctx.send_help("poll")
@@ -59,9 +56,6 @@ class PollCommand(Cog):
     async def _poll_preset(self, ctx: commands.Context) -> None:
         """
         This is the root command for the poll preset group.
-        This command serves no function without
-        a subcommand, but will send the help message for this group.
-        Essentially invokes `help poll preset`
         """
         if not ctx.invoked_subcommand:
             await ctx.send_help("poll preset")
@@ -69,7 +63,7 @@ class PollCommand(Cog):
     @_poll_preset.command(name="view")
     async def _poll_preset_view(self, ctx: commands.Context) -> discord.Message:
         """
-        This command lets you view all the currently available presets
+        View all the currently available presets
         """
         if not (presets := PollPreset.objects()):
             return await ctx.send(embed=embeds.ErrorEmbed("There are no available presets!"))
@@ -123,7 +117,7 @@ class PollCommand(Cog):
     @commands.has_permissions(manage_guild=True)
     async def _poll_preset_delete(self, ctx: commands.Context, *, preset_name: str) -> discord.Message:
         """
-        This command lets you delete a current preset.
+        Delete a current preset.
         `preset_name` The name of the preset you'd like to delete
         """
         if not (poll := PollPreset.objects(name=preset_name).first()):

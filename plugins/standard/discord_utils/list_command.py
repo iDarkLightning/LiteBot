@@ -17,7 +17,7 @@ class ListCommand(Cog):
     @commands.command(name="list")
     async def _list(self, ctx: commands.Context, *, role: Optional[RoleConverter] = None) -> None:
         """
-        This command will let you view what people are in a role.
+        View what people are in a role.
         If no role is specified, it will instead show how many people are in each role.
         `role` The role to view members for.
         """

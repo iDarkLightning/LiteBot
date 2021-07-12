@@ -19,9 +19,6 @@ class TimezoneCommand(Cog):
     async def _timezone(self, ctx: commands.Context):
         """
         This is the root command for the timezone group.
-        This command serves no function without
-        a subcommand, but will send the help message for this group.
-        Essentially invokes `help timezone`
         """
         if not ctx.invoked_subcommand:
             await ctx.send_help("timezone")
@@ -29,7 +26,7 @@ class TimezoneCommand(Cog):
     @_timezone.command(name="view")
     async def _timezone_view(self, ctx: commands.Context) -> None:
         """
-        This command let's you view all the timezones
+        View all the timezones
         """
         timezones = "\n".join(pytz.all_timezones)
         parts = split_string(timezones, CHAR_LIMIT)
@@ -39,7 +36,7 @@ class TimezoneCommand(Cog):
     @_timezone.command("get")
     async def _timezone_get(self, ctx: commands.Context, member: discord.Member) -> None:
         """
-        This command let's you view the timezone for a member.
+        View the timezone for a member.
         `member` The member's who's time you want to view
         """
         timezone_name = set([role.name for role in member.roles]) & set(pytz.all_timezones)
@@ -56,7 +53,7 @@ class TimezoneCommand(Cog):
     @_timezone.command("set")
     async def _timezone_set(self, ctx: commands.Context, zone: str) -> Optional[discord.Message]:
         """
-        Let's you set your timezone.
+        Set your timezone.
         `zone` The timezone to set it to
         """
         if zone not in pytz.all_timezones:
