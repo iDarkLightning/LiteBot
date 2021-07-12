@@ -12,4 +12,5 @@ creds.json
 /plugins/*
 !/plugins/system
 !/plugins/standard
+!/plugins/shared
 volume-config.yml

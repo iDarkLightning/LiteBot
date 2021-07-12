@@ -12,7 +12,7 @@ from litebot.core.context import Context
 from litebot.modules.system.converters import JSONConverter
 from litebot.utils.data_manip import flatten_dict, unflatten_dict
 from litebot.utils.fmt_strings import CODE_BLOCK
-from plugins.system.settings.utils import Timer
+from plugins.shared.utils.timer import Timer
 from plugins.system.settings.embeds import SettingEmbed, PluginEmbed
 
 

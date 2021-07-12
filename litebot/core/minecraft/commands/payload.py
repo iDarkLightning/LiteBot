@@ -48,4 +48,16 @@ class MessagePayload(Payload):
         super().__init__(ctx, args)
         self.message = args["message"]
 
+class ConsoleMessagePayload(Payload):
+    EVENT_NAME = "on_console_message"
 
+    def __init__(self, ctx, args):
+        super().__init__(ctx, args)
+        self.message = args["message"]
+
+class HostConnectPayload(Payload):
+    EVENT_NAME = "on_host_connect"
+
+    def __init__(self, ctx, args):
+        super().__init__(ctx, args)
+        self.log = args["log"]

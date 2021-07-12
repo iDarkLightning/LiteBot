@@ -3,13 +3,12 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from functools import cached_property
 
 from typing import Optional, Tuple, TYPE_CHECKING
 from discord import TextChannel
 from discord.errors import NotFound
 from pathlib import Path
-from socket import timeout, gethostbyaddr, gaierror, herror, gethostbyname
+from socket import timeout, gaierror, gethostbyname
 
 from websockets import WebSocketCommonProtocol
 
@@ -43,7 +42,7 @@ class ServerContainer:
     def append(self, item):
         self._list.append(item)
 
-    def get_server(self, ctx, name):
+    def get_server(self, ctx, name) -> MinecraftServer:
         if name:
             return self[name]
         else:
@@ -70,7 +69,7 @@ class MinecraftServer:
     """
     Modules communication to and from a minecraft server
     """
-    def __init__(self, name: str, bot: LiteBot, **info: dict) -> None:
+    def __init__(self, name: str, bot: LiteBot, **info) -> None:
         self.name = name
         self.bot_instance = bot
         self.operator = info["operator"]
@@ -80,7 +79,9 @@ class MinecraftServer:
         self._rcon = ServerRcon(self.bot_instance.loop, self._addr, info["rcon_password"], info["rcon_port"])
 
         if self.bot_instance.using_lta:
-            self._connection: Optional[WebSocketCommonProtocol] = None
+            self._server_connection: Optional[WebSocketCommonProtocol] = None
+
+        self._host_connection: Optional[WebSocketCommonProtocol] = None
 
         try:
             self._has_valid_addr = bool(gethostbyname(self._addr))
@@ -134,19 +135,27 @@ class MinecraftServer:
             return None
 
     @property
-    def connected(self):
-        return bool(self._connection) and self._connection.open
+    def server_connected(self):
+        return bool(self._server_connection) and self._server_connection.open
 
-    async def connect(self, socket: WebSocketCommonProtocol):
+    @property
+    def host_connected(self):
+        return bool(self._host_connection) and self._host_connection.open
+
+    async def connect_server(self, socket: WebSocketCommonProtocol):
         """
         Connects to the server via a websocket connection
         :param socket: The socket that is being used to connect
         :type socket: WebSocketCommonProtocol
         """
-        self._connection = socket
+        self._server_connection = socket
         self.bot_instance.logger.info(f"WebSocket connection established to {self.name}")
 
         await self.send_command_tree()
+
+    async def connect_host(self, socket: WebSocketCommonProtocol):
+        self._host_connection = socket
+        self.bot_instance.logger.info(f"WebSocket connection established to host for {self.name}")
 
     def status(self) -> QueryResponse:
         """
@@ -165,7 +174,7 @@ class MinecraftServer:
             return querier.read_query()
         except timeout:
             return QueryResponse(status=False)
-        except Exception:
+        except:
             return QueryResponse(status=False)
 
     async def tps(self) -> Tuple[float, float]:
@@ -184,6 +193,54 @@ class MinecraftServer:
         mspt = round(float(res.split()[1]), 1)
         tps = 20.0 if mspt <= 50.0 else 1000 / mspt
         return mspt, round(float(tps), 1)
+
+    async def start(self) -> Optional[bool]:
+        """
+        Starts the server
+        """
+        if not self.host_connected:
+            return
+
+        server_online = False
+
+        while not server_online:
+            await self._host_connection.send(json.dumps({
+                "action": "start"
+            }))
+            server_online = self.status().online
+            await asyncio.sleep(2)
+
+        return server_online
+
+    async def kill(self) -> Optional[bool]:
+        """
+        Kills the server
+        """
+        if not self.host_connected:
+            return
+
+        server_online = True
+
+        while server_online:
+            await self._host_connection.send(json.dumps({
+                "action": "kill"
+            }))
+            server_online = self.status().online
+            await asyncio.sleep(2)
+
+        return server_online
+
+    async def restart(self):
+        """
+        Restarts the server
+        """
+
+        if not self.host_connected:
+            return
+
+        await self._host_connection.send(json.dumps({
+            "action": "restart"
+        }))
 
     async def stop(self) -> bool:
         """
@@ -229,7 +286,7 @@ class MinecraftServer:
 
         try:
             await ctx.invoke()
-            await self._connection.send(json.dumps({
+            await self._server_connection.send(json.dumps({
                 "name": "server_command_after_invoke",
                 "data": {"name": data["name"], "args": ctx.after_invoke_args}
             }))
@@ -283,10 +340,10 @@ class MinecraftServer:
         """
         Builds and sends the command tree to the server if the server is connected
         """
-        if not self.connected:
+        if not self.server_connected:
             return
 
-        await self._connection.send(json.dumps({
+        await self._server_connection.send(json.dumps({
             "name": "server_command_registers",
             "data": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent]
         }))
@@ -334,7 +391,6 @@ class MinecraftServer:
         if resp:
             return resp
 
-
     async def send_message(self, text, op_only: bool = False, player: Player = None) -> None:
         """
         Sends a system message to the server, only works if server is running LTA
@@ -353,7 +409,7 @@ class MinecraftServer:
         :return: The server's response
         :rtype: dict
         """
-        if not self.connected:
+        if not self.server_connected:
             return
 
         message = text.build()
@@ -364,5 +420,5 @@ class MinecraftServer:
         if player:
             payload["player"] = player.uuid
 
-        await self._connection.send(json.dumps({"name": "message", "data": payload}))
+        await self._server_connection.send(json.dumps({"name": "message", "data": payload}))
 
