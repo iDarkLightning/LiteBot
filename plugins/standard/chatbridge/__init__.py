@@ -18,7 +18,6 @@ from litebot.core.minecraft.commands.arguments import MessageArgumentType
 from litebot.core.minecraft.commands.payload import MessagePayload
 from litebot.core.minecraft.rpc import rpc
 from litebot.errors import ServerNotFound
-from litebot.utils.requests import fetch
 from plugins.standard.chatbridge.utils import ServerSuggester, BridgeConnection
 
 
@@ -79,7 +78,7 @@ class ChatBridge(Cog):
                     allowed_mentions=AllowedMentions(users=members, roles=False)
                 )
 
-    @Cog.setting(name="Server <-> Server",
+    @Cog.setting(name="Server <-> Server Bridge",
                  description="Lets you create a bridge between servers, allowing for cross-server communication!")
     @commands.command(name="bridge")
     async def _bridge_command(self, ctx: ServerCommandContext) -> None:
@@ -87,6 +86,9 @@ class ChatBridge(Cog):
 
     @_bridge_command.sub(name="send")
     async def _bridge_player_send(self, ctx: ServerCommandContext, server_name: ServerSuggester, message: MessageArgumentType):
+        """
+        Send a single message to another server
+        """
         server = self._bot.servers[server_name]
 
         msg = Text().add_component(text=f"[{ctx.server.name}] ", color=Colors.GRAY).add_component(
@@ -96,6 +98,9 @@ class ChatBridge(Cog):
 
     @_bridge_command.sub(name="connect")
     async def _bridge_player_connect(self, ctx: ServerCommandContext, server_name: Optional[ServerSuggester]):
+        """
+        Connect to a server
+        """
         try:
             servers = [self._bot.servers[server_name]]
         except (TypeError, ServerNotFound):
@@ -111,6 +116,9 @@ class ChatBridge(Cog):
 
     @_bridge_command.sub(name="disconnect")
     async def _bridge_player_disconnect(self, ctx: ServerCommandContext):
+        """
+        Disconnect from a server
+        """
         try:
             del self._connections[ctx.player.uuid]
             await ctx.send(text=Text().add_component(text="Disconnected from bridge connections", color=Colors.GREEN))

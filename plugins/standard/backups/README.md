@@ -21,7 +21,7 @@ services:
       - "/home/servers/cmp:/bot/servers/cmp"
 ```
 
-On subsequent runs, you must start the bot using the following command
+On subsequent runs, you must start the bot using the following command otherwise the plugin will not load
 ```bash
 docker-compose -f docker-compose.yml -f volume-config.yml # You can include -d here if you would like to detach from the containers upon starting
 ```
