@@ -23,7 +23,7 @@ async def _validate_jwt(request: Request):
 @blueprint.route("/", methods=["GET"])
 async def _get_archives(request: Request) -> BaseHTTPResponse:
     """
-    A GET request method at /archives to fetch all the current archives
+    A GET request method at /archives to fetch all the archives the use can see
     :param request: The HTTPRequest object, provided by Sanic
     :type request: sanic.request.Request
     :return: A json version of all the archived channels stored on the database, see `class:ArchivedChannel`
@@ -33,6 +33,13 @@ async def _get_archives(request: Request) -> BaseHTTPResponse:
 
 @blueprint.route("/channels", methods=["GET"])
 async def _get_archived_channels(request: Request) -> BaseHTTPResponse:
+    """
+    A GET request method at /archives/channels to fetch the metadata (name, id, and category) for all the channels the user can see
+    :param request: The HTTPRequest object, provided by Sanic
+    :type request: sanic.request.Request
+    :return: A json version of all the archived channels stored on the database, see `class:ArchivedChannel`
+    :rtype: BaseHTTPResponse
+    """
     return json_response([{
         "name": c.name,
         "id": str(c.channel_id),
@@ -40,17 +47,15 @@ async def _get_archived_channels(request: Request) -> BaseHTTPResponse:
 
 @blueprint.route("/channel/<id:int>", methods=["GET"])
 async def _get_archived_channel(request: Request, id: int):
+    """
+    A GET request method at /archives/channel/id to fetch a specific archive by ID
+    :param request: The HTTPRequest object, provided by Sanic
+    :type request: sanic.request.Request
+    :return: A json version of all the archived channels stored on the database, see `class:ArchivedChannel`
+    :rtype: BaseHTTPResponse
+    """
     try:
         channel = list(filter(lambda c: c.channel_id == id, request.ctx.channels))[0]
         return json_response({"res": json.loads(channel.to_json())})
     except IndexError:
         return json_response({"error": "no such channel found!"})
-
-@blueprint.route("/channel/<id:int>/<message_index:int>", methods=["GET"])
-async def _get_message(request, id: int, message_index: int):
-    try:
-        channel = list(filter(lambda c: c.channel_id == id, request.ctx.channels))[0]
-        return json_response(json.loads(channel.to_json())["messages"][message_index])
-    except IndexError:
-        return json_response({"error": "no such channel found!"})
-

@@ -17,6 +17,11 @@ class ArchiveCommand(Cog):
     @Cog.setting(name="Archive Channel", description="Archive a discord channel to the database")
     @commands.command(name="archive")
     async def _archive(self, ctx: Context, channel: Optional[discord.TextChannel]):
+        """
+        Archive a channel
+        **Args**:
+            `channel`: The channel to archive. The current channel by default
+        """
         channel = channel or ctx.channel
         matched_archive = ArchivedChannel.objects(channel_id=channel.id).first()
 
@@ -28,14 +33,6 @@ class ArchiveCommand(Cog):
 
         if not await ConfirmMenu("Are you sure you would like to archive this channel?").prompt(ctx):
             return await ctx.send(embed=embeds.ErrorEmbed("Aborted"))
-
-        # for member, overwrite in channel.overwrites.items():
-        #     if bool(overwrite.view_channel) is True:
-        #         if member.id == self._bot.user.id or member in ctx.guild.me.roles:
-        #             continue
-        #
-        #         overwrite.send_messages = False
-        #         await channel.set_permissions(member, overwrite=overwrite)
 
         async with channel.typing():
             message = await channel.send(embed=embeds.InfoEmbed("Archiving Channel..."))
