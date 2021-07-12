@@ -16,7 +16,7 @@ class VoteResultsEmbed(InfoEmbed):
             yes_amount = 0
             no_amount = 0
 
-        description = f"Vote Results: {':blue_square:' * yes_amount}{':red_square:' * no_amount}" if yes_amount and no_amount else ""
+        description = f"Vote Results: {':blue_square:' * yes_amount}{':red_square:' * no_amount}" if yes_amount or no_amount else ""
 
         super().__init__("", description=description, timestamp=datetime.utcnow())
         self.set_author(name=f"Vote Results for {application.name}")

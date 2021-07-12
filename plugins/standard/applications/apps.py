@@ -62,11 +62,19 @@ class Applications(Cog):
                  config={"auto_vote": False, "auto_vote_preset": "", "auto_vote_mention_role": 0})
     @commands.group(name="ticket")
     async def _ticket(self, ctx: Context):
+        """
+        Root command for the ticket group
+        """
         if not ctx.invoked_subcommand:
             await ctx.send_help("ticket")
 
     @_ticket.command(name="create")
     async def _ticket_create(self, ctx: Context, num: int):
+        """
+        Create a new ticket
+        **Args**:
+            `num`: The application number to create the ticket for
+        """
         try:
             questions = self._worksheet.row_values(1)
             answers = self._worksheet.row_values(num + 1)
@@ -76,6 +84,11 @@ class Applications(Cog):
 
     @_ticket.command(name="deny")
     async def _ticket_deny(self, ctx: Context, *, reason):
+        """
+        Deny a ticket
+        **Args**:
+            `reason`: The reason the ticket was denied
+        """
         ticket: Application = Application.objects(ticket_id=ctx.channel.id).first()
 
         if not ticket:
@@ -119,6 +132,14 @@ class Applications(Cog):
 
     @_ticket.command(name="accept")
     async def _ticket_accept(self, ctx: Context, member: discord.Member, *, accept: TicketAcceptInfo):
+        """
+        Accept a ticket
+        **Args**:
+            `member`: The member that the ticket is for
+            `accept`: Extra flags for the command:
+                `--whitelist|-w <ign>` The username to whitelist on all servers
+                `--timezone|-tz <timezone>` Set the member's timezone
+        """
         ticket: Application = Application.objects(ticket_id=ctx.channel.id).first()
 
         if not ticket:
