@@ -27,7 +27,7 @@ services:
       ME_CONFIG_BASICAUTH_USERNAME: ${DB_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${DB_PASSWORD}
     ports:
-      - 8081:8081
+      - ${MONGO_EXPRESS_PORT}:8081
     depends_on:
       - mongo
     logging:
