@@ -99,7 +99,7 @@ class ServerEventContext(ServerContext):
     :param player_data: If the event is related to a player, then the data for that player
     :type player_data: Optional[str]
     """
-    def __init__(self, server, bot, player_data=Optional[str]):
+    def __init__(self, server, bot, player_data: Optional[str]):
         super().__init__(server, bot)
         self.player = Player(**json.loads(player_data)) if player_data else None
         self.setting: Optional[Setting] = None

@@ -44,7 +44,7 @@ def scoreboard_image(sort_scores: list[str], objective_name: str) -> discord.Fil
     red = "#FF5555"
     white = "#FFFFFF"
     spacing = 1
-    font = ImageFont.truetype(font=os.path.join(os.getcwd(), "plugins", "scoreboards", "assets/minecraft.ttf"), size=20)
+    font = ImageFont.truetype(font=os.path.join(os.getcwd(), "plugins", "standard", "scoreboards", "assets", "minecraft.ttf"), size=20)
 
     draw = ImageDraw.Draw(Image.new("1", (1, 1)))
 
