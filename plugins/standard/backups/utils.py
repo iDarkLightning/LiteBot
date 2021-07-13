@@ -1,16 +1,17 @@
+from __future__ import annotations
 import os
 import platform
 import shutil
 import zipfile
 from datetime import datetime
 from enum import Enum
-from typing import Union
-
-from litebot.core.minecraft import MinecraftServer, ServerCommandContext
-from litebot.core.minecraft.commands.arguments import StrictSuggester
+from typing import Union, TYPE_CHECKING
 
 BACKUP_INFO = "Server: {}\nMade By: {author} ({author.id})\nTime of Creation: {}\nType: {}"
 TIME_FORMAT = '%m-%d-%y-%H-%M-%S'
+
+if TYPE_CHECKING:
+    from litebot.core.minecraft import MinecraftServer
 
 class BackupTypes(Enum):
     MANUAL = "Manual"

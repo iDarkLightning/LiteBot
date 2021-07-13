@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-from typing import Optional
 from ..utils.logging import get_logger
 
 CONFIG_DIR_NAME = "config"
@@ -92,97 +91,6 @@ class MainConfig(BaseConfig):
 
     def __init__(self, file_name: str = "config.json") -> None:
         super().__init__(file_name, True)
-
-class ModuleConfig(BaseConfig):
-    def __init__(self, file_name: str = "modules_config.json") -> None:
-        super().__init__(file_name, False)
-
-    def register_cog(self, module: str, cog_name: str, val: Optional[bool] = False) -> None:
-        """
-        Toggles whether or not a cog is enabled,
-        sets to false by default or if the cog has not been registered previously.
-        :param module: The module the cog belongs to
-        :type module: str
-        :param cog_name: The name of the cog
-        :type cog_name: str
-        :param val: The value to set the cog's status to
-        :type val: Optional[bool]
-        """
-        try:
-            self[module]["cogs"][cog_name] = val
-        except KeyError:
-            self[module]["cogs"] = {}
-            self[module]["cogs"][cog_name] = val
-
-        self.save()
-
-    def cog_enabled(self, module: str, cog_name: str) -> bool:
-        """
-        Checks whether a cog is enabled. Registers it as false
-        if the cog has not been previously registered
-        :param module: The module the cog belongs to
-        :type module: str
-        :param cog_name: The name of the cog
-        :type cog_name: str
-        :return: Whether or not the cog is enabled
-        :rtype: bool
-        :raises: ModuleNotFoundError
-        """
-        if self.get(module) is None:
-            raise ModuleNotFoundError
-
-        try:
-            return self[module]["cogs"][cog_name]
-        except KeyError:
-            self.register_cog(module, cog_name)
-            logger.warning(f"The cog: {cog_name} for module: {module} has been registered. It is disabled by default, you can enable it at {self.file_path}")
-            return False
-
-    def match_module(self, module: str, config: dict) -> None:
-        """
-        Matches the default config for a module with the current config
-        :param module: The module to match
-        :type module: str
-        :param config: The config to match it to
-        :type config: dict
-        """
-        if module not in self:
-            self[module] = {"enabled": False, "config": config}
-            logger.warning(f"Wrote default config for module: {module}. Please fill it out, and reload the module/restart the bot.")
-            self.save()
-            return
-
-        if "config" not in self[module]:
-            self[module]["config"] = {}
-
-        for key in config:
-            if not key in self[module]["config"]:
-                self[module]["config"][key] = config[key]
-
-    def register_module(self, module: str, initial_val: Optional[bool] = False) -> None:
-        """
-        Registers a new module
-        :param module: The module to register
-        :type module: str
-        :param initial_val: The initial value to register the module as
-        :type initial_val: Optional[bool]
-        """
-        self[module] = {"enabled": initial_val}
-        logger.info(f"Registed a new module: {module}. It has been disabled by default, you can enable it at {self.file_path}")
-
-    def toggle_module(self, module: str, val: bool) -> None:
-        if self.get(module) is None:
-            raise ModuleNotFoundError
-
-        self[module]["enabled"] = val
-        self.save()
-
-    def toggle_cog(self, module: str, cog_name: str, val: bool) -> None:
-        if self.get(module) is None:
-            raise ModuleNotFoundError
-
-        self[module]["cogs"][cog_name] = val
-        self.save()
 
 class SettingsConfig(BaseConfig):
     def __init__(self, file_name: str = "settings.json") -> None:

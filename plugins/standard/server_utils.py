@@ -10,7 +10,8 @@ import discord
 from discord.ext import commands
 
 from litebot.core import Cog, Context
-from litebot.core.minecraft import MinecraftServer, ServerNotRunningCarpet, ServerConnectionFailed
+from litebot.errors import ServerNotRunningCarpet, ServerConnectionFailed
+from litebot.core.minecraft import MinecraftServer
 from litebot.utils.embeds import SuccessEmbed, ErrorEmbed
 from litebot.utils.fmt_strings import CODE_BLOCK
 from litebot.utils.misc import check_role

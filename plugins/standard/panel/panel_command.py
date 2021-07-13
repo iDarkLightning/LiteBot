@@ -1,7 +1,4 @@
-import json
-
 from discord.ext import commands
-from discord_components import Button, ButtonStyle
 
 from litebot.core import Cog
 from litebot.core.context import Context

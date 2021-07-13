@@ -1,5 +1,4 @@
 import asyncio
-import types
 from datetime import datetime
 from typing import Callable, Union
 
@@ -8,12 +7,13 @@ import os
 
 import mongoengine
 from discord.ext import commands
-from discord.ext.commands import Command, errors
-from sanic import Sanic, Blueprint
+from discord.ext.commands import Command
+from sanic import Sanic
 from sanic.log import logger, access_logger
 from sanic_cors import CORS
 
-from litebot.core import context, Cog
+from litebot.core.context import Context
+from litebot.core.cog import Cog
 from litebot.core.minecraft.commands.action import ServerCommand
 from litebot.core.plugins import PluginManager, Plugin
 from litebot.core.settings import SettingsManager
@@ -121,7 +121,7 @@ class LiteBot(GroupMixin, commands.Bot):
         await self.wait_until_ready()
         return self.get_guild(self.config["main_guild_id"])
 
-    async def get_context(self, message, *, cls=context.Context):
+    async def get_context(self, message, *, cls=Context):
         return await super().get_context(message, cls=cls)
 
     def _schedule_event(self, coro, event_name, *args, **kwargs):

@@ -14,14 +14,13 @@ from websockets import WebSocketCommonProtocol
 
 from .commands.payload import Payload
 from .player import Player
-from .protocol.connection import UDPSocketConnection
-from .protocol.query import ServerQuerier, QueryResponse
-from .protocol.rcon import ServerRcon
+from .protocol import UDPSocketConnection
+from .protocol import ServerQuerier, QueryResponse
+from .protocol import ServerRcon
 from .commands.context import ServerEventContext, RPCContext
-from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
-from litebot.utils.data_manip import parse_emoji
-from litebot.utils.enums import BackupTypes
 from .text import Text
+
+from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
 
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
@@ -39,7 +38,7 @@ class ServerContainer:
     def all(self) -> list[MinecraftServer]:
         return self._list
 
-    def append(self, item):
+    def append(self, item: MinecraftServer):
         self._list.append(item)
 
     def get_server(self, ctx, name) -> MinecraftServer:
@@ -48,7 +47,7 @@ class ServerContainer:
         else:
             return self[ctx.channel.id]
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> MinecraftServer:
         if isinstance(item, str):
             server = list(filter(lambda s: s.name == item, self._list))
         elif isinstance(item, int):
@@ -117,8 +116,8 @@ class MinecraftServer:
             return
 
         Path(os.path.join(self.server_dir, BACKUP_DIR_NAME)).mkdir(exist_ok=True)
-        Path(os.path.join(self.server_dir, BACKUP_DIR_NAME, BackupTypes.MANUAL.value)).mkdir(exist_ok=True)
-        Path(os.path.join(self.server_dir, BACKUP_DIR_NAME, BackupTypes.WEEKLY.value)).mkdir(exist_ok=True)
+        Path(os.path.join(self.server_dir, BACKUP_DIR_NAME, "manual")).mkdir(exist_ok=True)
+        Path(os.path.join(self.server_dir, BACKUP_DIR_NAME, "weekly")).mkdir(exist_ok=True)
 
         return os.path.join(self.server_dir, BACKUP_DIR_NAME)
 
@@ -154,6 +153,11 @@ class MinecraftServer:
         await self.send_command_tree()
 
     async def connect_host(self, socket: WebSocketCommonProtocol):
+        """
+        Connects to the server host via a websocket connection
+        :param socket: The socket that is being used to connect
+        :type socket: WebSocketCommonProtocol
+        """
         self._host_connection = socket
         self.bot_instance.logger.info(f"WebSocket connection established to host for {self.name}")
 
@@ -333,7 +337,6 @@ class MinecraftServer:
         :type message: str
         :raises: AttributeError
         """
-        message = await parse_emoji(self.bot_instance, message)
         await self.bridge_channel.send(message)
 
     async def send_command_tree(self):

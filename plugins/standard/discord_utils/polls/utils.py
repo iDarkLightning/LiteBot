@@ -1,11 +1,6 @@
-import re, shlex, argparse
-from typing import Union, Optional, Any
-
-import discord
-from discord.ext import commands
+import shlex, argparse
 from discord.ext.commands import MemberConverter, RoleConverter, MemberNotFound, RoleNotFound, Converter
 
-from litebot.core.context import Context
 from plugins.standard.discord_utils.polls.errors import PollCommandError
 from plugins.standard.discord_utils.polls.poll_preset_model import PollPreset
 

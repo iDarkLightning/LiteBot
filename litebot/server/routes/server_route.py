@@ -2,8 +2,8 @@ import json
 
 from sanic.request import Request
 
-from sanic import Blueprint, exceptions, response
-from ..middlewares.jwt import validate_jwt, validate_jwt_headers
+from sanic import Blueprint
+from ..middlewares.jwt import validate_jwt
 
 from ...errors import AuthFailure, ServerNotFound
 
@@ -51,6 +51,10 @@ async def _websocket(request: Request, socket):
 
 @blueprint.websocket("/host")
 async def _websocket_host(request: Request, socket):
+    """
+    A WebSocket route at /host that is used by the server host to connect with the bot.
+    Follows the same protocol as the websocket route at / (see above)
+    """
     async for message in socket:
         try:
             data: dict = json.loads(message)

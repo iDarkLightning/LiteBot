@@ -1,13 +1,6 @@
-import os
-import platform
-from typing import List, Union
-from PIL import ImageDraw, ImageFont, Image
-import math
-import io
+from typing import List
 import discord
 from discord.utils import get
-
-from litebot.utils import requests
 
 
 def check_role(member: discord.Member, role_ids: List[int]) -> bool:
@@ -23,6 +16,9 @@ def check_role(member: discord.Member, role_ids: List[int]) -> bool:
     return any(role in [get(member.guild.roles, id=role) for role in role_ids] for role in member.roles)
 
 class Toggleable:
+    """
+    A class letting you toggle true or false using a ctx manager
+    """
     def __init__(self):
         self._val = False
 

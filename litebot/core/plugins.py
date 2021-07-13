@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from litebot.core import Cog
 
@@ -31,7 +31,7 @@ class _PluginMeta:
 
 
 class Plugin:
-    def __init__(self, path, module):
+    def __init__(self, path: str, module):
         self.config: dict = {}
         self.cogs: list[Cog] = []
         self.id_checks = []

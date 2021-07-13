@@ -8,6 +8,9 @@ from litebot.core import Setting
 class Context(DPYContext):
     @property
     def setting(self) -> Optional[Setting]:
+        """
+        The setting object for the command
+        """
         if self.command is None:
             return None
 
@@ -18,6 +21,9 @@ class Context(DPYContext):
 
     @property
     def config(self) -> Optional[dict]:
+        """
+        The config for the command
+        """
         if self.setting is None:
             return None
         return self.setting.config

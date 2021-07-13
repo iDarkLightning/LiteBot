@@ -3,66 +3,31 @@ import asyncio
 import inspect
 from typing import List, Callable, Any, Optional, get_type_hints, get_args, Union, Type, TYPE_CHECKING
 
-from litebot.errors import InvalidEvent, ArgumentError
+from litebot.errors import ArgumentError
 from litebot.core.minecraft.commands.arguments import ArgumentType, Suggester
 from litebot.core.minecraft.commands.context import ServerCommandContext
 
 if TYPE_CHECKING:
-    from litebot.core import Setting
+    from litebot.core import Setting, Cog
+    from litebot.core.minecraft import MinecraftServer
+    from litebot.litebot import LiteBot
 
 
-def _build_args(func: Callable) -> Union[tuple[list, dict, list], tuple[
-    list[dict[str, Union[bool, Any]]], dict[Any, Type[Suggester]], dict[Any, Type[ArgumentType]]]]:
-    arg_hints = {k: v for k, v in get_type_hints(func).items() if k != "return" and v is not ServerCommandContext}
-    if not arg_hints:
-        return [], {}, []
-
-    args = []
-    arg_types = {}
-    suggestors = {}
-    started_optional = False
-
-    for arg_name, arg_type in arg_hints.items():
-        generic_args = get_args(arg_type)
-        arg_type = generic_args[0] if generic_args else arg_type
-
-        if not issubclass(arg_type, ArgumentType) or (started_optional and not generic_args):
-            raise ArgumentError("Invalid arguments for server command!")
-
-        if generic_args:
-            started_optional = True
-
-        args.append({"name": arg_name, "type": arg_type.REPR, "optional": started_optional})
-        arg_types[arg_name] = arg_type
-
-        if issubclass(arg_type, Suggester):
-            suggestors[arg_name] = arg_type
-
-    return args, suggestors, arg_types
-
-class ServerAction:
-    """
-    A base class for a server command and a server event.
-    """
-
-    def __init__(self, func, cog=None, **kwargs) -> None:
+class ServerCommand:
+    __setting__: Setting
+    def __init__(self, func: Callable, cog=None, **kwargs):
         if not asyncio.iscoroutinefunction(func):
             raise TypeError("Callback must be a coroutine")
 
         self.name = kwargs.get("name") or func.__name__
         self.callback = func
-        self.cog = cog # Will be set manually when adding the cog
-
-class ServerCommand(ServerAction):
-    __setting__: Setting
-    def __init__(self, func, cog=None, **kwargs):
-        super().__init__(func, cog, **kwargs)
+        self.cog = cog  # Will be set manually when adding the cog
 
         self.parent = kwargs.get("parent")
         self.register = bool(kwargs.get("register")) if kwargs.get("register") is not None else True
         self.op_level = kwargs.get("op_level") or 0
 
-        args, suggestors, arg_types = _build_args(func)
+        args, suggestors, arg_types = self._build_args(func)
         self.arguments = args
         self.suggestors = suggestors
         self.arg_types = arg_types
@@ -79,11 +44,19 @@ class ServerCommand(ServerAction):
         return inspect.getdoc(self.callback)
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
+        """
+        The full name of the command
+        :rtype: str
+        """
         return ".".join(self._get_full_path()[::-1])
 
     @property
-    def root_parent(self):
+    def root_parent(self) -> ServerCommand:
+        """
+        The highest level parent of the command
+        :rtype: ServerCommand
+        """
         cmd = self
 
         while cmd.parent is not None:
@@ -91,7 +64,10 @@ class ServerCommand(ServerAction):
 
         return cmd
 
-    def build(self):
+    def build(self) -> Optional[dict[str, Union[str, int, list, dict]]]:
+        """
+        Build the JSON representation of the command that will be sent to the server
+        """
         if not self.register:
             return
 
@@ -105,14 +81,17 @@ class ServerCommand(ServerAction):
 
         return data
 
-    def update_cog_ref(self, cog):
+    def update_cog_ref(self, cog: Cog) -> None:
+        """
+        Update the command's reference to the cog
+        """
         self.cog = cog
 
         if self.subs:
             for sub in self.subs.values():
                 sub.cog = cog
 
-    def sub(self, **kwargs):
+    def sub(self, **kwargs) -> Callable:
         """
         Registers a subcommand for the commnad.
         Works similarly to registering a normal command,
@@ -141,15 +120,18 @@ class ServerCommand(ServerAction):
 
         return decorator
 
-    def _get_full_path(self):
-        res = [self.name]
-
-        if self.parent:
-            res.extend(self.parent._get_full_path())
-
-        return res
-
-    def create_context(self, server, bot, data):
+    def create_context(self, server: MinecraftServer, bot: LiteBot, data: dict):
+        """
+        Create the context for the command
+        :param server: The server that the command is being invoked from
+        :type server: MinecraftServer
+        :param bot: The bot object
+        :type bot: LiteBot
+        :param data: The data that is being used to create the context
+        :type data: dict
+        :return: The created context for the command's execution
+        :rtype: ServerCommandContext
+        """
         cmd_args = {}
         full_args = data.get("args")
 
@@ -175,6 +157,43 @@ class ServerCommand(ServerAction):
             await self.callback(self.cog, ctx, *args)
         else:
             await self.callback(ctx, *args)
+
+    def _get_full_path(self) -> list[str]:
+        res = [self.name]
+
+        if self.parent:
+            res.extend(self.parent._get_full_path())
+
+        return res
+
+    def _build_args(self, func: Callable) -> Union[tuple[list, dict, list], tuple[
+        list[dict[str, Union[bool, Any]]], dict[Any, Type[Suggester]], dict[Any, Type[ArgumentType]]]]:
+        arg_hints = {k: v for k, v in get_type_hints(func).items() if k != "return" and v is not ServerCommandContext}
+        if not arg_hints:
+            return [], {}, []
+
+        args = []
+        arg_types = {}
+        suggestors = {}
+        started_optional = False
+
+        for arg_name, arg_type in arg_hints.items():
+            generic_args = get_args(arg_type)
+            arg_type = generic_args[0] if generic_args else arg_type
+
+            if not issubclass(arg_type, ArgumentType) or (started_optional and not generic_args):
+                raise ArgumentError("Invalid arguments for server command!")
+
+            if generic_args:
+                started_optional = True
+
+            args.append({"name": arg_name, "type": arg_type.REPR, "optional": started_optional})
+            arg_types[arg_name] = arg_type
+
+            if issubclass(arg_type, Suggester):
+                suggestors[arg_name] = arg_type
+
+        return args, suggestors, arg_types
 
 def command(**kwargs) -> Callable:
     """

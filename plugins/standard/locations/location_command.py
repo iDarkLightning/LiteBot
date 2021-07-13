@@ -1,9 +1,10 @@
 import json
 
 from mongoengine import NotUniqueError
+from typing import Optional
 
 from litebot.core import Cog
-from litebot.core.minecraft import ServerCommandContext, Optional, Text, Colors, commands, Player
+from litebot.core.minecraft import ServerCommandContext, Text, Colors, commands, Player
 from litebot.core.minecraft.commands.arguments import StringArgumentType, BlockPosArgumentType, DimensionArgumentType, \
     IntegerArgumentType, PlayerArgumentType
 from litebot.utils.data_manip import snakify

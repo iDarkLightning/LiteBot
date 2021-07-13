@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
-from litebot.core.minecraft.player import Player
+from litebot.core.minecraft import Player
 from litebot.core.minecraft.text import Text
 
 if TYPE_CHECKING:
-    from litebot.core.minecraft.commands.action import ServerCommand
+    from litebot.core.minecraft.commands import ServerCommand
     from litebot.litebot import LiteBot
     from litebot.core.minecraft import MinecraftServer
     from litebot.core import Setting
@@ -41,6 +41,9 @@ class ServerCommandContext(ServerContext):
 
     @property
     def setting(self) -> Optional[Setting]:
+        """
+        The setting for the command
+        """
         if self.command is None:
             return None
 
@@ -51,6 +54,9 @@ class ServerCommandContext(ServerContext):
 
     @property
     def config(self) -> Optional[dict]:
+        """
+        The config for the command
+        """
         if self.setting is None:
             return None
         return self.setting.config
@@ -59,6 +65,9 @@ class ServerCommandContext(ServerContext):
         self.after_invoke_args[key] = value
 
     async def invoke(self):
+        """
+        Invoke the command with this context
+        """
         args = [self.command.arg_types[name](arg).val for name, arg in self.args.items() if arg is not None]
 
         await self.command.invoke(self, args)
@@ -78,6 +87,18 @@ class ServerCommandContext(ServerContext):
         await self.server.send_message(text=text, player=self.player)
 
 class ServerEventContext(ServerContext):
+    """
+    A context object for a ServerEvent.
+    Lets us easily interact with both the server and the bot
+    through a single object.
+
+    :param server: The server that the event was dispatched from
+    :type server: MinecraftServer
+    :param bot: The bot that the event is registered for
+    :type bot: LiteBot
+    :param player_data: If the event is related to a player, then the data for that player
+    :type player_data: Optional[str]
+    """
     def __init__(self, server, bot, player_data=Optional[str]):
         super().__init__(server, bot)
         self.player = Player(**json.loads(player_data)) if player_data else None
@@ -88,6 +109,18 @@ class ServerEventContext(ServerContext):
         return self
 
 class RPCContext(ServerContext):
+    """
+    A context object for a RPC Handler.
+    Lets us easily interact with both the server and the bot
+    through a single object.
+
+    :param server: The server that the remote procedure was called from
+    :type server: MinecraftServer
+    :param bot: The bot that the rpc is registered for
+    :type bot: LiteBot
+    :param data: The data for the handler
+    :type data: dict
+    """
     def __init__(self, server: MinecraftServer, bot: LiteBot, data: dict):
         super().__init__(server, bot)
         self.data = data

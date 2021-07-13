@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, Union
+from typing import Union
 
 from discord import User, Member
 from discord.ext import commands

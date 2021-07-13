@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 
 from discord.ext.commands import MemberConverter, MemberNotFound, RoleConverter, RoleNotFound, UserConverter

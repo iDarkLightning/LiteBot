@@ -9,3 +9,7 @@ parts of it, which I wouldn't have been able to do otheriwse.
 
 His code can be found here: https://github.com/Dinnerbone/mcstatus
 """
+
+from .connection import *
+from .rcon import *
+from .query import *

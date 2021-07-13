@@ -8,7 +8,7 @@ from discord.ext.commands.cog import _cog_special_method
 from discord.ext.commands._types import _BaseCommand
 from discord.ext.tasks import Loop
 
-from litebot.core.minecraft.commands.action import ServerCommand
+from litebot.core.minecraft.commands import ServerCommand
 from litebot.core.settings import Setting, SettingTypes
 
 if TYPE_CHECKING:

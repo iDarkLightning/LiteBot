@@ -1,7 +1,7 @@
 import asyncio
 import random
 import socket, select, ssl, struct, time
-from typing import Any, Optional, Union
+from typing import Optional
 
 from litebot.errors import RconException
 

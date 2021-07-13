@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import abc
 import json
+from typing import TYPE_CHECKING
 
 from litebot.errors import ArgumentError
-from litebot.core.minecraft.commands.context import ServerCommandContext
-from litebot.core.minecraft.player import Player
+from litebot.core.minecraft import Player
 
+if TYPE_CHECKING:
+    from litebot.core.minecraft.commands import ServerCommandContext
 
 class ArgumentType(abc.ABC):
     REPR = "StringArgument"

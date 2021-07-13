@@ -1,5 +1,6 @@
 from discord.ext import commands
 
+
 class LiteBotException(Exception):
     """Base exception class for litebot
 
@@ -8,17 +9,12 @@ class LiteBotException(Exception):
     """
     pass
 
-class ConfigError(LiteBotException):
+class InvalidEvent(Exception):
     """
-    Base exception for all errors related to the config
+    Exception produced when trying to dispatch an invalid event
     """
     pass
 
-class InvalidEvent(LiteBotException):
-    """
-    Exception when an invalid server event is registered
-    """
-    pass
 
 class AuthFailure(LiteBotException):
     """
@@ -26,23 +22,6 @@ class AuthFailure(LiteBotException):
     """
     pass
 
-class ModuleError(LiteBotException):
-    """
-    Base class for exceptions related to loading and unloading modules
-    """
-    pass
-
-class UnsatisfiedRequirements(ModuleError):
-    """
-    Exception raised when the packages a module requires is not installed!
-    """
-    pass
-
-class ModuleLoadError(ModuleError):
-    """
-    Exception produced when there is an issue in loading a module
-    """
-    pass
 
 class ArgumentError(LiteBotException):
     """
@@ -50,17 +29,20 @@ class ArgumentError(LiteBotException):
     """
     pass
 
+
 class MinecraftServerException(LiteBotException):
     """
     Base exception for all errors related to the Minecraft server
     """
     pass
 
+
 class RconException(MinecraftServerException):
     """
     Exception for errors regarding the rcon module
     """
     pass
+
 
 class ServerConnectionFailed(MinecraftServerException):
     """
@@ -69,6 +51,7 @@ class ServerConnectionFailed(MinecraftServerException):
     """
     pass
 
+
 class ServerNotFound(MinecraftServerException):
     """
     Exception produced when there is no MinecraftServer
@@ -76,12 +59,6 @@ class ServerNotFound(MinecraftServerException):
     """
     pass
 
-class ServerNotRunningLTA(MinecraftServerException):
-    """
-    Exception produced when methods requiring LTA are performed
-    with a server that does not have the mod installed
-    """
-    pass
 
 class ServerNotRunningCarpet(MinecraftServerException):
     """
@@ -90,12 +67,6 @@ class ServerNotRunningCarpet(MinecraftServerException):
     """
     pass
 
-class ServerActionNotFound(MinecraftServerException):
-    """
-    Exception produced when trying to run a command
-    from the server, that does not exist
-    """
-    pass
 
 class BaseCommandError(LiteBotException, commands.errors.CommandError):
     """
@@ -104,17 +75,6 @@ class BaseCommandError(LiteBotException, commands.errors.CommandError):
     """
     pass
 
-class ConfirmationDenied(BaseCommandError):
-    """
-    Exception produced when user denies confirmation
-    """
-    pass
-
-class ChannelNotWhitelisted(BaseCommandError):
-    """
-    Exception produced when a command which is whitelisted is performed on a unwhitelisted channel.
-    """
-    pass
 
 class TicketNotFound(BaseCommandError):
     """
