@@ -4,6 +4,7 @@ __plugin_meta__ = {
     "description": "A set of plugins to interface with and control the bot. The settings managed by these plugins cannot be disabled",
 }
 
+from plugins.system.error_handler import ErrorHandler
 from plugins.system.help_command import HelpCommand
 from plugins.system.settings.settings import Settings
 from plugins.system.admin import AdminCommands
@@ -17,3 +18,4 @@ def setup(bot):
     bot.add_cog(Suggester)
     bot.add_cog(TokenCommand)
     bot.add_cog(HelpCommand)
+    bot.add_cog(ErrorHandler)

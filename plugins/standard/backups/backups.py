@@ -102,6 +102,7 @@ class BackupsCommand(Cog):
 
             try:
                 await asyncio.to_thread(restore_backup, server, backup_path)
+                await server.start()
             except Exception as e:
                 return await ctx.send(embed=embeds.ErrorEmbed(f"Failed to restore backup! {e}"))
 

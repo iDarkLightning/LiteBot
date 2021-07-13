@@ -199,7 +199,7 @@ class MinecraftServer:
         Starts the server
         """
         if not self.host_connected:
-            return
+            raise ServerConnectionFailed
 
         server_online = False
 
@@ -217,7 +217,7 @@ class MinecraftServer:
         Kills the server
         """
         if not self.host_connected:
-            return
+            raise ServerConnectionFailed
 
         server_online = True
 
@@ -236,7 +236,7 @@ class MinecraftServer:
         """
 
         if not self.host_connected:
-            return
+            raise ServerConnectionFailed
 
         await self._host_connection.send(json.dumps({
             "action": "restart"
