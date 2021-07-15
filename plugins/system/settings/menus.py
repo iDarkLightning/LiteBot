@@ -212,7 +212,7 @@ class SettingsConfigMenu:
             userorrole = await self._ctx.bot.fetch_user(msg.content)
         except (UserNotFound, HTTPException):
             try:
-                userorrole = [i for i in await self._ctx.guild.fetch_roles() if i.id == msg.content][0]
+                userorrole = [i for i in await self._ctx.guild.fetch_roles() if str(i.id) == msg.content][0]
             except IndexError:
                 return await interaction.edit(content=f"`{msg.content}` is not a valid ID!")
 

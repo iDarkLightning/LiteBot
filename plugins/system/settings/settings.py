@@ -8,6 +8,7 @@ from plugins.system.settings.menus import SettingsMenu, PluginsMenu
 
 class Settings(Cog, required=True):
     @commands.command(name="settings")
+    @commands.has_permissions(manage_guild=True)
     async def _settings(self, ctx: Context):
         """
         View and configure all the available settings for the bot!
@@ -23,6 +24,7 @@ class Settings(Cog, required=True):
         await menu.start()
 
     @commands.command(name="plugins")
+    @commands.has_permissions(manage_guild=True)
     async def _plugins(self, ctx: Context):
         """
         View and configure all the available plugins installed on the bot!
