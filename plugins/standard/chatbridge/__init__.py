@@ -75,7 +75,7 @@ class ChatBridge(Cog):
                     payload.message,
                     username=name,
                     avatar_url=pfp,
-                    allowed_mentions=AllowedMentions(users=members, roles=False)
+                    allowed_mentions=AllowedMentions(users=members, roles=False, everyone=False)
                 )
 
     @Cog.setting(name="Server <-> Server Bridge",
