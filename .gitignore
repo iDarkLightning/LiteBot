@@ -16,3 +16,4 @@ creds.json
 volume-config.yml
 start.bat
 start.sh
+venv/
