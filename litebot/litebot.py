@@ -91,7 +91,7 @@ class GroupMixin(commands.GroupMixin):
         self.server_events[name] = list(filter(lambda e: e is not func, self.server_events[name]))
 
 class LiteBot(GroupMixin, commands.Bot):
-    VERSION = 3.0
+    VERSION = "3.0.1"
 
     def __init__(self):
         self.config = MainConfig()
