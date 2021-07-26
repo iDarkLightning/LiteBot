@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from discord.ext.commands import CommandError, CommandInvokeError, MissingRequiredArgument, CheckFailure
+from discord.ext.commands import CommandError, CommandInvokeError, MissingRequiredArgument, CheckFailure, \
+    CommandNotFound
 
 from litebot.core import Cog
 from litebot.core.context import Context
-from litebot.errors import ServerNotFound, ServerConnectionFailed
+from litebot.errors import ServerNotFound, ServerConnectionFailed, ServerNotRunningCarpet
 from litebot.utils.embeds import ErrorEmbed
 from litebot.utils.markdown import CODE_BLOCK
 
@@ -30,17 +31,26 @@ class ErrorHandler(Cog, required=True):
                 embed.title = "No server found with that name!"
                 embed.description = f"Perhaps you meant:\n{CODE_BLOCK.format('', LINE_BREAK.join([s.name for s in self._bot.servers]))}"
                 return await ctx.send(embed=embed)
+
             if isinstance(error.original, ServerConnectionFailed):
                 embed.title = "Connecting to that server failed!"
                 embed.description = "Try checking if the server is currently online or contact your system administrator"
                 return await ctx.send(embed=embed)
-        elif isinstance(error, MissingRequiredArgument):
+
+            if isinstance(error.original, ServerNotRunningCarpet):
+                embed.title = "This server is not running carpet!"
+                embed.description = "This command requires the server to be running the carpet-mod!"
+                return await ctx.send(embed=embed)
+
+        if isinstance(error, MissingRequiredArgument):
             embed.title = "Missing Required Argument!"
             embed.description = f"Name: `{error.param.name}`, Type: `{error.param.annotation}`"
             return await ctx.send(embed=embed)
-        elif isinstance(error, CheckFailure):
+        if isinstance(error, CheckFailure):
             embed.title = "You do not have permission to perform this command!"
             return await ctx.send(embed=embed)
+        if isinstance(error, CommandNotFound):
+            pass
         else:
             embed.title = "An unexpected error occured!"
             embed.description = CODE_BLOCK.format("", error)

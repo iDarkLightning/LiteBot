@@ -1,11 +1,12 @@
 import asyncio
+from typing import Callable
 
 
 class Timer:
     """
     A configurable timer
     """
-    def __init__(self, done, timeout=120):
+    def __init__(self, done: Callable, timeout: int = 120):
         self._timeout = timeout
         self._done = done
         self._task = None

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class ServerCommand:
     __setting__: Setting
 
-    def __init__(self, func: Callable, cog=None, **kwargs):
+    def __init__(self, func: Callable, cog: Optional[Cog] = None, **kwargs):
         if not asyncio.iscoroutinefunction(func):
             raise TypeError("Callback must be a coroutine")
 

@@ -70,7 +70,6 @@ class BaseConfig(dict):
         with open(self.file_path, "w") as f:
             json.dump(self, f, indent=4, separators=(",", ":"))
 
-
 class MainConfig(BaseConfig):
     # The bot's default config
     DEFAULT_CONFIG = {
