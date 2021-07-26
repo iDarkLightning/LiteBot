@@ -14,6 +14,19 @@ class Interaction(DCInteraction):
     async def edit(self, *, content: str = None, embed: Embed = None, embeds: list[Embed] = None,
                    allowed_mentions: AllowedMentions = None, tts: bool = False, ephemeral: bool = True,
                    components: list[Union[Component, list[Component]]] = None, **options) -> None:
+        """Edit a server interaction object
+
+        Args:
+            content: The content of the edited message
+            embed: The embed of the edited message
+            embeds: A list of embeds for the edited message
+            allowed_mentions: The people the message is allowed to ping
+            tts: Whether or not the message is TTS
+            ephemeral: Whether or not the message is ephemeral
+            components: The components attached to the edited message
+            **options: Any extra options
+        """
+
 
         state = self.bot._get_state()
         data = {

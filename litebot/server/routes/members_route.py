@@ -8,10 +8,8 @@ IN_GUILD_QUERY = "/<id:int>"
 
 @blueprint.route(IN_GUILD_QUERY, methods=["GET"])
 async def in_guild(request: Request, id: int):
-    """
-    Check if a member is in the main server guild
-    :param id: The ID of the member
-    :type id: int
+    """Check if a member is in the main server guild
+
     """
     guild = await request.app.config.BOT_INSTANCE.guild()
     member: discord.Member = await guild.fetch_member(id)
@@ -23,10 +21,7 @@ async def in_guild(request: Request, id: int):
 
 @blueprint.route(ROLES_QUERY, methods=["GET"])
 async def fetch_roles(request: Request, id: int):
-    """
-    Fetch the roles for a member
-    :param id: The ID of the member
-    :type id: int
+    """Fetch the roles for a member
     """
     guild = await request.app.config.BOT_INSTANCE.guild()
     member: discord.Member = await guild.fetch_member(id)

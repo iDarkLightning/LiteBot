@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -16,8 +18,8 @@ class BaseConfig(dict):
         self._load_from_file()
 
     def _load_from_file(self) -> None:
-        """
-        Loads the config from `self.file_path`
+        """Loads the config from `self.file_path`
+
         Writes DEFAULT_CONFIG if there is no valid config file at the path
         """
         try:
@@ -33,21 +35,21 @@ class BaseConfig(dict):
 
     @classmethod
     def _write_default_config(cls, file_path: str) -> None:
-        """
-        Writes the default config as specified in the class
-        :param file_path: The path to the file which will be written
-        :type file_path: str
+        """Writes the default config as specified in the class
+
+        Args:
+            file_path: The path to the file which will be written
         """
         with open(file_path, "w") as f:
             json.dump(cls.DEFAULT_CONFIG, f, indent=4, separators=(",", ":"))
 
     @classmethod
-    def _match_default(cls, instance, file_path) -> None:
+    def _match_default(cls, instance: BaseConfig, file_path: str) -> None:
         """
-        Compares current config with default config, and
-        adds all missing keys to the config
-        :param instance: The instance config to match
-        :type instance: CongigBase
+        Compares current config with default config, and adds all missing keys to the config
+
+        Args:
+            instance: The instance who's config to match
         """
         if cls.DEFAULT_CONFIG.keys() == instance.keys():
             return
@@ -93,5 +95,6 @@ class MainConfig(BaseConfig):
         super().__init__(file_name, True)
 
 class SettingsConfig(BaseConfig):
+    # The config for the bot's settings
     def __init__(self, file_name: str = "settings.json") -> None:
         super().__init__(file_name, False)

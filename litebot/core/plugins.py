@@ -20,6 +20,10 @@ class _PluginMeta:
         self.description = kwargs.get("description", "This plugin does not have a description!")
 
     def serialize(self):
+        """
+        Returns:
+            A JSON-serialized version of the Plugin Meta
+        """
         return {
             "name": self.name,
             "id": self.id,
@@ -43,6 +47,10 @@ class Plugin:
         self.description = self.meta.description
 
     def serialize(self):
+        """
+        Returns:
+            A JSON-serialized version of the plugin
+        """
         return {
             "name": self.meta.name,
             "id": self.meta.id,
@@ -57,6 +65,27 @@ class PluginManager:
     def __init__(self, bot: LiteBot):
         self._bot = bot
         self.all_plugins = self._init_plugins()
+
+    def load_plugins(self):
+        """Loads all the installed plugins
+        """
+        for plugin in self.all_plugins.values():
+            self._bot.settings_manager.add_plugin(plugin)
+
+            if hasattr(plugin.module, "requirements"):
+                reqs = getattr(plugin.module, "requirements")
+                if reqs(self):
+                    self._bot.load_plugin(plugin)
+            else:
+                self._bot.load_plugin(plugin)
+
+    def __getitem__(self, item):
+        try:
+            return self.all_plugins[item]
+        except KeyError:
+            for key in self.all_plugins.keys():
+                if key.endswith(item):
+                    return self.all_plugins[key]
 
     def _init_plugins(self):
         plugins = {}
@@ -92,22 +121,3 @@ class PluginManager:
                     plugins[plugin.meta.id] = plugin
 
         return plugins
-
-    def load_plugins(self):
-        for plugin in self.all_plugins.values():
-            self._bot.settings_manager.add_plugin(plugin)
-
-            if hasattr(plugin.module, "requirements"):
-                reqs = getattr(plugin.module, "requirements")
-                if reqs(self):
-                    self._bot.load_plugin(plugin)
-            else:
-                self._bot.load_plugin(plugin)
-
-    def __getitem__(self, item):
-        try:
-            return self.all_plugins[item]
-        except KeyError:
-            for key in self.all_plugins.keys():
-                if key.endswith(item):
-                    return self.all_plugins[key]

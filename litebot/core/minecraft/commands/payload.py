@@ -4,6 +4,11 @@ from litebot.errors import InvalidEvent
 
 
 class Payload(abc.ABC):
+    """A Payload object for events being dispatched from the server
+
+    In order to add a custom event, you must inherit from this class and set
+    `EVENT_NAME` to the name of the event that the payload is for.
+    """
     EVENT_NAME = str()
 
     def __init__(self, ctx, args):

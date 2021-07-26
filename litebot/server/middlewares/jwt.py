@@ -10,22 +10,37 @@ logger = get_logger("bot")
 ALGORITHMS = ["HS256", "HS512"]
 
 def validate_jwt(token: str, secret: str) -> Optional[dict]:
+    """Validate a JWT
+
+    Args:
+        token: The token to validate
+        secret: The secret to validate the token with
+
+    Returns:
+        The decoded token payload
+
+    Raises:
+        AuthFailure
+    """
     try:
         return jwt.decode(token, secret, algorithms=ALGORITHMS)
     except jwt.InvalidTokenError as e:
         raise AuthFailure(e)
 
 async def validate_jwt_headers(request: Request, secret: str, auth_scheme: Optional[str] = "Bearer") -> Union[NoReturn, dict]:
-    """
-    This validates a JWT in a HTTP Request Headers and returns the decoded token
-    :param request: The HTTP Reuqest that contains the token
-    :type request: sanic.request.Request
-    :param secret: The secret to decode the token with
-    :type secret: str
-    :param auth_scheme: The expected auth_scheme used for the token, "Bearer" by default
-    :type auth_scheme: Optional[str]
-    :return: The decoded JWT
-    :rtype: Union[NoReturn, dict]
+    """Validate JWT in a HTTP Request Headers and returns the decoded token
+
+
+    Args:
+        request: The HTTP Reuqest that contains the token
+        secret: The secret to validate the token with
+        auth_scheme: The auth scheme used for the token, "Bearer" by default
+
+    Returns:
+        The decoded JWT
+
+    Raises:
+        exceptions.Forbidden
     """
     if "Authorization" not in request.headers:
         raise exceptions.Unauthorized("Missing Authorization Header!")
@@ -49,14 +64,18 @@ async def validate_jwt_headers(request: Request, secret: str, auth_scheme: Optio
             return decoded
 
 async def validate_jwt_query(request: Request, secret: str) -> Union[NoReturn, dict]:
-    """
-    This validates a JWT the request's query parameters
-    :param request: The HTTP Reuqest that contains the token
-    :type request: sanic.request.Request
-    :param secret: The secret to decode the token with
-    :type secret: str
-    :return: The decoded JWT
-    :rtype: Union[NoReturn, dict]
+    """Validate JWT in a HTTP Request Query Parameters
+
+
+    Args:
+        request: The HTTP Reuqest that contains the token
+        secret: The secret to validate the token with
+
+    Returns:
+        The decoded JWT
+
+    Raises:
+        exceptions.Forbidden
     """
     try:
         token = request.args["token"][0]

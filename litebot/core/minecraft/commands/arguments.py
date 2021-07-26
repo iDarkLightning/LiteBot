@@ -11,6 +11,12 @@ if TYPE_CHECKING:
     from litebot.core.minecraft.commands import ServerCommandContext
 
 class ArgumentType(abc.ABC):
+    """Different argument types for server commands.
+
+    In order to implement a new argument type, you must inherit from this class,
+    and override the `REPR` class variable with the string representation of the argument
+    as implemented in LiteBot-Mod. `StringArgument` by default.
+    """
     REPR = "StringArgument"
 
     @abc.abstractmethod
@@ -61,6 +67,12 @@ class DimensionArgumentType(ArgumentType):
         super().__init__(val, str)
 
 class Suggester(StringArgumentType, abc.ABC):
+    """A suggester argument type.
+
+    You can inherit from this class to implement a Suggester argument type
+    that will suggest the values returned by the `suggest` method to the command executor.
+    """
+
     REPR = "SuggesterArgument"
 
     @abc.abstractmethod
@@ -68,4 +80,8 @@ class Suggester(StringArgumentType, abc.ABC):
         pass
 
 class StrictSuggester(Suggester, abc.ABC):
+    """
+    A variation of the Suggester Argument Type that ensures the executor
+    selects one of the suggested arguments.
+    """
     REPR = "StrictSuggesterArgument"

@@ -30,30 +30,64 @@ class GroupMixin(commands.GroupMixin):
         self.rpc_handlers: dict[str, Callable] = {}
 
     def add_command(self, command: Union[ServerCommand, Command]):
+        """Add a command
+
+        Args:
+            command: The command to add
+        """
         if not isinstance(command, ServerCommand):
             return super().add_command(command)
 
         self.server_commands[command.full_name] = command
 
     def remove_command(self, name):
+        """Remove a command
+
+        Args:
+            name: The name of the command to remove
+        """
         if name not in self.server_commands:
             return super().remove_command(name)
 
         self.server_commands.pop(name)
 
     def add_rpc_handler(self, handler, name):
+        """Add an RPC method
+
+        Args:
+            handler: The handler for the RPC method
+            name: The name of the handler
+        """
+
         self.rpc_handlers[name] = handler
 
     def remove_rpc_handler(self, name):
+        """Remove an RPC method
+
+        Args:
+            name: The name of method to remove
+        """
         del self.rpc_handlers[name]
 
-    def add_server_listener(self, event, name):
-        if name in self.server_events:
-            return self.server_events[name].append(event)
+    def add_server_listener(self, func, name):
+        """Add a server listener
 
-        self.server_events[name] = [event]
+        Args:
+            func: The listener for the event
+            name: The name of the handler
+        """
+        if name in self.server_events:
+            return self.server_events[name].append(func)
+
+        self.server_events[name] = [func]
 
     def remove_server_listener(self, func, name):
+        """Remove a server listener
+
+        Args:
+            func: The listener to remove
+            name: The name of the listner
+        """
         self.server_events[name] = list(filter(lambda e: e is not func, self.server_events[name]))
 
 class LiteBot(GroupMixin, commands.Bot):
@@ -83,13 +117,72 @@ class LiteBot(GroupMixin, commands.Bot):
         self.servers = self._init_servers()
         self.loop.create_task(asyncio.to_thread(self._dispatch_timers))
 
-    def _init_servers(self):
-        container = ServerContainer()
-        for server in self.config["servers"]:
-            container.append(MinecraftServer(server, self, **self.config["servers"][server]))
-        return container
+    @property
+    def log_channel(self) -> discord.TextChannel:
+        """
+        Returns:
+            The log channel for the bot
+        """
+        return self.get_channel(self.config["log_channel_id"])
+
+    @property
+    def server(self):
+        """
+        Returns:
+            The sanic server
+        """
+        return self.__server
+
+    async def guild(self) -> discord.Guild:
+        """
+        Returns:
+            The main guild object for the server
+        """
+        await self.wait_until_ready()
+        return self.get_guild(self.config["main_guild_id"])
+
+    async def get_context(self, message, *, cls=Context):
+        return await super().get_context(message, cls=cls)
+
+    def add_cog(self, cog, *args, **kwargs):
+        if not issubclass(cog, Cog):
+            raise TypeError("cogs must be a subclass of Cog!")
+
+        try:
+            cog = cog(*(*args, self, self.processing_plugin), **kwargs)
+        except TypeError:
+            cog = cog(*args, **kwargs)
+
+        super().add_cog(cog)
+
+    def load_plugin(self, plugin: Plugin):
+        """Load a plugin
+
+        Args:
+            plugin: The plugin to load
+        """
+        self.processing_plugin = plugin
+        super().load_extension(plugin.path)
+
+    def unload_plugin(self, plugin):
+        """Unload a plugin
+
+        Args:
+            plugin: The plugin to unload
+        """
+        self.processing_plugin = plugin
+        super().unload_extension(plugin.path)
+
+    async def on_ready(self):
+        """
+        on_ready logger
+        """
+        self.logger.info(f"{self.user.name} is now online!")
 
     def start_server(self):
+        """Start the sanic server
+        """
+
         CORS(self.__server)
 
         # A stupid hackfix that I have to do to make the logging work appropriately
@@ -109,37 +202,17 @@ class LiteBot(GroupMixin, commands.Bot):
                                           access_log=False)
         self.loop.create_task(coro)
 
-    @property
-    def log_channel(self) -> discord.TextChannel:
-        return self.get_channel(self.config["log_channel_id"])
-
-    @property
-    def server(self):
-        return self.__server
-
-    async def guild(self) -> discord.Guild:
-        await self.wait_until_ready()
-        return self.get_guild(self.config["main_guild_id"])
-
-    async def get_context(self, message, *, cls=Context):
-        return await super().get_context(message, cls=cls)
+    def _init_servers(self):
+        container = ServerContainer()
+        for server in self.config["servers"]:
+            container.append(MinecraftServer(server, self, **self.config["servers"][server]))
+        return container
 
     def _schedule_event(self, coro, event_name, *args, **kwargs):
         if hasattr(coro, "__setting__"):
             args = (coro.__setting__, *args)
         wrapped = self._run_event(coro, event_name, *args, **kwargs)
         return self.loop.create_task(wrapped, name=f"discord.py: {event_name}")
-
-    def add_cog(self, cog, *args, **kwargs):
-        if not issubclass(cog, Cog):
-            raise TypeError("cogs must be a subclass of Cog!")
-
-        try:
-            cog = cog(*(*args, self, self.processing_plugin), **kwargs)
-        except TypeError:
-            cog = cog(*args, **kwargs)
-
-        super().add_cog(cog)
 
     def _dispatch_timers(self):
         while True:
@@ -153,18 +226,4 @@ class LiteBot(GroupMixin, commands.Bot):
                     self.dispatch(name, event)
 
                     event.delete()
-
-    def load_plugin(self, plugin: Plugin):
-        self.processing_plugin = plugin
-        super().load_extension(plugin.path)
-
-    def unload_plugin(self, plugin):
-        self.processing_plugin = plugin
-        super().unload_extension(plugin.path)
-
-    async def on_ready(self):
-        self.logger.info(f"{self.user.name} is now online!")
-
-    def __repr__(self):
-        return f"LiteBot: Version: {LiteBot.VERSION}"
 

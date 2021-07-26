@@ -1,6 +1,11 @@
-
 class Player:
     def __init__(self, **data):
+        """An object to model the player data sent from the server.
+
+        Args:
+            **data: The data to construct the class with
+        """
+
         self.name: str = data.get("name")
         self.uuid: str = data.get("uuid")
         self.id = self.uuid
@@ -11,6 +16,10 @@ class Player:
         self.op_level: int = data.get("op_level")
 
     def get_block_pos(self):
+        """
+        Returns:
+            A tuple containing the player's block position
+        """
         return self.pos_x, self.pos_y, self.pos_z
 
     def __str__(self):

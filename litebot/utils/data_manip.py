@@ -9,34 +9,12 @@ TIME_KEY = {
 }
 
 def flatten_dict(dict_: dict, parent_key: Optional[str] = "", separator: Optional[str] = ".") -> dict:
-    """
-    Flattens a dictionary with the given separator. `.` by default.
+    """Flattens a dictionary with the given separator. `.` by default.
 
-    Example Input
-    --------------
-    {
-        "name": "Test",
-        "root": {
-            "sub": {
-                "key": "value"
-            }
-        }
-    }
-
-    Example Output
-    ---------------
-    {
-        "name": "Test",
-        "root.sub.key": "value"
-    }
-    :param dict_: The dictionary to flatten
-    :type dict_: dict
-    :param parent_key: The parent key
-    :type parent_key: Optional[str]
-    :param separator: The separator for the sub keys
-    :type separator: Optional[str]
-    :return: The flattened dictionary
-    :rtype: dict
+    Args:
+        dict_: The dictionary to flatten
+        parent_key: The parent key
+        separator: The separator for the sub keys
     """
     items = []
     for k, v in dict_.items():
@@ -48,14 +26,12 @@ def flatten_dict(dict_: dict, parent_key: Optional[str] = "", separator: Optiona
     return dict(items)
 
 def unflatten_dict(dict_: dict, separator: Optional[str] = ".") -> dict:
-    """
-    Unflattens a dictionary, reveres `flatten_dict`
-    :param dict_: The dict to unflatten
-    :type dict_: dict
-    :param separator: The sepearator that was used to flatten the dict
-    :type separator: str
-    :return: The unflattened dictionary
-    :rtype: dict
+    """Unflattens a dictionary, reveres `flatten_dict`
+
+    Args:
+        dict_: The dictionary to unflatten
+        separator: The sepearator that was used to flatten the dict
+
     """
     result_dict = {}
     for key, value in dict_.items():
@@ -69,16 +45,15 @@ def unflatten_dict(dict_: dict, separator: Optional[str] = ".") -> dict:
     return result_dict
 
 def split_string(str_: str, length: int, sep: Optional[str] = "\n") -> List[str]:
-    """
-    Splits a string by character limit, on the given seperator
-    :param str_: The string to split
-    :type str_: str
-    :param length: The length of each segment
-    :type length: int
-    :param sep: The separator that each split will end on
-    :type sep: Optional[str]
-    :return: Each segment after splitting the string
-    :rtype: List[str]
+    """Splits a string by character limit, on the given seperator
+
+    Args:
+        str_: The string to split
+        length: The length of each segment
+        sep: The separator that each split will end on
+
+    Returns:
+        A list of segments from splitting the string
     """
     parts = str_.split(sep)
     res = []
@@ -96,12 +71,13 @@ def split_string(str_: str, length: int, sep: Optional[str] = "\n") -> List[str]
     return res
 
 def split_nums_chars(str_: str) -> tuple[str, str]:
-    """
-    Splits the numbers and characters from a string
-    :param str_: The string to split
-    :type str_: str
-    :return: The characters and the nu
-    :rtype: tuple[str, str]
+    """Splits the numbers and characters from a string
+
+    Args:
+        str_: The string to split
+
+    Returns:
+        A tuple containing the characters and the numbers
     """
     nums = "".join([i for i in str_ if i.isnumeric()])
     chars = "".join([i for i in str_ if i.isalpha()])
@@ -109,7 +85,9 @@ def split_nums_chars(str_: str) -> tuple[str, str]:
     return chars, nums
 
 def snakify(str_: str) -> str:
-    """
-    Convert a string to snake case
+    """Convert a string to snake case
+
+    Args:
+        str_: The string to convert
     """
     return str_.replace(" ", "_").lower()

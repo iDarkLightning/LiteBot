@@ -3,24 +3,22 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-
-from typing import Optional, Tuple, TYPE_CHECKING
-from discord import TextChannel
-from discord.errors import NotFound
 from pathlib import Path
 from socket import timeout, gaierror, gethostbyname
+from typing import Optional, Tuple, TYPE_CHECKING, Any
 
+from discord import TextChannel
+from discord.errors import NotFound
 from websockets import WebSocketCommonProtocol
 
+from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
+from .commands.context import ServerEventContext, RPCContext
 from .commands.payload import Payload
 from .player import Player
-from .protocol import UDPSocketConnection
 from .protocol import ServerQuerier, QueryResponse
 from .protocol import ServerRcon
-from .commands.context import ServerEventContext, RPCContext
+from .protocol import UDPSocketConnection
 from .text import Text
-
-from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
 
 if TYPE_CHECKING:
     from litebot.litebot import LiteBot
@@ -29,6 +27,7 @@ SERVER_DIR_NAME = "servers"
 BACKUP_DIR_NAME = "backups"
 DEFAULT_WORLD_DIR_NAME = "world"
 TPS_COMMAND = "script run reduce(last_tick_times(),_a+_,0)/100;"
+
 
 class ServerContainer:
     def __init__(self):
@@ -64,10 +63,12 @@ class ServerContainer:
         for i in self._list:
             yield i
 
+
 class MinecraftServer:
     """
     Modules communication to and from a minecraft server
     """
+
     def __init__(self, name: str, bot: LiteBot, **info) -> None:
         self.name = name
         self.bot_instance = bot
@@ -90,14 +91,19 @@ class MinecraftServer:
     @property
     def server_dir(self) -> Optional[str]:
         """
-        :return: The server's directory if it exists, else returns None
-        :rtype: Optional[str]
+        Returns:
+            The server's directory if it exists, else None
         """
         dir_ = os.path.join(os.getcwd(), SERVER_DIR_NAME, self.name)
         return dir_ if os.path.exists(dir_) else None
 
     @property
     def world_dir(self) -> Optional[str]:
+        """
+        Returns:
+            The server's world directory if it exists, else None
+        """
+        # TODO: change this to raise an error instead
         if not self.server_dir:
             return
 
@@ -106,12 +112,18 @@ class MinecraftServer:
             return world_dir
         else:
             with open(os.path.join(self.server_dir, "server.properties")) as f:
-                props = {k: v.removesuffix("\n") for k,v in [line.split("=", 2) for line in f.readlines() if "=" in line]}
+                props = {k: v.removesuffix("\n") for k, v in
+                         [line.split("=", 2) for line in f.readlines() if "=" in line]}
                 level_name = props["level-name"]
             return os.path.join(self.server_dir, level_name)
 
     @property
     def backup_dir(self) -> Optional[str]:
+        """
+        Returns:
+            The server's backups directory if it exists, else it will create it
+        """
+        # TODO: Change this to raise an error instead
         if not self.world_dir:
             return
 
@@ -124,8 +136,8 @@ class MinecraftServer:
     @property
     def bridge_channel(self) -> Optional[TextChannel]:
         """
-        :return: The TextChannel object for the server's bridge channel
-        :rtype: TextChannel
+        Returns:
+            The server's bridge channel
         """
         try:
             channel = self.bot_instance.get_channel(self.bridge_channel_id)
@@ -135,17 +147,26 @@ class MinecraftServer:
 
     @property
     def server_connected(self):
+        """
+        Returns:
+            Whether or not the server is connected via LiteBot-Mod
+        """
         return bool(self._server_connection) and self._server_connection.open
 
     @property
     def host_connected(self):
+        """
+        Returns:
+            Whether or not the server is connected via LiteHost
+        """
         return bool(self._host_connection) and self._host_connection.open
 
     async def connect_server(self, socket: WebSocketCommonProtocol):
         """
-        Connects to the server via a websocket connection
-        :param socket: The socket that is being used to connect
-        :type socket: WebSocketCommonProtocol
+        Connect the server's websocket connection to LiteBot-Mod
+
+        Args:
+            socket: The socket object being used to connect
         """
         self._server_connection = socket
         self.bot_instance.logger.info(f"WebSocket connection established to {self.name}")
@@ -154,19 +175,21 @@ class MinecraftServer:
 
     async def connect_host(self, socket: WebSocketCommonProtocol):
         """
-        Connects to the server host via a websocket connection
-        :param socket: The socket that is being used to connect
-        :type socket: WebSocketCommonProtocol
+        Connect the server's websocket connection to LiteHost
+
+        Args:
+            socket: The socket object being used to connect
         """
         self._host_connection = socket
         self.bot_instance.logger.info(f"WebSocket connection established to host for {self.name}")
 
     def status(self) -> QueryResponse:
-        """
-        Gets the status of the server including online players
-        :return: A QueryResponse with the server status
-        :rtype: QueryResponse
-        :raises: ServerConnectionFailed
+        """Get the server status
+
+        The server's status includes the MOTD and a list of online players
+
+        Returns:
+            A `QueryResponse` object containing the results from quering the server
         """
         if not self._has_valid_addr:
             return QueryResponse(status=False)
@@ -182,11 +205,13 @@ class MinecraftServer:
             return QueryResponse(status=False)
 
     async def tps(self) -> Tuple[float, float]:
-        """
-        Get's the server's TPS and MSPT.
-        The result is the average of the past 100 ticks
-        :return: The server's TPS and MSPT
-        :rtype: Tuple[float, float]
+        """Get the server's TPS and MSPT
+
+        This is done via the use of Carpet-Mod. The result is
+        the average of the past 100 ticks
+
+        Returns:
+            The server's TPS and MSPT
         """
         res = await self.send_command(TPS_COMMAND)
         try:
@@ -249,15 +274,13 @@ class MinecraftServer:
     async def stop(self) -> bool:
         """
         Stops the server
-        :return: The online status of the server
-        :rtype: bool
         """
         server_online = True
 
         while server_online:
             try:
                 await self.send_command("stop")
-                server_online= self.status().online
+                server_online = self.status().online
                 await asyncio.sleep(2)
             except ServerConnectionFailed:
                 server_online = False
@@ -265,13 +288,13 @@ class MinecraftServer:
         return server_online
 
     async def dispatch(self, action: str, data: dict) -> None:
-        """
-        Dispatches an action from the server.
+        """Dispatches an action from the server.
+
         See methods starting with `dispatch_` to see actions that can be dispatched
-        :param action: The action to dispatch
-        :type action: str
-        :param data: The data for the action
-        :type data: dict
+
+        Args:
+            action: The action that will be dispatched
+            data: The data for the dispatching the action
         """
         meth = getattr(self, "dispatch_" + action, None)
         if meth:
@@ -280,10 +303,10 @@ class MinecraftServer:
         return await self.send_message(Text.op_message("LiteBot: Sent invalid action!"), op_only=True)
 
     async def dispatch_command(self, data: dict):
-        """
-        Dispatches a command from the server
-        :param data: The data being used to dispatch the command
-        :type data: dict
+        """Dispatches a command from the server
+
+        Args:
+            The data being used to dispatch the command
         """
         command = self.bot_instance.server_commands[data["name"]]
         ctx = command.create_context(self, self.bot_instance, data)
@@ -299,10 +322,10 @@ class MinecraftServer:
             pass
 
     async def dispatch_event(self, data: dict):
-        """
-        Dispatches an event from the server
-        :param data: The data being used to dispatch the event
-        :type data: dict
+        """Dispatches an event from the server
+
+        Args:
+            The data being used to dispatch the event
         """
         events = self.bot_instance.server_events.get(data["name"], [])
         ctx = ServerEventContext(self, self.bot_instance, data.get("player", ""))
@@ -312,36 +335,31 @@ class MinecraftServer:
             args = (ctx.with_setting(event), payload) if hasattr(event, "__setting__") else (ctx, payload)
             asyncio.create_task(event(*args), name=f"{self.name}-event: {data['name']}")
 
-    async def dispatch_rpc(self, data: dict):
+    async def dispatch_rpc(self, data: dict) -> Any:
+        """Executes an RPC method from the server
+
+        Args:
+            data: The data being used to run the RPC method
+
+        Returns:
+            The result of the RPC method
+        """
+
         handler = self.bot_instance.rpc_handlers[data["name"]]
         ctx = RPCContext(self, self.bot_instance, data)
         return await handler(ctx)
 
-    async def fetch_suggester(self, data: dict):
-        """
-        Fetches suggestions for completing a command
-        :param data: The data that is being used to fetch the suggestions
-        :type data: dict
-        """
-        command = self.bot_instance.server_commands[data["name"]]
-        ctx = command.create_context(self, self.bot_instance, data)
-
-        suggestor = command.suggestors[data["args"]["current_arg"]]()
-
-        return await suggestor.suggest(ctx, data["args"]["current_arg"], data["args"]["args"])
-
     async def recv_message(self, message: str) -> None:
+        """Sends a given message to the server's bridge channel
+
+        Args:
+            message: The message to send to the server's bridge channel
         """
-        Sends a given message to the server's bridge channel
-        :param message: The message to send
-        :type message: str
-        :raises: AttributeError
-        """
+
         await self.bridge_channel.send(message)
 
     async def send_command_tree(self):
-        """
-        Builds and sends the command tree to the server if the server is connected
+        """Builds and sends the command tree to the server if the server is connected
         """
         if not self.server_connected:
             return
@@ -352,13 +370,16 @@ class MinecraftServer:
         }))
 
     async def send_command(self, command: str) -> Optional[str]:
-        """
-        Executes a command on the server
-        :param command: The command to send to the server
-        :type command: str
-        :return: The server's response to the command
-        :rtype: str
-        :raises: ServerConnectionFailed
+        """Executes a command on the server
+
+        Args:
+            command: The command to send to the server
+
+        Returns:
+            The server's response from executing the command
+
+        Raises:
+            ServerConnectionFaield
         """
         if not self._has_valid_addr:
             raise ServerConnectionFailed
@@ -373,14 +394,19 @@ class MinecraftServer:
             return resp
 
     def send_sync_command(self, command: str) -> Optional[str]:
-        """
-        Synchronously executes a command on the server
-        This should not be used in 99% of situations, see `meth:send_command()`
-        :param command: The command to send to the server
-        :type command: str
-        :return: The server's response to the command
-        :rtype: str
-        :raises: ServerConnectionFailed
+        """Synchronously executes a command on the server
+
+        This shouldn't be used in 99% of scenarios, the async version should
+        be used instead.
+
+        Args:
+            command: The command to send to the server
+
+        Returns:
+            The server's response from executing the command
+
+        Raises:
+            ServerConnectionFaield
         """
         if not self._has_valid_addr:
             raise ServerConnectionFailed
@@ -394,23 +420,20 @@ class MinecraftServer:
         if resp:
             return resp
 
-    async def send_message(self, text, op_only: bool = False, player: Player = None) -> None:
+    async def send_message(self, text: Text, op_only: Optional[bool] = False, player: Optional[Player] = None) -> None:
         """
         Sends a system message to the server, only works if server is running LTA
 
-        Example Message
-        ----------------
-        {
-            "message": "This is an example message",
-            "color": 16777215
-        }
+        Examples:
+            {
+                "message": "This is an example message",
+                "color": 16777215
+            }
 
-        :param text: The text to send to the server
-        :type text: litebot.minecraft.text.Text
-        :param player: The player to send the message to
-        :param op_only: Whether the message is only for OP players
-        :return: The server's response
-        :rtype: dict
+        Args:
+            text: The text to send to the server
+            player: The player to send the message to
+            op_only: Whether the message is only for OP players
         """
         if not self.server_connected:
             return
@@ -424,4 +447,3 @@ class MinecraftServer:
             payload["player"] = player.uuid
 
         await self._server_connection.send(json.dumps({"name": "message", "data": payload}))
-

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import json
 from typing import TYPE_CHECKING, Optional
 
@@ -12,37 +13,41 @@ if TYPE_CHECKING:
     from litebot.core.minecraft import MinecraftServer
     from litebot.core import Setting
 
-class ServerContext:
+class ServerContext(abc.ABC):
+    """
+    An abstract context class for interacting with various methods executing from the server.
+    """
     def __init__(self, server: MinecraftServer, bot: LiteBot) -> None:
         self.server = server
         self.bot = bot
 
 class ServerCommandContext(ServerContext):
-    """
-    A context object for a ServerCommand.
-    Lets us easily interact with both the server and the bot
-    through a single object.
-
-    :param server: The server that the command is being executed to
-    :type server: MinecraftServer
-    :param bot: The bot that the command is registered to
-    :type bot: LiteBot
-    :param player_data: The data for the player that executed the command
-    :type player_data: str
-    """
     def __init__(self, command: ServerCommand, server: MinecraftServer, bot: LiteBot, player_data: str, **kwargs) -> None:
+        """A context object for a ServerCommand.
+
+        Enables you to access data for the command execution.
+
+        Args:
+            command: The command that is being executed
+            server: The server the command is being executed from
+            bot: The bot object
+            player_data: The data for the player who executed the command
+            **kwargs: Additional arguments for the command
+        """
+
         super().__init__(server, bot)
         self.command = command
         self.cog = command.cog
-        self.after_invoke_args = {}
         self.args = kwargs["args"]
         self.full_args = kwargs["full_args"]
         self.player = Player(**json.loads(player_data))
+        self.after_invoke_args = {}
 
     @property
     def setting(self) -> Optional[Setting]:
         """
-        The setting for the command
+        Returns:
+           The setting object for the command
         """
         if self.command is None:
             return None
@@ -55,7 +60,8 @@ class ServerCommandContext(ServerContext):
     @property
     def config(self) -> Optional[dict]:
         """
-        The config for the command
+        Returns:
+            The config for the command
         """
         if self.setting is None:
             return None
@@ -73,53 +79,56 @@ class ServerCommandContext(ServerContext):
         await self.command.invoke(self, args)
 
     async def send(self, message=None, text: Text = None) -> None:
+        """Enables us to easily send messages to the command executor.
+
+        Sends a message to the player who executed the command
+
+        Args:
+            message: The message to send to the server
+            text: The `Text` object to the server, should be used for more complex messages.
         """
-        Enables us to easily send messages to the server
-        from our command
-        :param message: The message to send
-        :type message: str
-        :param text: A keyword argument for the text to send to the server
-        :type text: litebot.minecraft.text.Text
-        """
+
         if not text:
             text = Text.from_str(message)
 
         await self.server.send_message(text=text, player=self.player)
 
 class ServerEventContext(ServerContext):
-    """
-    A context object for a ServerEvent.
-    Lets us easily interact with both the server and the bot
-    through a single object.
+    """A context object for a Server Event.
 
-    :param server: The server that the event was dispatched from
-    :type server: MinecraftServer
-    :param bot: The bot that the event is registered for
-    :type bot: LiteBot
-    :param player_data: If the event is related to a player, then the data for that player
-    :type player_data: Optional[str]
+    Enables you to access data for the event that was dispatched.
+
+    Args:
+        server: The server the command is being executed from
+        bot: The bot object
+        player_data: The data for the player who executed the command
     """
-    def __init__(self, server, bot, player_data: Optional[str]):
+
+    def __init__(self, server: MinecraftServer, bot: LiteBot, player_data: Optional[str] = None):
         super().__init__(server, bot)
         self.player = Player(**json.loads(player_data)) if player_data else None
         self.setting: Optional[Setting] = None
 
     def with_setting(self, event):
+        """
+        Wrap the context with an event setting
+
+        Args:
+            event: The event that the setting is sourced for
+        """
+
         self.setting = event.__setting__
         return self
 
 class RPCContext(ServerContext):
-    """
-    A context object for a RPC Handler.
-    Lets us easily interact with both the server and the bot
-    through a single object.
+    """A context object for a RPC method.
 
-    :param server: The server that the remote procedure was called from
-    :type server: MinecraftServer
-    :param bot: The bot that the rpc is registered for
-    :type bot: LiteBot
-    :param data: The data for the handler
-    :type data: dict
+    Enables you to access data for the command execution.
+
+    Args:
+        server: The server the command is being executed from
+        bot: The bot object
+        data: The data sent by the server for the RPC method
     """
     def __init__(self, server: MinecraftServer, bot: LiteBot, data: dict):
         super().__init__(server, bot)

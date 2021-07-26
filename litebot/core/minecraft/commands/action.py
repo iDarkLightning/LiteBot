@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 import asyncio
 import inspect
 from typing import List, Callable, Any, Optional, get_type_hints, get_args, Union, Type, TYPE_CHECKING
 
-from litebot.errors import ArgumentError
 from litebot.core.minecraft.commands.arguments import ArgumentType, Suggester
 from litebot.core.minecraft.commands.context import ServerCommandContext
+from litebot.errors import ArgumentError
 
 if TYPE_CHECKING:
     from litebot.core import Setting, Cog
@@ -15,6 +16,7 @@ if TYPE_CHECKING:
 
 class ServerCommand:
     __setting__: Setting
+
     def __init__(self, func: Callable, cog=None, **kwargs):
         if not asyncio.iscoroutinefunction(func):
             raise TypeError("Callback must be a coroutine")
@@ -27,35 +29,30 @@ class ServerCommand:
         self.register = bool(kwargs.get("register")) if kwargs.get("register") is not None else True
         self.op_level = kwargs.get("op_level") or 0
 
-        args, suggestors, arg_types = self._build_args(func)
-        self.arguments = args
-        self.suggestors = suggestors
-        self.arg_types = arg_types
-
+        self.arguments, self.suggestors, self.arg_types = self._build_args(func)
         self.subs: dict[str, ServerCommand] = {}
 
     @property
     def help_msg(self) -> Optional[str]:
         """
-        The help message for the command
-        :return: The command's help message
-        :rtype: Optional[str]
+        Returns:
+            The help message for the command
         """
         return inspect.getdoc(self.callback)
 
     @property
     def full_name(self) -> str:
         """
-        The full name of the command
-        :rtype: str
+        Returns:
+            The full name of the command
         """
         return ".".join(self._get_full_path()[::-1])
 
     @property
     def root_parent(self) -> ServerCommand:
         """
-        The highest level parent of the command
-        :rtype: ServerCommand
+        Returns:
+            The highest level parent of the command
         """
         cmd = self
 
@@ -65,8 +62,31 @@ class ServerCommand:
         return cmd
 
     def build(self) -> Optional[dict[str, Union[str, int, list, dict]]]:
-        """
-        Build the JSON representation of the command that will be sent to the server
+        """Build the command to send to the server.
+
+        Examples:
+            {
+                "name": "test",
+                "OPLevel": 1,
+                "arguments": [
+                    {
+                        "name": "test",
+                        "type": "StringArgumentType",
+                        "optional": False
+                    }
+                ],
+                "subs": [
+                    {
+                        "name": "test",
+                        "OPLevel": 1,
+                        "arguments": [],
+                        "subs": []
+                    }
+                ]
+            }
+
+        Returns:
+            The JSON representation of the command that will be sent to the server.
         """
         if not self.register:
             return
@@ -82,8 +102,10 @@ class ServerCommand:
         return data
 
     def update_cog_ref(self, cog: Cog) -> None:
-        """
-        Update the command's reference to the cog
+        """Update the command's reference to the cog
+
+        Args:
+            cog: The Cog object that the command belongs to
         """
         self.cog = cog
 
@@ -92,13 +114,12 @@ class ServerCommand:
                 sub.cog = cog
 
     def sub(self, **kwargs) -> Callable:
-        """
-        Registers a subcommand for the commnad.
+        """Registers a subcommand for the commnad.
+
         Works similarly to registering a normal command,
         See `command`.
 
-        Example
-        --------
+        Examples:
             @command(name="command")
             async def _command(_ctx):
                 pass
@@ -107,12 +128,14 @@ class ServerCommand:
             async def _command_sub(_ctx):
                 pass
 
-        :param kwargs: The additional arguments when registering the command
-        :type kwargs: str
-        :return: A decorator that registers the subcommand
-        :rtype: Callable
+        Args:
+            **kwargs: The additional arguments to use for building the subcommand
+
+        Returns:
+            A decorator that will convert a coroutine into a subcommand for this command
         """
-        def decorator(func):
+
+        def decorator(func) -> ServerCommand:
             sub_command = ServerCommand(func, parent=self, **kwargs)
             self.subs[sub_command.name] = sub_command
 
@@ -120,17 +143,17 @@ class ServerCommand:
 
         return decorator
 
-    def create_context(self, server: MinecraftServer, bot: LiteBot, data: dict):
-        """
-        Create the context for the command
-        :param server: The server that the command is being invoked from
-        :type server: MinecraftServer
-        :param bot: The bot object
-        :type bot: LiteBot
-        :param data: The data that is being used to create the context
-        :type data: dict
-        :return: The created context for the command's execution
-        :rtype: ServerCommandContext
+    def create_context(self, server: MinecraftServer, bot: LiteBot, data: dict) -> ServerCommandContext:
+        """Create the context object for this command's execution
+
+        Args:
+            server: The server that this command is being executed from
+            bot: The Bot object
+            data: The data for the command's execution, essentially the arguments that
+                were provided to the command
+
+        Returns:
+            The command's execution context
         """
         cmd_args = {}
         full_args = data.get("args")
@@ -146,12 +169,11 @@ class ServerCommand:
         return ctx
 
     async def invoke(self, ctx: ServerCommandContext, args: List[Any]) -> None:
-        """
-        Invokes the command
-        :param ctx: The server that the command is being invoked to
-        :type ctx: ServerCommandContext
-        :param args: The arguments for the command
-        :type args: List[str]
+        """Invoke the command
+
+        Args:
+            ctx: The context to invoke the command with
+            args: The arguments that were provided for the command
         """
         if self.cog:
             await self.callback(self.cog, ctx, *args)
@@ -195,6 +217,7 @@ class ServerCommand:
 
         return args, suggestors, arg_types
 
+
 def command(**kwargs) -> Callable:
     """
     A decorator that will convert a function into
@@ -202,9 +225,7 @@ def command(**kwargs) -> Callable:
     register the command. This can only be used inside of a cog!
     For registering without a cog, see `LiteBot.server_command`
 
-    Example
-    --------
-    .. code-block :: python3
+    Examples:
         # Note that if `name` overrides the function name, which will be the default name
         @command(name="test")
         async def command(_ctx, arg1):
@@ -215,12 +236,14 @@ def command(**kwargs) -> Callable:
 
             await _ctx.send("We executed the command!")
 
-    :param kwargs: The additional arguments when registering the command
-    :type kwargs: str
-    :return: A decorator that registers the command
-    :rtype: Callable
+    Args:
+        **kwargs: The additional arguments to use for building the subcommand
+
+    Returns:
+        A decorator that will convert the coroutine into a ServerCommand object
     """
-    def decorator(func):
+
+    def decorator(func) -> ServerCommand:
         return ServerCommand(func, **kwargs)
 
     return decorator

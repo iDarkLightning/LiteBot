@@ -20,14 +20,14 @@ def get_logger(name: str) -> logging.Logger:
     Gets a logger with correct formatting
     Includes stream handlers and file handler handlers
 
-    Example Format
-    ---------------
+    Example Format:
         2021-03-05 20:01:18,504 [MainThread/INFO]: Message
 
-    :param name: The name of the logger
-    :type name: str
-    :return: A logger object
-    :rtype: logging.Logger
+    Args:
+        The name of the logger
+
+    Returns:
+        A logger object
     """
     logger = logging.getLogger(name)
 
@@ -43,16 +43,13 @@ def get_logger(name: str) -> logging.Logger:
 
 def set_logger(logger: logging.Logger) -> None:
     """
-    Removes all other loggers, and adds
-    stream_handler and file_handler to the given logger
+    Removes all other loggers, and adds stream_handler and file_handler to the given logger
 
-    This is being used for sanic logging, because
-    for some weird reason sanic does not allow you
-    to pass in a custom logging object. Instead, you have
-    to modify their logger, or use logging.dictConfig.
+    This is being used for sanic logging, because for some weird reason sanic does not allow you
+    to pass in a custom logging object. Instead, you have to modify their logger, or use logging.dictConfig.
 
-    :param logger: The logger object to modify
-    :type logger: logging.Logger
+    Args:
+        The logger object to modify
     """
 
     for handler in logger.handlers:
@@ -62,11 +59,10 @@ def set_logger(logger: logging.Logger) -> None:
 
 def set_access_logger(logger: logging.Logger) -> None:
     """
-    Does basically the same thing as set_logger
-    but for the access_logger, because it needs different formatting
+    Does basically the same thing as set_logger but for the access_logger, because it needs different formatting
 
-    :param logger: The access logger to modify
-    :type logger: logging.Logger
+    Args:
+        The access logger to modify
     """
     for handler in logger.handlers:
         logger.removeHandler(handler)
