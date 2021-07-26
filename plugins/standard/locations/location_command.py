@@ -114,7 +114,7 @@ class LocationCommand(Cog):
         t.add_component(text=player.dimension, color=Colors.AQUA)
 
         locations = [l for l in Location.objects() if l.tolerance is not None]
-        distances = {l.name: calculate_3d_distance(l.coordinates, player.get_block_pos()) for l in locations}
+        distances = {l.name: calculate_3d_distance(l.coordinates, player.block_pos) for l in locations}
 
         t = self._add_distances(distances, t)
         await ctx.server.send_message(text=t)
