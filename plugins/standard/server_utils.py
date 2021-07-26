@@ -13,8 +13,8 @@ from litebot.core import Cog, Context
 from litebot.errors import ServerNotRunningCarpet, ServerConnectionFailed
 from litebot.core.minecraft import MinecraftServer
 from litebot.utils.embeds import SuccessEmbed, ErrorEmbed
-from litebot.utils.fmt_strings import CODE_BLOCK
-from litebot.utils.misc import check_role
+from litebot.utils.markdown import CODE_BLOCK
+from litebot.utils.role_utils import check_role
 
 
 def get_server(ctx: commands.Context, name: str) -> MinecraftServer:

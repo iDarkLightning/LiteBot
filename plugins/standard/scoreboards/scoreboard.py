@@ -5,7 +5,7 @@ from typing import Optional
 from discord.ext import commands, tasks
 from litebot.core import Cog, Context
 from litebot.errors import ServerConnectionFailed
-from litebot.utils.fmt_strings import CODE_BLOCK
+from litebot.utils.markdown import CODE_BLOCK
 from litebot.utils.requests import fetch
 from plugins.standard.scoreboards.utils import ScoreboardFlag, ScoreboardFlags, scoreboard_image
 

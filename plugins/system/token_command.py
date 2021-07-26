@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from litebot.core import Cog
 from litebot.utils import embeds
-from litebot.utils.fmt_strings import CODE_BLOCK
+from litebot.utils.markdown import CODE_BLOCK
 
 
 class TokenCommand(Cog, required=True):

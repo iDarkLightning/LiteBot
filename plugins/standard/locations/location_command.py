@@ -7,7 +7,7 @@ from litebot.core import Cog
 from litebot.core.minecraft import ServerCommandContext, Text, Colors, commands, Player
 from litebot.core.minecraft.commands.arguments import StringArgumentType, BlockPosArgumentType, DimensionArgumentType, \
     IntegerArgumentType, PlayerArgumentType
-from litebot.utils.data_manip import snakify
+from litebot.utils.string_utils import snakify
 from plugins.standard.locations.location_model import Location
 from plugins.standard.locations.utils import LocationSuggester, calculate_3d_distance, calculate_2d_distance
 

@@ -12,18 +12,3 @@ def check_role(member: discord.Member, role_ids: List[int]) -> bool:
     """
     return any(role in [get(member.guild.roles, id=role) for role in role_ids] for role in member.roles)
 
-class Toggleable:
-    """
-    A class letting you toggle true or false using a context manager
-    """
-    def __init__(self):
-        self._val = False
-
-    def __enter__(self):
-        self._val = True
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._val = False
-
-    def __bool__(self):
-        return self._val

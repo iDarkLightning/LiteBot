@@ -2,7 +2,7 @@ from discord_components import Button, ButtonStyle, InteractionType
 
 from litebot.core.context import Context
 from litebot.utils.embeds import ErrorEmbed, InfoEmbed
-from plugins.shared.utils.timer import Timer
+from litebot.utils.timer import Timer
 from plugins.standard.panel.embeds import PanelEmbed
 
 

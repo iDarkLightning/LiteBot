@@ -7,7 +7,7 @@ from datetime import datetime
 
 from litebot.core import Cog
 from litebot.utils import embeds
-from litebot.utils.data_manip import split_string
+from litebot.utils.string_utils import split_string
 from litebot.utils.menus import CodeBlockMenu
 
 CHAR_LIMIT = 1500

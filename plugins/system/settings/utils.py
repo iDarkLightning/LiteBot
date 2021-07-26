@@ -4,7 +4,7 @@ from typing import Union
 from discord.ext import commands
 
 from litebot.core.context import Context
-from litebot.utils.fmt_strings import CODE_BLOCK
+from litebot.utils.markdown import CODE_BLOCK
 
 class JSONConverter(commands.Converter):
     """

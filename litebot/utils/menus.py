@@ -2,7 +2,7 @@ from typing import List
 from discord.ext import menus, commands
 from discord.utils import get
 from litebot.utils import embeds
-from litebot.utils.fmt_strings import CODE_BLOCK
+from litebot.utils.markdown import CODE_BLOCK
 
 MENU_TIMEOUT = 30.0
 PREVIOUS_EMOJI = "⬆️"

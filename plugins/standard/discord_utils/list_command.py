@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from litebot.core import Cog
-from litebot.utils.data_manip import split_string
+from litebot.utils.string_utils import split_string
 from litebot.utils.embeds import InfoEmbed
 from litebot.utils.menus import DescriptionMenu
 from plugins.standard.discord_utils.utils import RoleConverter

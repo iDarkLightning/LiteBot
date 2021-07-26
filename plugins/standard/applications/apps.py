@@ -14,7 +14,7 @@ from litebot.core.context import Context
 from litebot.errors import TicketNotFound
 from litebot.utils.tracking_model import TrackedEvent
 from litebot.utils import embeds
-from litebot.utils.misc import Toggleable
+from litebot.utils.toggleable import Toggleable
 from plugins.standard.applications.application_model import Application
 from plugins.standard.applications.embeds import VoteResultsEmbed
 from plugins.standard.applications.utils import TicketActions, TicketAcceptInfo

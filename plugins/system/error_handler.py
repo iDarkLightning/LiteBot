@@ -6,7 +6,7 @@ from litebot.core import Cog
 from litebot.core.context import Context
 from litebot.errors import ServerNotFound, ServerConnectionFailed
 from litebot.utils.embeds import ErrorEmbed
-from litebot.utils.fmt_strings import CODE_BLOCK
+from litebot.utils.markdown import CODE_BLOCK
 
 LINE_BREAK = "\n"
 ISSUE_URL = "https://github.com/iDarkLightning/LiteBot/issues"

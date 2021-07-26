@@ -1,6 +1,6 @@
-from litebot.utils.data_manip import split_string
+from litebot.utils.string_utils import split_string
 from litebot.utils.embeds import InfoEmbed
-from litebot.utils.fmt_strings import CODE_BLOCK
+from litebot.utils.markdown import CODE_BLOCK
 
 
 class PanelEmbed(InfoEmbed):
