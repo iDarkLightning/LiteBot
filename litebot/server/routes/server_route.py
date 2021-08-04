@@ -44,24 +44,3 @@ async def _websocket(request: Request, socket):
         except (KeyError, json.JSONDecodeError, ServerNotFound):
             await socket.send(json.dumps({"error": "Invalid Data!"}))
 
-@blueprint.websocket("/host")
-async def _websocket_host(request: Request, socket):
-    """A WebSocket route at /host that is used by the server host to connect with the bot.
-
-    Follows the same protocol as the websocket route at / (see above)
-    """
-    async for message in socket:
-        try:
-            data: dict = json.loads(message)
-            payload = validate_jwt(data["auth"], request.app.config.BOT_INSTANCE.config["api_secret"])
-            server = request.app.config.BOT_INSTANCE.servers[payload["server_name"]]
-
-            if not server.host_connected:
-                await server.connect_host(socket)
-            else:
-                await server.dispatch(payload["action"], data)
-        except AuthFailure:
-            await socket.close(reason="Invalid Authorization Token!")
-        except (KeyError, json.JSONDecodeError, ServerNotFound) as e:
-            await socket.send(json.dumps({"error": "Invalid Data!"}))
-

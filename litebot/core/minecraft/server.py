@@ -81,8 +81,6 @@ class MinecraftServer:
         if self.bot_instance.using_lta:
             self._server_connection: Optional[WebSocketCommonProtocol] = None
 
-        self._host_connection: Optional[WebSocketCommonProtocol] = None
-
         try:
             self._has_valid_addr = bool(gethostbyname(self._addr))
         except gaierror:
@@ -153,14 +151,6 @@ class MinecraftServer:
         """
         return bool(self._server_connection) and self._server_connection.open
 
-    @property
-    def host_connected(self):
-        """
-        Returns:
-            Whether or not the server is connected via LiteHost
-        """
-        return bool(self._host_connection) and self._host_connection.open
-
     async def connect_server(self, socket: WebSocketCommonProtocol):
         """
         Connect the server's websocket connection to LiteBot-Mod
@@ -172,16 +162,6 @@ class MinecraftServer:
         self.bot_instance.logger.info(f"WebSocket connection established to {self.name}")
 
         await self.send_command_tree()
-
-    async def connect_host(self, socket: WebSocketCommonProtocol):
-        """
-        Connect the server's websocket connection to LiteHost
-
-        Args:
-            socket: The socket object being used to connect
-        """
-        self._host_connection = socket
-        self.bot_instance.logger.info(f"WebSocket connection established to host for {self.name}")
 
     def status(self) -> QueryResponse:
         """Get the server status
@@ -222,54 +202,6 @@ class MinecraftServer:
         mspt = round(float(res.split()[1]), 1)
         tps = 20.0 if mspt <= 50.0 else 1000 / mspt
         return mspt, round(float(tps), 1)
-
-    async def start(self) -> Optional[bool]:
-        """
-        Starts the server
-        """
-        if not self.host_connected:
-            raise ServerConnectionFailed
-
-        server_online = False
-
-        while not server_online:
-            await self._host_connection.send(json.dumps({
-                "action": "start"
-            }))
-            server_online = self.status().online
-            await asyncio.sleep(2)
-
-        return server_online
-
-    async def kill(self) -> Optional[bool]:
-        """
-        Kills the server
-        """
-        if not self.host_connected:
-            raise ServerConnectionFailed
-
-        server_online = True
-
-        while server_online:
-            await self._host_connection.send(json.dumps({
-                "action": "kill"
-            }))
-            server_online = self.status().online
-            await asyncio.sleep(2)
-
-        return server_online
-
-    async def restart(self):
-        """
-        Restarts the server
-        """
-
-        if not self.host_connected:
-            raise ServerConnectionFailed
-
-        await self._host_connection.send(json.dumps({
-            "action": "restart"
-        }))
 
     async def stop(self) -> bool:
         """
@@ -420,7 +352,7 @@ class MinecraftServer:
         if resp:
             return resp
 
-    async def send_message(self, text: Text, op_only: Optional[bool] = False, player: Optional[Player] = None) -> None:
+    async def send_message(self, text: Text, *, op_only: Optional[bool] = False, player: Optional[Player] = None) -> None:
         """
         Sends a system message to the server, only works if server is running LTA
 
