@@ -12,6 +12,7 @@ from discord.errors import NotFound
 from websockets import WebSocketCommonProtocol
 
 from litebot.errors import ServerConnectionFailed, ServerNotFound, ServerNotRunningCarpet
+from .rpc import rpc
 from .commands.context import ServerEventContext, RPCContext
 from .commands.payload import Payload
 from .player import Player
@@ -244,6 +245,10 @@ class MinecraftServer:
         ctx = command.create_context(self, self.bot_instance, data)
 
         try:
+            for check in command.checks:
+                if not check(ctx):
+                    return await self.send_message(Text.error_message("You are not authorized to run this command!"))
+
             await ctx.invoke()
             await self._server_connection.send(json.dumps({
                 "name": "server_command_after_invoke",
@@ -277,18 +282,22 @@ class MinecraftServer:
             The result of the RPC method
         """
 
-        handler = self.bot_instance.rpc_handlers[data["name"]]
+        if not (handler := self.bot_instance.rpc_handlers.get(
+                data["name"],
+                [getattr(self, m) for m in dir(self) if hasattr(getattr(self, m), "__rpc_handler__") and getattr(self, m).__name__ == data["name"]][0]
+        )):
+            return
+
         ctx = RPCContext(self, self.bot_instance, data)
         return await handler(ctx)
 
-    async def recv_message(self, message: str) -> None:
-        """Sends a given message to the server's bridge channel
+    @rpc(name="suggester")
+    async def fetch_suggestions(self, ctx: RPCContext):
+        command = self.bot_instance.server_commands[ctx.data["args"]["command_name"]]
+        cmd_ctx = command.create_context(ctx.server, self.bot_instance, ctx.data)
 
-        Args:
-            message: The message to send to the server's bridge channel
-        """
-
-        await self.bridge_channel.send(message)
+        suggestor = command.suggestors[ctx.data["args"]["arg_name"]]()
+        return await suggestor.suggest(cmd_ctx)
 
     async def send_command_tree(self):
         """Builds and sends the command tree to the server if the server is connected
@@ -298,7 +307,8 @@ class MinecraftServer:
 
         await self._server_connection.send(json.dumps({
             "name": "server_command_registers",
-            "data": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent]
+            "data": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent and all(
+                [r(self.bot_instance, self) for r in s.requirements])]
         }))
 
     async def send_command(self, command: str) -> Optional[str]:
@@ -352,7 +362,8 @@ class MinecraftServer:
         if resp:
             return resp
 
-    async def send_message(self, text: Text, *, op_only: Optional[bool] = False, player: Optional[Player] = None) -> None:
+    async def send_message(self, text: Text, *, op_only: Optional[bool] = False,
+                           player: Optional[Player] = None) -> None:
         """
         Sends a system message to the server, only works if server is running LTA
 

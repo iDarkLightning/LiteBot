@@ -57,19 +57,20 @@ class CogMeta(DPYCogMeta):
                         if hasattr(command.callback, "__setting__"):
                             settings.add(command.callback.__setting__)
                     else:
-                        raise TypeError("Command in method {0}.{1!r} must be a _setting!".format(base, elem))
+                        raise TypeError("Command in method {0}.{1!r} must be a setting!".format(base, elem))
                 elif isinstance(value, ServerCommand):
                     command = value.root_parent
-                    if hasattr(command, "__setting__"):
+                    if hasattr(command, "__setting__") or new_cls.__cog_required__:
                         if is_static_meth:
                             raise TypeError("Command in method {0}.{1!r} must not be staticmethod.".format(base, elem))
                         if elem.startswith(("cog_", "bot_")):
                             raise TypeError(no_bot_cog.format(base, elem))
-                        value.__setting__ = command.__setting__
                         mc_commands[elem] = value
-                        settings.add(command.__setting__)
+                        if hasattr(command, "__setting__"):
+                            value.__setting__ = command.__setting__
+                            settings.add(command.__setting__)
                     else:
-                        raise TypeError("Command in method {0}.{1!r} must be a _setting!".format(base, elem))
+                        raise TypeError("Command in method {0}.{1!r} must be a setting!".format(base, elem))
                 elif isinstance(value, Loop):
                     if hasattr(value, "__setting__"):
                         settings.add(value.__setting__)
@@ -251,8 +252,11 @@ class Cog(DPYCog, metaclass=CogMeta):
                     raise e
 
         for command in self.__mc_commands__:
-            if command.__setting__.enabled:
-                command.op_level = command.__setting__.op_level
+            try:
+                if command.__setting__.enabled:
+                    command.op_level = command.__setting__.op_level
+                    bot.add_command(command)
+            except AttributeError:
                 bot.add_command(command)
 
         if cls.bot_check is not Cog.bot_check:

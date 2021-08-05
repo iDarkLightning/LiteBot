@@ -8,14 +8,12 @@ from plugins.system.error_handler import ErrorHandler
 from plugins.system.help_command import HelpCommand
 from plugins.system.settings.settings import Settings
 from plugins.system.admin import AdminCommands
-from plugins.system.suggester import Suggester
 from plugins.system.token_command import TokenCommand
 
 
 def setup(bot):
     bot.add_cog(Settings)
     bot.add_cog(AdminCommands)
-    bot.add_cog(Suggester)
     bot.add_cog(TokenCommand)
     bot.add_cog(HelpCommand)
     bot.add_cog(ErrorHandler)

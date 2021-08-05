@@ -28,6 +28,8 @@ class ServerCommand:
         self.parent = kwargs.get("parent")
         self.register = bool(kwargs.get("register")) if kwargs.get("register") is not None else True
         self.op_level = kwargs.get("op_level") or 0
+        self.checks: list[Callable] = []
+        self.requirements: list[Callable] = []
 
         self.arguments, self.suggestors, self.arg_types = self._build_args(func)
         self.subs: dict[str, ServerCommand] = {}
@@ -72,7 +74,8 @@ class ServerCommand:
                     {
                         "name": "test",
                         "type": "StringArgumentType",
-                        "optional": False
+                        "optional": False,
+                        "full": "test"
                     }
                 ],
                 "subs": [
@@ -80,7 +83,8 @@ class ServerCommand:
                         "name": "test",
                         "OPLevel": 1,
                         "arguments": [],
-                        "subs": []
+                        "subs": [],
+                        "full": "test.test"
                     }
                 ]
             }
@@ -91,7 +95,7 @@ class ServerCommand:
         if not self.register:
             return
 
-        data = {"name": self.name, "OPLevel": self.op_level, "arguments": self.arguments}
+        data = {"name": self.name, "OPLevel": self.op_level, "arguments": self.arguments, "full": self.full_name}
         subs = []
 
         for sub in self.subs.values():

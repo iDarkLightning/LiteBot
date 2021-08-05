@@ -71,6 +71,7 @@ class PluginManager:
         """
         for plugin in self.all_plugins.values():
             self._bot.settings_manager.add_plugin(plugin)
+            self._bot.logger.info(f"Loaded Plugin: {plugin.meta.name}")
 
             if hasattr(plugin.module, "requirements"):
                 reqs = getattr(plugin.module, "requirements")
