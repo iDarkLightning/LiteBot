@@ -14,9 +14,9 @@ if TYPE_CHECKING:
     from litebot.core.minecraft import MinecraftServer
 
 class BackupTypes(Enum):
-    MANUAL = "Manual"
-    WEEKLY = "Weekly"
-    DAILY = "Daily"
+    MANUAL = "manual"
+    WEEKLY = "weekly"
+    DAILY = "daily"
 
 def create_backup(server: MinecraftServer, backup_type: BackupTypes, info: str) -> tuple[str, str]:
     """
