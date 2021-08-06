@@ -10,6 +10,7 @@ from typing import Optional
 
 import aiohttp
 from discord import Message, Webhook, AsyncWebhookAdapter, AllowedMentions
+from discord.utils import escape_markdown
 
 from litebot.core import Cog
 from litebot.core.minecraft import MinecraftServer, Text, Colors, commands, ServerCommandContext, ServerEventContext, \
@@ -72,7 +73,7 @@ class ChatBridge(Cog):
             async with aiohttp.ClientSession() as session:
                 webhook = Webhook.from_url(ctx.setting.config["webhook_urls"][server.name], adapter=AsyncWebhookAdapter(session))
                 await webhook.send(
-                    payload.message,
+                    payload.message.replace(name, escape_markdown(name, as_needed=True, ignore_links=True)),
                     username=name,
                     avatar_url=pfp,
                     allowed_mentions=AllowedMentions(users=members, roles=False, everyone=False)
