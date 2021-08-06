@@ -229,13 +229,13 @@ class MinecraftServer:
             action: The action that will be dispatched
             data: The data for the dispatching the action
         """
-        meth = getattr(self, "dispatch_" + action, None)
+        meth = getattr(self, "_dispatch_" + action, None)
         if meth:
             return await meth(data)
 
         return await self.send_message(Text.op_message("LiteBot: Sent invalid action!"), op_only=True)
 
-    async def dispatch_command(self, data: dict):
+    async def _dispatch_command(self, data: dict):
         """Dispatches a command from the server
 
         Args:
@@ -258,7 +258,7 @@ class MinecraftServer:
             print(e)
             pass
 
-    async def dispatch_event(self, data: dict):
+    async def _dispatch_event(self, data: dict):
         """Dispatches an event from the server
 
         Args:
@@ -272,7 +272,7 @@ class MinecraftServer:
             args = (ctx.with_setting(event), payload) if hasattr(event, "__setting__") else (ctx, payload)
             asyncio.create_task(event(*args), name=f"{self.name}-event: {data['name']}")
 
-    async def dispatch_rpc(self, data: dict) -> Any:
+    async def _dispatch_rpc(self, data: dict) -> Any:
         """Executes an RPC method from the server
 
         Args:
@@ -305,10 +305,17 @@ class MinecraftServer:
         if not self.server_connected:
             return
 
+        data = []
+        for s in self.bot_instance.server_commands.values():
+            if s.parent:
+                continue
+
+            if all([await r(self.bot_instance, self) for r in s.requirements]):
+                data.append(s.build())
+
         await self._server_connection.send(json.dumps({
             "name": "server_command_registers",
-            "data": [s.build() for s in self.bot_instance.server_commands.values() if not s.parent and all(
-                [r(self.bot_instance, self) for r in s.requirements])]
+            "data": data
         }))
 
     async def send_command(self, command: str) -> Optional[str]:
@@ -390,3 +397,4 @@ class MinecraftServer:
             payload["player"] = player.uuid
 
         await self._server_connection.send(json.dumps({"name": "message", "data": payload}))
+
