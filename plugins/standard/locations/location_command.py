@@ -7,6 +7,7 @@ from litebot.core import Cog
 from litebot.core.minecraft import ServerCommandContext, Text, Colors, commands, Player
 from litebot.core.minecraft.commands.arguments import StringArgumentType, BlockPosArgumentType, DimensionArgumentType, \
     IntegerArgumentType, PlayerArgumentType
+from litebot.core.minecraft.commands.checks import check
 from litebot.utils.string_utils import snakify
 from plugins.standard.locations.location_model import Location
 from plugins.standard.locations.utils import LocationSuggester, calculate_3d_distance, calculate_2d_distance
@@ -96,6 +97,18 @@ class LocationCommand(Cog):
         location.delete()
 
         await ctx.send(text=Text().add_component(text=f"Removed the location {location.name}!", color=Colors.GREEN))
+
+    @check(lambda ctx: ctx.player.op_level >= 2)
+    @_location.sub(name="teleport")
+    async def _location_teleport(self, ctx: ServerCommandContext, name: LocationSuggester) -> None:
+        """
+        Teleport to a location
+        """
+        location = Location.objects(location_id=f"{ctx.server.name}_{name}").first()
+        x, y, z = location.coordinates
+        await ctx.server.send_command(f"tp {ctx.player} {x} {y} {z}")
+
+        await ctx.send(text=Text().add_component(text=f"Teleported to {name}", color=Colors.GRAY))
 
     @Cog.setting(name="Position Command", description="Get the position of a player!")
     @commands.command(name="pos")
