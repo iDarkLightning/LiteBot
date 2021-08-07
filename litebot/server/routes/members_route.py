@@ -1,10 +1,28 @@
 import discord
+from discord import Guild, Role
+from discord.utils import get
 from sanic import Blueprint, Request, json
 
 blueprint = Blueprint("members", url_prefix="/members")
 
+MEMBERS_QUERY = "/role/<id:int>"
 ROLES_QUERY = "/roles/<id:int>"
 IN_GUILD_QUERY = "/<id:int>"
+
+@blueprint.route(MEMBERS_QUERY, methods=["GET"])
+async def _members(request: Request, id: int):
+    """Get all members with a role
+    """
+    guild: Guild = await request.app.config.BOT_INSTANCE.guild()
+    role: Role = get(guild.roles, id=id)
+
+    return json([
+        {
+            "name": member.name,
+            "id": member.id,
+            "discriminator": member.discriminator
+        } for member in role.members
+    ])
 
 @blueprint.route(IN_GUILD_QUERY, methods=["GET"])
 async def in_guild(request: Request, id: int):

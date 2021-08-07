@@ -27,7 +27,6 @@ def _gen_config(bot):
 
 class ChatBridge(Cog):
     SKIN_AVATAR = "https://crafatar.com/avatars/"
-    MOJANG_API = "https://sessionserver.mojang.com/session/minecraft/profile/"
 
     def __init__(self, bot, plugin):
         self._uuid_name = {}
