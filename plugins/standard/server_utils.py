@@ -8,6 +8,7 @@ from datetime import datetime
 
 import discord
 from discord.ext import commands
+from discord.utils import escape_markdown
 
 from litebot.core import Cog, Context
 from litebot.errors import ServerNotRunningCarpet, ServerConnectionFailed
@@ -57,7 +58,7 @@ class ServerUtils(Cog):
 
             if len(status.players):
                 embed.add_field(name=f"Online Players ({status.players.online}/{status.players.max})",
-                                value=status.players, inline=False)
+                                value=', '.join([escape_markdown(p) for p in status.players]), inline=False)
 
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.set_footer(text=f"Requested by: {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
