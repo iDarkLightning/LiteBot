@@ -1,7 +1,0 @@
-discord.py~=1.7.1
-discord-components
-pyjwt~=2.0.0
-sanic~=21.3
-sanic-cors
-https://github.com/Rapptz/discord-ext-menus/archive/309c70222eec33acacb8c21bbb0fbe9bc57de661.tar.gz#egg=discord-ext-menus
-mongoengine~=0.23.0

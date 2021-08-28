@@ -1,0 +1,10 @@
+{
+  "name": "litebot",
+  "version": "4.0.0",
+  "description": "A discord minecraft bot with various utilities",
+  "main": "index.js",
+  "repository": "https://github.com/iDarkLightning/LiteBot.git",
+  "author": "iDarkLightning",
+  "license": "MIT",
+  "private": true
+}
