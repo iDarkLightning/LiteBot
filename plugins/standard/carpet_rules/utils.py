@@ -8,13 +8,15 @@ from PIL import Image, ImageDraw, ImageFont
 JAVA_NUMERIC_PATTERN = re.compile(r"([-+]?\d*\.?\d+(?:[eE][-+]?\d+[dDfF])?)")
 
 
-def clean_numeric_value(value):
+def clean_values(value):
     """
     Given a java numeric value, converts it to python number
     """
     match = JAVA_NUMERIC_PATTERN.match(value)
     if match:
         return str(float(match.group(1).lower().removesuffix("d").removesuffix("f")))
+    if isinstance(value, str):
+        return value.lower()
     return value
 
 

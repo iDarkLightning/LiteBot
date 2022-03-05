@@ -7,7 +7,7 @@ from litebot.core.minecraft import MinecraftServer
 from litebot.errors import ServerConnectionFailed
 from litebot.utils.requests import fetch
 from plugins.standard.carpet_rules import utils
-from plugins.standard.carpet_rules.utils import clean_numeric_value
+from plugins.standard.carpet_rules.utils import clean_values
 from plugins.standard.scoreboards import Scoreboard
 from plugins.standard.server_utils import get_server
 
@@ -44,9 +44,12 @@ class CarpetRulesCommand(Cog):
         }
 
         for name, val in json_rules.items():
-            default = self._all_rules[name]
-            str_val = clean_numeric_value(val)
-            str_default = clean_numeric_value(default)
+            try:
+                default = self._all_rules[name]
+            except KeyError:
+                default = "UNKNOWN"
+            str_val = clean_values(val)
+            str_default = clean_values(default)
             if str_val != str_default:
                 modified_rules["name"].append(name)
                 modified_rules["value"].append(str_val)
